@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aavin Fresh Milk - Delivery</title>
+<meta name="theme-color" content="#1E5F63">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Aavin Delivery">
+<link rel="manifest" id="manifestLink">
+<link rel="apple-touch-icon" id="appleIconLink">
+<link rel="icon" id="faviconLink">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{
+  --cream:#FBF8F2;
+  --milk:#FFFFFF;
+  --ink:#1F2E33;
+  --teal:#1E5F63;
+  --teal-dark:#123B3E;
+  --teal-light:#DCEEEE;
+  --clay:#D98E5A;
+  --clay-light:#FBE8D6;
+  --good:#2E7D4F;
+  --good-bg:#E4F5EA;
+  --bad:#C24B3D;
+  --bad-bg:#FCE7E3;
+  --line:#E8E2D4;
+  --shadow:0 2px 10px rgba(31,46,51,0.08);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;overscroll-behavior:none;}
+body{
+  font-family:'Poppins','Noto Sans Tamil',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  display:flex;
+  flex-direction:column;
+  min-height:100vh;
+}
+.ta{font-family:'Noto Sans Tamil','Poppins',sans-serif;}
+header.topbar{
+  background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);
+  color:var(--milk);
+  padding:18px 18px 22px;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+header.topbar::after{
+  content:"";
+  position:absolute; right:-30px; top:-30px;
+  width:140px; height:140px;
+  background:rgba(255,255,255,0.07);
+  border-radius:50%;
+}
+header.topbar .brand{
+  font-size:13px; opacity:0.85; letter-spacing:0.5px; font-weight:500;
+}
+header.topbar h1{
+  margin:2px 0 0; font-size:21px; font-weight:700;
+}
+header.topbar .sub{
+  font-size:12.5px; opacity:0.8; margin-top:3px;
+}
+.device-pill{
+  position:absolute; top:16px; right:16px;
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff; font-size:11px; font-weight:600;
+  padding:4px 10px; border-radius:20px;
+  cursor:pointer;
+}
+main{flex:1; overflow-y:auto; padding:16px 14px 90px; -webkit-overflow-scrolling:touch;}
+.tab-panel{display:none; animation:fadeIn 0.2s ease;}
+.tab-panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+.card{
+  background:var(--milk);
+  border-radius:14px;
+  padding:14px;
+  box-shadow:var(--shadow);
+  margin-bottom:12px;
+  border:1px solid var(--line);
+}
+.section-title{
+  font-size:15px; font-weight:700; color:var(--teal-dark);
+  margin:4px 0 10px; display:flex; align-items:center; justify-content:space-between;
+}
+.section-title span.count{
+  font-size:11.5px; font-weight:600; color:var(--teal); background:var(--teal-light);
+  padding:2px 9px; border-radius:20px;
+}
+
+/* Buttons */
+.btn{
+  border:none; border-radius:11px; padding:11px 16px; font-weight:600; font-size:14px;
+  cursor:pointer; display:inline-flex; align-items:center; gap:6px; justify-content:center;
+  font-family:inherit; transition:transform 0.1s ease;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--teal); color:#fff;}
+.btn-clay{background:var(--clay); color:#fff;}
+.btn-outline{background:transparent; color:var(--teal); border:1.5px solid var(--teal);}
+.btn-wa{background:#25D366; color:#fff;}
+.btn-danger{background:var(--bad-bg); color:var(--bad);}
+.btn-block{width:100%;}
+.btn-sm{padding:7px 12px; font-size:12.5px; border-radius:9px;}
+.fab{
+  position:fixed; bottom:82px; right:18px;
+  width:52px; height:52px; border-radius:50%;
+  background:var(--clay); color:#fff; font-size:26px;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 4px 14px rgba(217,142,90,0.5); border:none; cursor:pointer; z-index:20;
+}
+
+/* Bottom nav */
+nav.bottombar{
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--milk); border-top:1px solid var(--line);
+  display:flex; z-index:30;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+nav.bottombar button{
+  flex:1; background:none; border:none; padding:9px 2px 8px;
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  color:#8A9A9D; font-family:inherit; cursor:pointer;
+}
+nav.bottombar button .ic{font-size:20px;}
+nav.bottombar button .lb{font-size:10.5px; font-weight:600;}
+nav.bottombar button.active{color:var(--teal);}
+nav.bottombar button.active .ic{transform:translateY(-1px);}
+
+/* Product grid (POS style) */
+.prod-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.prod-tile{
+  background:var(--milk); border-radius:14px; border:1px solid var(--line);
+  padding:10px 8px; text-align:center; cursor:pointer; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.prod-tile .img-wrap{
+  width:56px; height:56px; border-radius:12px; background:var(--teal-light);
+  display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden;
+}
+.prod-tile .img-wrap img{width:100%; height:100%; object-fit:cover;}
+.prod-tile .pname{font-size:12px; font-weight:600; line-height:1.2;}
+.prod-tile .pprice{font-size:11.5px; color:var(--clay); font-weight:700;}
+.prod-tile.add-tile{border:2px dashed #C9BFA6; background:var(--clay-light); color:var(--clay);}
+.prod-tile.selected{border:2px solid var(--teal); background:var(--teal-light);}
+.qty-row{display:flex; align-items:center; justify-content:center; gap:8px; margin-top:2px;}
+.qty-btn{width:22px; height:22px; border-radius:6px; border:none; background:var(--teal); color:#fff; font-size:14px; line-height:1;}
+.qty-val{font-size:13px; font-weight:700; min-width:16px;}
+
+/* List rows */
+.list-row{
+  display:flex; align-items:center; gap:10px; padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+.list-row:last-child{border-bottom:none;}
+.avatar{
+  width:40px; height:40px; border-radius:50%; background:var(--teal-light); color:var(--teal-dark);
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0;
+}
+.list-main{flex:1; min-width:0;}
+.list-main .name{font-weight:600; font-size:14px;}
+.list-main .meta{font-size:11.5px; color:#7C8B8E; margin-top:1px;}
+.balance-tag{font-size:12px; font-weight:700; padding:3px 9px; border-radius:20px; white-space:nowrap;}
+.balance-good{background:var(--good-bg); color:var(--good);}
+.balance-bad{background:var(--bad-bg); color:var(--bad);}
+.balance-zero{background:#EEE; color:#888;}
+
+/* Forms */
+.field{margin-bottom:13px;}
+.field label{display:block; font-size:12.5px; font-weight:600; color:var(--teal-dark); margin-bottom:5px;}
+.field input, .field select, .field textarea{
+  width:100%; padding:11px 12px; border-radius:10px; border:1.5px solid var(--line);
+  font-size:14px; font-family:inherit; background:var(--milk); color:var(--ink);
+}
+.field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--teal);}
+.field textarea{resize:vertical; min-height:60px;}
+.row2{display:flex; gap:10px;}
+.row2 .field{flex:1;}
+
+/* Modal / sheet */
+.overlay{
+  position:fixed; inset:0; background:rgba(18,30,32,0.45); z-index:50;
+  display:none; align-items:flex-end; justify-content:center;
+}
+.overlay.open{display:flex;}
+.sheet{
+  background:var(--cream); width:100%; max-width:480px; border-radius:20px 20px 0 0;
+  max-height:88vh; overflow-y:auto; padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+  animation:slideUp 0.22s ease;
+}
+@keyframes slideUp{from{transform:translateY(30px); opacity:0.6;} to{transform:translateY(0); opacity:1;}}
+.sheet-handle{width:38px; height:4px; background:#D9D2C0; border-radius:4px; margin:0 auto 12px;}
+.sheet-title{font-size:16.5px; font-weight:700; color:var(--teal-dark); margin-bottom:14px;}
+
+/* Balance banner in delivery/subscription form */
+.bal-banner{
+  display:flex; justify-content:space-between; background:var(--teal-light); border-radius:12px;
+  padding:11px 14px; margin-bottom:13px; font-size:13px;
+}
+.bal-banner .lbl{color:var(--teal-dark); font-weight:600;}
+.bal-banner .val{font-weight:700;}
+.edit-banner{
+  background:var(--clay-light); color:var(--clay); font-weight:700; font-size:12.5px;
+  padding:9px 12px; border-radius:10px; margin-bottom:12px;
+}
+
+.total-strip{
+  display:flex; justify-content:space-between; align-items:center;
+  background:var(--teal-dark); color:#fff; border-radius:12px; padding:13px 16px; margin:14px 0;
+}
+.total-strip .t-label{font-size:12.5px; opacity:0.85;}
+.total-strip .t-val{font-size:20px; font-weight:800;}
+
+.empty-state{text-align:center; padding:40px 20px; color:#9AA8AA;}
+.empty-state .ic{font-size:38px; margin-bottom:8px;}
+.empty-state .msg{font-size:13.5px;}
+
+.search-bar{
+  display:flex; align-items:center; gap:8px; background:var(--milk); border:1.5px solid var(--line);
+  border-radius:12px; padding:9px 12px; margin-bottom:12px;
+}
+.search-bar input{border:none; outline:none; flex:1; font-size:13.5px; font-family:inherit; background:transparent;}
+
+.toast{
+  position:fixed; bottom:100px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:#fff; padding:10px 18px; border-radius:24px;
+  font-size:13px; z-index:80; opacity:0; transition:opacity 0.25s ease; pointer-events:none;
+  max-width:88%; text-align:center;
+}
+.toast.show{opacity:1;}
+
+.icon-picker{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
+.visually-hidden-file{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+.field-hint{font-size:11px; color:#9AA8AA; margin-top:6px; line-height:1.4;}
+.icon-opt{
+  width:38px; height:38px; border-radius:10px; background:var(--teal-light); border:2px solid transparent;
+  display:flex; align-items:center; justify-content:center; font-size:19px; cursor:pointer;
+}
+.icon-opt.sel{border-color:var(--teal);}
+
+.day-summary-row{display:flex; justify-content:space-between; padding:8px 0; font-size:13px; border-bottom:1px dashed var(--line);}
+.day-summary-row:last-child{border-bottom:none;}
+.day-summary-row .k{color:#7C8B8E;}
+.day-summary-row .v{font-weight:700;}
+
+.report-row{display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--line);}
+.report-row:last-child{border-bottom:none;}
+.report-row .rname{font-size:13.5px; font-weight:600;}
+.report-row .rmeta{font-size:11.5px; color:#7C8B8E; margin-top:1px;}
+.report-row .rval{font-size:14px; font-weight:700; color:var(--teal-dark);}
+
+.sync-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px;}
+.sync-ok{background:#5FE39A;}
+.sync-off{background:#F0A85A;}
+
+.settings-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line);}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .lab{font-size:13.5px; font-weight:600;}
+.settings-row .desc{font-size:11.5px; color:#7C8B8E; margin-top:2px;}
+
+::-webkit-scrollbar{width:0; height:0;}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">📱 <span id="deviceLabel">Set device</span></div>
+  <div class="brand">AAVIN FRESH MILK STALL · 1958</div>
+  <h1>Delivery Manager</h1>
+  <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncText">Not signed in to Drive</span></div>
+</header>
+
+<main>
+
+  <!-- DELIVERY TAB -->
+  <section class="tab-panel active" id="tab-delivery">
+    <div class="section-title">இன்றைய டெலிவரி <span class="count" id="todayCount">0</span></div>
+    <div class="card" id="deliveryFormCard">
+      <div class="edit-banner" id="delFormMode" style="display:none">✎ Editing entry — save to update, or cancel below</div>
+      <div class="field">
+        <label>Customer / வாடிக்கையாளர்</label>
+        <select id="delCustomer" onchange="onDeliveryCustomerChange()"><option value="">-- Select --</option></select>
+      </div>
+      <div class="bal-banner" id="delBalBanner" style="display:none">
+        <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">₹0</div></div>
+        <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">₹0</div></div>
+      </div>
+      <div class="field">
+        <label>Products / பொருட்கள்</label>
+        <div class="prod-grid" id="delProdGrid"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="delDate">
+        </div>
+        <div class="field">
+          <label>Time</label>
+          <input type="time" id="delTime">
+        </div>
+      </div>
+      <div class="total-strip">
+        <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">₹0</div></div>
+        <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">₹0</div></div>
+      </div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">💾 Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">📲 Save &amp; WhatsApp</button>
+      </div>
+      <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="delCancelEditBtn" onclick="cancelDeliveryEdit()">Cancel edit</button>
+    </div>
+    <div class="section-title">Recent Entries</div>
+    <div class="card"><div id="deliveryList"></div></div>
+  </section>
+
+  <!-- PRODUCTS TAB -->
+  <section class="tab-panel" id="tab-products">
+    <div class="section-title">Products <span class="count" id="prodCount">0</span></div>
+    <div class="prod-grid" id="productGrid"></div>
+  </section>
+
+  <!-- CUSTOMERS TAB -->
+  <section class="tab-panel" id="tab-customers">
+    <div class="section-title">Customers <span class="count" id="custCount">0</span></div>
+    <div class="search-bar"><span>🔍</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
+    <div class="card"><div id="customerList"></div></div>
+  </section>
+
+  <!-- SUBSCRIPTION TAB -->
+  <section class="tab-panel" id="tab-subscription">
+    <div class="section-title">Subscription</div>
+    <div class="card">
+      <div class="edit-banner" id="subFormMode" style="display:none">✎ Editing entry — save to update, or cancel below</div>
+      <div class="field">
+        <label>Entry type</label>
+        <select id="subType" onchange="onSubTypeChange()">
+          <option value="topup">Top-up (adds to balance)</option>
+          <option value="charge">Monthly delivery charge (record only, does not change balance)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Customer</label>
+        <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
+      </div>
+      <div class="bal-banner" id="subBalBanner" style="display:none">
+        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">₹0</div></div>
+        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">₹0</div></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Date</label><input type="date" id="subDate"></div>
+        <div class="field"><label id="subAmountLbl">Amount (₹)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+      </div>
+      <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">💾 Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">📲 Save &amp; WhatsApp</button>
+      </div>
+      <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="subCancelEditBtn" onclick="cancelSubscriptionEdit()">Cancel edit</button>
+    </div>
+    <div class="section-title">Recent Entries</div>
+    <div class="card"><div id="subscriptionList"></div></div>
+  </section>
+
+  <!-- REPORTS / SETTINGS TAB -->
+  <section class="tab-panel" id="tab-settings">
+    <div class="section-title">Today's Summary</div>
+    <div class="card">
+      <div id="daySummary"></div>
+      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="shareDaySummary()">📲 Share Day Summary to WhatsApp</button>
+    </div>
+
+    <div class="section-title">Reports</div>
+    <div class="card">
+      <div style="display:flex; gap:8px; margin-bottom:12px">
+        <button class="btn btn-sm btn-primary" id="repBtnProduct" onclick="showReport('product')" style="flex:1">By Product</button>
+        <button class="btn btn-sm btn-outline" id="repBtnParty" onclick="showReport('party')" style="flex:1">By Party</button>
+      </div>
+      <div class="field" style="margin-bottom:10px">
+        <select id="repRange" onchange="renderReport()">
+          <option value="all">All time</option>
+          <option value="today">Today</option>
+          <option value="month">This month</option>
+        </select>
+      </div>
+      <div id="reportBody"></div>
+      <div style="display:flex; gap:8px; margin-top:12px">
+        <button class="btn btn-wa btn-block" onclick="shareFullReportWhatsApp()">📲 Share This Report</button>
+        <button class="btn btn-clay btn-block" onclick="downloadReportCSV()">⬇ Save as File</button>
+      </div>
+    </div>
+
+    <div class="section-title">This Device</div>
+    <div class="card">
+      <div class="field">
+        <label>Who is using this device?</label>
+        <select id="deviceRole" onchange="setDeviceRole(this.value)">
+          <option value="">-- Select --</option>
+          <option value="Nesam">My phone (Nesam)</option>
+          <option value="Wife">Wife's phone</option>
+          <option value="Shop">Shop tablet</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="section-title">Google Drive Sync</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="lab">Sync status</div><div class="desc" id="driveStatusDesc">Not connected</div></div>
+        <button class="btn btn-sm btn-outline" id="driveConnectBtn" onclick="connectDrive()">Connect</button>
+      </div>
+      <div class="settings-row">
+        <div><div class="lab">Manual sync</div><div class="desc">Pull latest &amp; push your changes now</div></div>
+        <button class="btn btn-sm btn-primary" onclick="manualSync()">Sync Now</button>
+      </div>
+      <div class="settings-row" style="border-bottom:none">
+        <div class="desc" style="max-width:100%">Once connected on all 3 devices (same Google account), entries save instantly on this device and pull in automatically every ~40 seconds, or the moment you switch back into the app. Tap "Sync Now" any time for an immediate update.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Backup</div>
+    <div class="card">
+      <button class="btn btn-clay btn-block" style="margin-bottom:10px" onclick="exportExcel()">⬇ Export Excel Report</button>
+      <button class="btn btn-outline btn-block" onclick="exportWhatsAppBackup()">📤 Share Backup File via WhatsApp</button>
+    </div>
+  </section>
+
+</main>
+
+<nav class="bottombar">
+  <button class="active" onclick="showTab('delivery')" id="nav-delivery"><span class="ic">🧾</span><span class="lb">Delivery</span></button>
+  <button onclick="showTab('products')" id="nav-products"><span class="ic">🥛</span><span class="lb">Products</span></button>
+  <button onclick="showTab('customers')" id="nav-customers"><span class="ic">👥</span><span class="lb">Customers</span></button>
+  <button onclick="showTab('subscription')" id="nav-subscription"><span class="ic">💳</span><span class="lb">Subscription</span></button>
+  <button onclick="showTab('settings')" id="nav-settings"><span class="ic">⚙️</span><span class="lb">More</span></button>
+</nav>
+
+<button class="fab" id="fabBtn" onclick="openCustomerForm()">＋</button>
+
+<!-- Customer Add/Edit Sheet -->
+<div class="overlay" id="customerOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="custFormTitle">Add Customer</div>
+    <input type="hidden" id="custId">
+    <div class="field"><label>Name / பெயர்</label><input id="custName" placeholder="Customer name"></div>
+    <div class="field"><label>Phone / போன்</label><input id="custPhone" type="tel" placeholder="10-digit number"></div>
+    <div class="field"><label>Address / முகவரி</label><textarea id="custAddress" placeholder="Delivery address"></textarea></div>
+    <div class="field"><label>Opening balance (₹)</label><input id="custOpenBal" type="number" placeholder="0"></div>
+    <div style="display:flex; gap:10px; margin-top:6px">
+      <button class="btn btn-outline btn-block" onclick="closeOverlay('customerOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveCustomer()">Save</button>
+    </div>
+    <button class="btn btn-danger btn-block" style="margin-top:10px; display:none" id="custDeleteBtn" onclick="deleteCustomer()">Delete Customer</button>
+  </div>
+</div>
+
+<!-- Product Add/Edit Sheet -->
+<div class="overlay" id="productOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="prodFormTitle">Add Product</div>
+    <input type="hidden" id="prodId">
+    <div class="field"><label>Product name</label><input id="prodName" placeholder="e.g. Milk 500ml"></div>
+    <div class="field"><label>Price (₹)</label><input id="prodPrice" type="number" placeholder="0"></div>
+    <div class="field"><label>Unit</label><input id="prodUnit" placeholder="e.g. packet, litre, cup"></div>
+    <div class="field">
+      <label>Photo (optional)</label>
+      <input type="file" accept="image/*" id="prodPhotoInput" class="visually-hidden-file" onchange="onProdPhotoChange(event)">
+      <button type="button" class="btn btn-outline btn-sm" onclick="triggerPhotoPicker()">📷 Choose Photo</button>
+      <div class="field-hint">If nothing opens: this file must be hosted online (not opened from a Files app / WhatsApp preview) — open it in Chrome or Safari directly, or use an icon below instead.</div>
+      <div id="prodPhotoPreview" style="margin-top:8px"></div>
+    </div>
+    <div class="field">
+      <label>Or pick an icon</label>
+      <div class="icon-picker" id="iconPicker"></div>
+    </div>
+    <div style="display:flex; gap:10px; margin-top:6px">
+      <button class="btn btn-outline btn-block" onclick="closeOverlay('productOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-block" onclick="saveProduct()">Save</button>
+    </div>
+    <button class="btn btn-danger btn-block" style="margin-top:10px; display:none" id="prodDeleteBtn" onclick="deleteProduct()">Delete Product</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------------------------------------------------------
+   DATA LAYER
+--------------------------------------------------------------- */
+const DB_KEY = 'aavin_delivery_db_v1';
+const ICONS = ['🥛','🧈','🧀','🍶','🫙','🍼','🧃','🥣','🍵','🫖','🧉','🍦'];
+let db = loadDB();
+let selectedProdIcon = ICONS[0];
+let deliveryCart = {}; // productId -> qty
+let editingDeliveryId = null;
+let editingSubscriptionId = null;
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(DB_KEY);
+    if(raw) return JSON.parse(raw);
+  }catch(e){}
+  return { products: [], customers: [], subscriptions: [], deliveries: [], meta:{ deviceRole:'' } };
+}
+function saveDB(){
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+  scheduleAutoSync();
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function money(n){ n = Number(n)||0; return '₹' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function todayStr(){ const d = new Date(); return d.toISOString().slice(0,10); }
+function nowTimeStr(){ const d = new Date(); return d.toTimeString().slice(0,5); }
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ---------------------------------------------------------------
+   TAB NAVIGATION
+--------------------------------------------------------------- */
+function showTab(name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav.bottombar button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('fabBtn').style.display = (name==='customers') ? 'flex' : 'none';
+  if(name==='products') renderProducts();
+  if(name==='customers') renderCustomers();
+  if(name==='delivery') renderDeliveryTab();
+  if(name==='subscription') renderSubscriptionTab();
+  if(name==='settings') renderSettingsTab();
+}
+
+/* ---------------------------------------------------------------
+   PRODUCTS
+--------------------------------------------------------------- */
+function renderIconPicker(){
+  const el = document.getElementById('iconPicker');
+  el.innerHTML = ICONS.map(ic=>`<div class="icon-opt ${ic===selectedProdIcon?'sel':''}" onclick="pickIcon('${ic}')">${ic}</div>`).join('');
+}
+function pickIcon(ic){ selectedProdIcon = ic; document.getElementById('prodPhotoPreview').innerHTML=''; document.getElementById('prodPhotoPreview').dataset.img=''; document.getElementById('prodPhotoInput').value=''; renderIconPicker(); }
+function triggerPhotoPicker(){
+  const input = document.getElementById('prodPhotoInput');
+  try{
+    input.click();
+  }catch(err){
+    toast('Photo picker blocked — try opening this app in Chrome/Safari, not a preview window');
+  }
+}
+function onProdPhotoChange(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const img = new Image();
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const size = 160;
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const scale = Math.max(size/img.width, size/img.height);
+      const w = img.width*scale, h = img.height*scale;
+      ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+      document.getElementById('prodPhotoPreview').innerHTML = `<img src="${dataUrl}" style="width:56px;height:56px;border-radius:12px;object-fit:cover">`;
+      document.getElementById('prodPhotoPreview').dataset.img = dataUrl;
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function openProductForm(id){
+  renderIconPicker();
+  document.getElementById('prodPhotoPreview').innerHTML='';
+  document.getElementById('prodPhotoPreview').dataset.img='';
+  document.getElementById('prodPhotoInput').value='';
+  if(id){
+    const p = db.products.find(x=>x.id===id);
+    document.getElementById('prodFormTitle').textContent = 'Edit Product';
+    document.getElementById('prodId').value = id;
+    document.getElementById('prodName').value = p.name;
+    document.getElementById('prodPrice').value = p.price;
+    document.getElementById('prodUnit').value = p.unit||'';
+    selectedProdIcon = p.icon || ICONS[0];
+    if(p.photo){ document.getElementById('prodPhotoPreview').innerHTML = `<img src="${p.photo}" style="width:56px;height:56px;border-radius:12px;object-fit:cover">`; document.getElementById('prodPhotoPreview').dataset.img = p.photo; }
+    document.getElementById('prodDeleteBtn').style.display='block';
+    renderIconPicker();
+  } else {
+    document.getElementById('prodFormTitle').textContent = 'Add Product';
+    document.getElementById('prodId').value = '';
+    document.getElementById('prodName').value = '';
+    document.getElementById('prodPrice').value = '';
+    document.getElementById('prodUnit').value = '';
+    selectedProdIcon = ICONS[0];
+    document.getElementById('prodDeleteBtn').style.display='none';
+    renderIconPicker();
+  }
+  document.getElementById('productOverlay').classList.add('open');
+}
+function saveProduct(){
+  const name = document.getElementById('prodName').value.trim();
+  const price = parseFloat(document.getElementById('prodPrice').value)||0;
+  const unit = document.getElementById('prodUnit').value.trim();
+  const photo = document.getElementById('prodPhotoPreview').dataset.img || '';
+  if(!name){ toast('Enter a product name'); return; }
+  let id = document.getElementById('prodId').value;
+  if(id){
+    const p = db.products.find(x=>x.id===id);
+    Object.assign(p, {name, price, unit, icon: selectedProdIcon, photo});
+  } else {
+    db.products.push({id: uid(), name, price, unit, icon: selectedProdIcon, photo});
+  }
+  saveDB();
+  closeOverlay('productOverlay');
+  renderProducts();
+  toast('Product saved');
+}
+function deleteProduct(){
+  const id = document.getElementById('prodId').value;
+  if(!id) return;
+  if(!confirm('Delete this product?')) return;
+  db.products = db.products.filter(x=>x.id!==id);
+  saveDB();
+  closeOverlay('productOverlay');
+  renderProducts();
+}
+function renderProducts(){
+  document.getElementById('prodCount').textContent = db.products.length;
+  const grid = document.getElementById('productGrid');
+  let html = db.products.map(p=>`
+    <div class="prod-tile" onclick="openProductForm('${p.id}')">
+      <div class="img-wrap">${p.photo ? `<img src="${p.photo}">` : p.icon}</div>
+      <div class="pname">${escapeHtml(p.name)}</div>
+      <div class="pprice">${money(p.price)}${p.unit?('/'+escapeHtml(p.unit)):''}</div>
+    </div>`).join('');
+  html += `<div class="prod-tile add-tile" onclick="openProductForm()"><div class="img-wrap">＋</div><div class="pname">Add Product</div></div>`;
+  grid.innerHTML = html;
+}
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------------------------------------------------------------
+   CUSTOMERS
+--------------------------------------------------------------- */
+function openCustomerForm(id){
+  document.getElementById('custId').value = id||'';
+  if(id){
+    const c = db.customers.find(x=>x.id===id);
+    document.getElementById('custFormTitle').textContent = 'Edit Customer';
+    document.getElementById('custName').value = c.name;
+    document.getElementById('custPhone').value = c.phone;
+    document.getElementById('custAddress').value = c.address||'';
+    document.getElementById('custOpenBal').value = c.balance;
+    document.getElementById('custOpenBal').disabled = true;
+    document.getElementById('custDeleteBtn').style.display='block';
+  } else {
+    document.getElementById('custFormTitle').textContent = 'Add Customer';
+    document.getElementById('custName').value = '';
+    document.getElementById('custPhone').value = '';
+    document.getElementById('custAddress').value = '';
+    document.getElementById('custOpenBal').value = '0';
+    document.getElementById('custOpenBal').disabled = false;
+    document.getElementById('custDeleteBtn').style.display='none';
+  }
+  document.getElementById('customerOverlay').classList.add('open');
+}
+function saveCustomer(){
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  if(!name){ toast('Enter a name'); return; }
+  let id = document.getElementById('custId').value;
+  if(id){
+    const c = db.customers.find(x=>x.id===id);
+    Object.assign(c, {name, phone, address});
+  } else {
+    const balance = parseFloat(document.getElementById('custOpenBal').value)||0;
+    db.customers.push({id: uid(), name, phone, address, balance});
+  }
+  saveDB();
+  closeOverlay('customerOverlay');
+  renderCustomers();
+  refreshCustomerDropdowns();
+  toast('Customer saved');
+}
+function deleteCustomer(){
+  const id = document.getElementById('custId').value;
+  if(!id) return;
+  if(!confirm('Delete this customer? Their history stays but will show as unlinked.')) return;
+  db.customers = db.customers.filter(x=>x.id!==id);
+  saveDB();
+  closeOverlay('customerOverlay');
+  renderCustomers();
+  refreshCustomerDropdowns();
+}
+function renderCustomers(filter){
+  filter = (filter||'').toLowerCase();
+  document.getElementById('custCount').textContent = db.customers.length;
+  const list = db.customers.filter(c=> !filter || c.name.toLowerCase().includes(filter) || (c.phone||'').includes(filter));
+  const el = document.getElementById('customerList');
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">👤</div><div class="msg">No customers yet. Tap + to add one.</div></div>`; return; }
+  el.innerHTML = list.map(c=>{
+    const bal = c.balance||0;
+    const cls = bal>0?'balance-good':(bal<0?'balance-bad':'balance-zero');
+    return `<div class="list-row" onclick="openCustomerForm('${c.id}')">
+      <div class="avatar">${(c.name||'?').charAt(0).toUpperCase()}</div>
+      <div class="list-main"><div class="name">${escapeHtml(c.name)}</div><div class="meta">${escapeHtml(c.phone||'')}</div></div>
+      <div class="balance-tag ${cls}">${money(bal)}</div>
+    </div>`;
+  }).join('');
+}
+function refreshCustomerDropdowns(){
+  const opts = '<option value="">-- Select --</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)} ${c.phone?('('+c.phone+')'):''}</option>`).join('');
+  document.getElementById('delCustomer').innerHTML = opts;
+  document.getElementById('subCustomer').innerHTML = opts;
+}
+
+/* ---------------------------------------------------------------
+   DELIVERY ENTRY
+--------------------------------------------------------------- */
+function renderDeliveryTab(){
+  document.getElementById('delDate').value = document.getElementById('delDate').value || todayStr();
+  document.getElementById('delTime').value = document.getElementById('delTime').value || nowTimeStr();
+  renderDelProdGrid();
+  updateDeliveryTotals();
+  renderDeliveryList();
+  document.getElementById('todayCount').textContent = db.deliveries.filter(d=>d.date===todayStr()).length;
+}
+function renderDelProdGrid(){
+  const grid = document.getElementById('delProdGrid');
+  grid.innerHTML = db.products.map(p=>{
+    const qty = deliveryCart[p.id]||0;
+    return `<div class="prod-tile ${qty>0?'selected':''}">
+      <div class="img-wrap" onclick="addToCart('${p.id}')">${p.photo?`<img src="${p.photo}">`:p.icon}</div>
+      <div class="pname">${escapeHtml(p.name)}</div>
+      <div class="pprice">${money(p.price)}</div>
+      <div class="qty-row">
+        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+        <span class="qty-val">${qty}</span>
+        <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="ic">🥛</div><div class="msg">Add products first from the Products tab.</div></div>`;
+}
+function addToCart(id){ changeQty(id,1); }
+function changeQty(id, delta){
+  const cur = deliveryCart[id]||0;
+  const next = Math.max(0, cur+delta);
+  if(next===0) delete deliveryCart[id]; else deliveryCart[id]=next;
+  renderDelProdGrid();
+  updateDeliveryTotals();
+}
+function onDeliveryCustomerChange(){ updateDeliveryTotals(); }
+function updateDeliveryTotals(){
+  const total = Object.entries(deliveryCart).reduce((sum,[pid,qty])=>{
+    const p = db.products.find(x=>x.id===pid);
+    return sum + (p? p.price*qty : 0);
+  }, 0);
+  document.getElementById('delTotal').textContent = money(total);
+  const custId = document.getElementById('delCustomer').value;
+  const banner = document.getElementById('delBalBanner');
+  if(custId){
+    const c = db.customers.find(x=>x.id===custId);
+    const before = c? (c.balance||0) : 0;
+    const after = before - total;
+    banner.style.display='flex';
+    document.getElementById('delBalBefore').textContent = money(before);
+    document.getElementById('delBalAfter').textContent = money(after);
+    document.getElementById('delTotalBal').textContent = money(after);
+  } else {
+    banner.style.display='none';
+    document.getElementById('delTotalBal').textContent = money(0-total);
+  }
+}
+function saveDelivery(shareWA){
+  const custId = document.getElementById('delCustomer').value;
+  if(!custId){ toast('Select a customer'); return; }
+  const items = Object.entries(deliveryCart).map(([pid,qty])=>{
+    const p = db.products.find(x=>x.id===pid);
+    return { productId: pid, name: p.name, price: p.price, qty };
+  });
+  if(!items.length){ toast('Select at least one product'); return; }
+  const date = document.getElementById('delDate').value || todayStr();
+  const time = document.getElementById('delTime').value || nowTimeStr();
+
+  if(editingDeliveryId){
+    const old = db.deliveries.find(x=>x.id===editingDeliveryId);
+    if(old){
+      // reverse old effect on whichever customer it was applied to
+      const oldCust = db.customers.find(x=>x.id===old.customerId);
+      if(oldCust) oldCust.balance = (oldCust.balance||0) + old.total;
+      // apply new effect on the (possibly different) selected customer
+      const c = db.customers.find(x=>x.id===custId);
+      const total = items.reduce((s,it)=>s+it.price*it.qty,0);
+      const balBefore = c.balance||0;
+      const balAfter = balBefore - total;
+      Object.assign(old, { date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() });
+      c.balance = balAfter;
+      cancelDeliveryEdit();
+      saveDB();
+      renderDeliveryTab();
+      renderCustomers();
+      toast('Delivery entry updated');
+      if(shareWA) openWhatsApp(buildDeliveryMessage(old, true), c.phone);
+      return;
+    }
+  }
+
+  const c = db.customers.find(x=>x.id===custId);
+  const total = items.reduce((s,it)=>s+it.price*it.qty,0);
+  const balBefore = c.balance||0;
+  const balAfter = balBefore - total;
+  const entry = { id: uid(), date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() };
+  db.deliveries.unshift(entry);
+  c.balance = balAfter;
+  saveDB();
+  deliveryCart = {};
+  renderDeliveryTab();
+  renderCustomers();
+  toast('Delivery saved');
+  if(shareWA) openWhatsApp(buildDeliveryMessage(entry), c.phone);
+}
+function renderDeliveryList(){
+  const el = document.getElementById('deliveryList');
+  const list = db.deliveries.slice(0,15);
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">🧾</div><div class="msg">No delivery entries yet.</div></div>`; return; }
+  el.innerHTML = list.map(d=>{
+    const itemsStr = d.items.map(i=>`${i.name} x${i.qty}`).join(', ');
+    return `<div class="list-row">
+      <div class="avatar">${(d.customerName||'?').charAt(0).toUpperCase()}</div>
+      <div class="list-main">
+        <div class="name">${escapeHtml(d.customerName)}</div>
+        <div class="meta">${d.date} ${d.time} · ${escapeHtml(itemsStr)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="balance-tag balance-zero">${money(d.total)}</div>
+        <div style="display:flex; gap:5px; margin-top:6px">
+          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">✎</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">🗑</button>
+          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">📲</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function shareEntryAgain(id){
+  const entry = db.deliveries.find(x=>x.id===id);
+  if(!entry) return;
+  const c = db.customers.find(x=>x.id===entry.customerId);
+  openWhatsApp(buildDeliveryMessage(entry), c?c.phone:'');
+}
+function openDeliveryEdit(id){
+  const entry = db.deliveries.find(x=>x.id===id);
+  if(!entry) return;
+  editingDeliveryId = id;
+  document.getElementById('delCustomer').value = entry.customerId;
+  document.getElementById('delDate').value = entry.date;
+  document.getElementById('delTime').value = entry.time;
+  deliveryCart = {};
+  entry.items.forEach(it=>{ deliveryCart[it.productId] = it.qty; });
+  renderDelProdGrid();
+  updateDeliveryTotals();
+  document.getElementById('delFormMode').textContent = 'Editing entry — save to update, or cancel below';
+  document.getElementById('delFormMode').style.display = 'block';
+  document.getElementById('delCancelEditBtn').style.display = 'block';
+  document.getElementById('deliveryFormCard').scrollIntoView({behavior:'smooth'});
+}
+function cancelDeliveryEdit(){
+  editingDeliveryId = null;
+  deliveryCart = {};
+  document.getElementById('delFormMode').style.display = 'none';
+  document.getElementById('delCancelEditBtn').style.display = 'none';
+  renderDelProdGrid();
+  updateDeliveryTotals();
+}
+function deleteDelivery(id){
+  const entry = db.deliveries.find(x=>x.id===id);
+  if(!entry) return;
+  if(!confirm('Delete this delivery entry? The amount will be added back to the customer\'s balance.')) return;
+  const c = db.customers.find(x=>x.id===entry.customerId);
+  if(c) c.balance = (c.balance||0) + entry.total;
+  db.deliveries = db.deliveries.filter(x=>x.id!==id);
+  saveDB();
+  renderDeliveryTab();
+  renderCustomers();
+  toast('Delivery entry deleted');
+}
+
+/* ---------------------------------------------------------------
+   SUBSCRIPTION
+--------------------------------------------------------------- */
+function renderSubscriptionTab(){
+  document.getElementById('subDate').value = document.getElementById('subDate').value || todayStr();
+  onSubTypeChange();
+  renderSubscriptionList();
+}
+function onSubCustomerChange(){ updateSubPreview(); }
+function onSubTypeChange(){
+  const type = document.getElementById('subType').value;
+  if(type==='charge'){
+    document.getElementById('subAmountLbl').textContent = 'Monthly charge (₹)';
+    document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
+    document.getElementById('subBalAfterLbl').textContent = 'Balance (unchanged)';
+    document.getElementById('subSaveOnlyBtn').textContent = '💾 Save Only';
+    document.getElementById('subSaveWABtn').textContent = '📲 Save & WhatsApp';
+  } else {
+    document.getElementById('subAmountLbl').textContent = 'Amount (₹)';
+    document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
+    document.getElementById('subBalAfterLbl').textContent = 'After top-up';
+    document.getElementById('subSaveOnlyBtn').textContent = '💾 Save Only';
+    document.getElementById('subSaveWABtn').textContent = '📲 Save & WhatsApp';
+  }
+  updateSubPreview();
+}
+function updateSubPreview(){
+  const custId = document.getElementById('subCustomer').value;
+  const amount = parseFloat(document.getElementById('subAmount').value)||0;
+  const type = document.getElementById('subType').value;
+  const banner = document.getElementById('subBalBanner');
+  if(custId){
+    const c = db.customers.find(x=>x.id===custId);
+    const cur = c? (c.balance||0):0;
+    banner.style.display='flex';
+    document.getElementById('subBalCurrent').textContent = money(cur);
+    document.getElementById('subBalAfter').textContent = type==='charge' ? money(cur) : money(cur+amount);
+  } else {
+    banner.style.display='none';
+  }
+}
+function saveSubscription(shareWA){
+  const custId = document.getElementById('subCustomer').value;
+  if(!custId){ toast('Select a customer'); return; }
+  const amount = parseFloat(document.getElementById('subAmount').value)||0;
+  if(!amount){ toast('Enter an amount'); return; }
+  const type = document.getElementById('subType').value;
+  const details = document.getElementById('subDetails').value.trim();
+  const date = document.getElementById('subDate').value || todayStr();
+
+  if(editingSubscriptionId){
+    const old = db.subscriptions.find(x=>x.id===editingSubscriptionId);
+    if(old){
+      // reverse old balance effect if it was a top-up
+      if(old.type!=='charge'){
+        const oldCust = db.customers.find(x=>x.id===old.customerId);
+        if(oldCust) oldCust.balance = (oldCust.balance||0) - old.amount;
+      }
+      const c = db.customers.find(x=>x.id===custId);
+      const before = c.balance||0;
+      const after = type==='charge' ? before : before + amount;
+      Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() });
+      if(type!=='charge') c.balance = after;
+      cancelSubscriptionEdit();
+      saveDB();
+      renderSubscriptionTab();
+      renderCustomers();
+      toast('Entry updated');
+      if(shareWA) openWhatsApp(buildSubscriptionMessage(old, true), c.phone);
+      return;
+    }
+  }
+
+  const c = db.customers.find(x=>x.id===custId);
+  const before = c.balance||0;
+  const after = type==='charge' ? before : before + amount;
+  if(type!=='charge') c.balance = after;
+  const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() };
+  db.subscriptions.unshift(entry);
+  saveDB();
+  document.getElementById('subAmount').value='';
+  document.getElementById('subDetails').value='';
+  renderSubscriptionTab();
+  renderCustomers();
+  toast(type==='charge' ? 'Monthly charge saved' : 'Top-up saved');
+  if(shareWA) openWhatsApp(buildSubscriptionMessage(entry), c.phone);
+}
+function openSubscriptionEdit(id){
+  const entry = db.subscriptions.find(x=>x.id===id);
+  if(!entry) return;
+  editingSubscriptionId = id;
+  document.getElementById('subType').value = entry.type||'topup';
+  document.getElementById('subCustomer').value = entry.customerId;
+  document.getElementById('subDate').value = entry.date;
+  document.getElementById('subAmount').value = entry.amount;
+  document.getElementById('subDetails').value = entry.details||'';
+  onSubTypeChange();
+  document.getElementById('subFormMode').style.display = 'block';
+  document.getElementById('subCancelEditBtn').style.display = 'block';
+}
+function cancelSubscriptionEdit(){
+  editingSubscriptionId = null;
+  document.getElementById('subAmount').value='';
+  document.getElementById('subDetails').value='';
+  document.getElementById('subFormMode').style.display = 'none';
+  document.getElementById('subCancelEditBtn').style.display = 'none';
+  updateSubPreview();
+}
+function deleteSubscription(id){
+  const entry = db.subscriptions.find(x=>x.id===id);
+  if(!entry) return;
+  if(!confirm('Delete this entry?'+(entry.type!=='charge'?' The amount will be removed from the balance.':''))) return;
+  if(entry.type!=='charge'){
+    const c = db.customers.find(x=>x.id===entry.customerId);
+    if(c) c.balance = (c.balance||0) - entry.amount;
+  }
+  db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
+  saveDB();
+  renderSubscriptionTab();
+  renderCustomers();
+  toast('Entry deleted');
+}
+function renderSubscriptionList(){
+  const el = document.getElementById('subscriptionList');
+  const list = db.subscriptions.slice(0,20);
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">💳</div><div class="msg">No entries yet.</div></div>`; return; }
+  el.innerHTML = list.map(s=>{
+    const isCharge = s.type==='charge';
+    return `<div class="list-row">
+      <div class="avatar">${(s.customerName||'?').charAt(0).toUpperCase()}</div>
+      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' · Monthly charge':''}${s.details?(' · '+escapeHtml(s.details)):''}</div></div>
+      <div style="text-align:right">
+        <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'+'}${money(s.amount)}</div>
+        <div style="display:flex; gap:5px; margin-top:6px">
+          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">✎</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------------------------------------------------------------
+   WHATSAPP MESSAGING
+--------------------------------------------------------------- */
+function buildDeliveryMessage(d, modified){
+  const itemsLines = d.items.map(i=>`  • ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
+  return `📦 *${modified? 'திருத்தப்பட்ட டெலிவரி ரசீது (Updated)':'டெலிவரி ரசீது'} - Aavin Fresh Milk Stall*\n\n`+
+    `தேதி/Date: ${d.date} ${d.time}\n`+
+    `வாடிக்கையாளர்/Customer: ${d.customerName}\n\n`+
+    `பொருட்கள்/Items:\n${itemsLines}\n\n`+
+    `மொத்தம்/Total: ${money(d.total)}\n`+
+    `கையிருப்பு (முன்பு)/Balance before: ${money(d.balBefore)}\n`+
+    `மீதி இருப்பு/Balance after: ${money(d.balAfter)}\n\n`+
+    `நன்றி! 🙏`;
+}
+function buildSubscriptionMessage(s, modified){
+  const isCharge = s.type==='charge';
+  const title = isCharge
+    ? (modified? 'மாத கட்டண குறிப்பு - திருத்தப்பட்டது (Updated)':'மாத கட்டண குறிப்பு')
+    : (modified? 'சந்தா தொகை - திருத்தப்பட்டது (Updated)':'சந்தா தொகை சேர்க்கப்பட்டது');
+  return `💰 *${title} - Aavin Fresh Milk Stall*\n\n`+
+    `தேதி/Date: ${s.date}\n`+
+    `வாடிக்கையாளர்/Customer: ${s.customerName}\n`+
+    (isCharge
+      ? `மாத கட்டணம்/Monthly charge: ${money(s.amount)}\n`
+      : `சேர்க்கப்பட்ட தொகை/Amount added: ${money(s.amount)}\n`)+
+    (s.details? `விவரம்/Details: ${s.details}\n`:'')+
+    (isCharge ? '' : `\nமொத்த இருப்பு/New balance: ${money(s.balAfter)}\n`)+
+    `\nநன்றி! 🙏`;
+}
+function openWhatsApp(message, phone){
+  let url = 'https://wa.me/';
+  if(phone){
+    let clean = phone.replace(/\D/g,'');
+    if(clean.length===10) clean = '91'+clean;
+    url += clean;
+  }
+  url += '?text=' + encodeURIComponent(message);
+  window.open(url, '_blank');
+}
+function shareDaySummary(){
+  const today = todayStr();
+  const dToday = db.deliveries.filter(d=>d.date===today);
+  const sToday = db.subscriptions.filter(s=>s.date===today);
+  const totalSales = dToday.reduce((s,d)=>s+d.total,0);
+  const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
+  let msg = `📊 *இன்றைய சுருக்கம் - ${today}*\n\n`+
+    `டெலிவரி எண்ணிக்கை/Deliveries: ${dToday.length}\n`+
+    `மொத்த விற்பனை/Total sales: ${money(totalSales)}\n`+
+    `சந்தா சேர்க்கை/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
+    `Aavin Fresh Milk Stall 🥛`;
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
+
+/* ---------------------------------------------------------------
+   SETTINGS / DEVICE / SUMMARY
+--------------------------------------------------------------- */
+function setDeviceRole(role){
+  db.meta.deviceRole = role;
+  saveDB();
+  document.getElementById('deviceLabel').textContent = role || 'Set device';
+}
+function renderSettingsTab(){
+  document.getElementById('deviceRole').value = db.meta.deviceRole||'';
+  const today = todayStr();
+  const dToday = db.deliveries.filter(d=>d.date===today);
+  const sToday = db.subscriptions.filter(s=>s.date===today);
+  const totalSales = dToday.reduce((s,d)=>s+d.total,0);
+  const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
+  document.getElementById('daySummary').innerHTML = `
+    <div class="day-summary-row"><span class="k">Deliveries today</span><span class="v">${dToday.length}</span></div>
+    <div class="day-summary-row"><span class="k">Total sales</span><span class="v">${money(totalSales)}</span></div>
+    <div class="day-summary-row"><span class="k">Top-ups received</span><span class="v">${money(totalTopup)}</span></div>
+    <div class="day-summary-row"><span class="k">Total customers</span><span class="v">${db.customers.length}</span></div>
+  `;
+  renderReport();
+}
+let currentReport = 'product';
+function showReport(type){
+  currentReport = type;
+  document.getElementById('repBtnProduct').className = 'btn btn-sm ' + (type==='product'?'btn-primary':'btn-outline');
+  document.getElementById('repBtnParty').className = 'btn btn-sm ' + (type==='party'?'btn-primary':'btn-outline');
+  renderReport();
+}
+function inRange(dateStr, range){
+  if(range==='all') return true;
+  const today = todayStr();
+  if(range==='today') return dateStr===today;
+  if(range==='month') return dateStr.slice(0,7)===today.slice(0,7);
+  return true;
+}
+function renderReport(){
+  const range = document.getElementById('repRange').value;
+  const body = document.getElementById('reportBody');
+  const deliveries = db.deliveries.filter(d=>inRange(d.date, range));
+  window._reportRange = range;
+  if(currentReport==='product'){
+    const map = {};
+    deliveries.forEach(d=>{
+      d.items.forEach(it=>{
+        if(!map[it.productId]) map[it.productId] = { name: it.name, qty:0, revenue:0 };
+        map[it.productId].qty += it.qty;
+        map[it.productId].revenue += it.qty*it.price;
+      });
+    });
+    window._productReportData = map;
+    const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
+    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">🥛</div><div class="msg">No sales in this period.</div></div>`; return; }
+    body.innerHTML = rows.map(r=>`
+      <div class="report-row">
+        <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.qty} units sold</div></div>
+        <div class="rval">${money(r.revenue)}</div>
+      </div>`).join('');
+  } else {
+    const map = {};
+    deliveries.forEach(d=>{
+      if(!map[d.customerId]) map[d.customerId] = { id: d.customerId, name: d.customerName, count:0, total:0 };
+      map[d.customerId].count += 1;
+      map[d.customerId].total += d.total;
+    });
+    const subs = db.subscriptions.filter(s=>inRange(s.date, range) && s.type!=='charge');
+    subs.forEach(s=>{
+      if(!map[s.customerId]) map[s.customerId] = { id: s.customerId, name: s.customerName, count:0, total:0, topup:0 };
+      map[s.customerId].topup = (map[s.customerId].topup||0) + s.amount;
+    });
+    window._partyReportData = map;
+    window._partyReportRange = range;
+    const rows = Object.values(map).sort((a,b)=>b.total-a.total);
+    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">👥</div><div class="msg">No activity in this period.</div></div>`; return; }
+    body.innerHTML = rows.map(r=>`
+      <div class="report-row">
+        <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.count} deliveries${r.topup?(' · '+money(r.topup)+' topped up'):''}</div></div>
+        <div style="text-align:right">
+          <div class="rval">${money(r.total)}</div>
+          <button class="btn btn-wa btn-sm" style="margin-top:4px" onclick="sendPartyReportWhatsApp('${r.id}')">📲 Send</button>
+        </div>
+      </div>`).join('');
+  }
+}
+function sendPartyReportWhatsApp(customerId){
+  const r = (window._partyReportData||{})[customerId];
+  if(!r) return;
+  const c = db.customers.find(x=>x.id===customerId);
+  const rangeLabel = {all:'All time', today:'Today', month:'This month'}[window._partyReportRange] || 'All time';
+  const msg = `📊 *கணக்கு சுருக்கம் (${rangeLabel}) - Aavin Fresh Milk Stall*\n\n`+
+    `வாடிக்கையாளர்/Customer: ${r.name}\n`+
+    `டெலிவரி எண்ணிக்கை/Deliveries: ${r.count}\n`+
+    `மொத்த தொகை/Total amount: ${money(r.total)}\n`+
+    (r.topup ? `சந்தா சேர்க்கை/Top-ups: ${money(r.topup)}\n` : '')+
+    (c ? `தற்போதைய இருப்பு/Current balance: ${money(c.balance||0)}\n` : '')+
+    `\nநன்றி! 🙏`;
+  openWhatsApp(msg, c?c.phone:'');
+}
+function rangeLabelText(){
+  return {all:'All time', today:'Today', month:'This month'}[window._reportRange] || 'All time';
+}
+function shareFullReportWhatsApp(){
+  let msg = '';
+  if(currentReport==='product'){
+    const map = window._productReportData || {};
+    const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
+    if(!rows.length){ toast('No data in this report to share'); return; }
+    msg = `📊 *விற்பனை அறிக்கை - By Product (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
+    rows.forEach(r=>{ msg += `• ${r.name}: ${r.qty} units — ${money(r.revenue)}\n`; });
+    const totalRev = rows.reduce((s,r)=>s+r.revenue,0);
+    msg += `\nமொத்தம்/Total: ${money(totalRev)}`;
+  } else {
+    const map = window._partyReportData || {};
+    const rows = Object.values(map).sort((a,b)=>b.total-a.total);
+    if(!rows.length){ toast('No data in this report to share'); return; }
+    msg = `📊 *கணக்கு அறிக்கை - By Party (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
+    rows.forEach(r=>{ msg += `• ${r.name}: ${r.count} deliveries — ${money(r.total)}${r.topup?(' (+'+money(r.topup)+' topped up)'):''}\n`; });
+    const totalAmt = rows.reduce((s,r)=>s+r.total,0);
+    msg += `\nமொத்தம்/Total: ${money(totalAmt)}`;
+  }
+  openWhatsApp(msg, ''); // no fixed phone - opens WhatsApp's own contact picker
+}
+function downloadReportCSV(){
+  let rows = [];
+  let filename = '';
+  if(currentReport==='product'){
+    const map = window._productReportData || {};
+    rows = [['Product','Units Sold','Revenue']];
+    Object.values(map).sort((a,b)=>b.revenue-a.revenue).forEach(r=>rows.push([r.name, r.qty, r.revenue]));
+    filename = `By_Product_Report_${todayStr()}.csv`;
+  } else {
+    const map = window._partyReportData || {};
+    rows = [['Customer','Deliveries','Total Amount','Top-ups']];
+    Object.values(map).sort((a,b)=>b.total-a.total).forEach(r=>rows.push([r.name, r.count, r.total, r.topup||0]));
+    filename = `By_Party_Report_${todayStr()}.csv`;
+  }
+  if(rows.length<=1){ toast('No data in this report to save'); return; }
+  const csv = rows.map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  toast('Report file saved');
+}
+function exportExcel(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel export needs an internet connection the first time — try again once online');
+    return;
+  }
+  try{
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.customers.map(c=>({Name:c.name,Phone:c.phone,Address:c.address,Balance:c.balance}))), 'Customers');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.deliveries.map(d=>({Date:d.date,Time:d.time,Customer:d.customerName,Items:d.items.map(i=>i.name+' x'+i.qty).join(', '),Total:d.total,BalanceBefore:d.balBefore,BalanceAfter:d.balAfter}))), 'Deliveries');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.subscriptions.map(s=>({Date:s.date,Customer:s.customerName,Amount:s.amount,Details:s.details,BalanceAfter:s.balAfter}))), 'Subscriptions');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.products.map(p=>({Name:p.name,Price:p.price,Unit:p.unit}))), 'Products');
+    const prodMap = {};
+    db.deliveries.forEach(d=>d.items.forEach(it=>{
+      if(!prodMap[it.productId]) prodMap[it.productId] = {Product:it.name, Qty:0, Revenue:0};
+      prodMap[it.productId].Qty += it.qty;
+      prodMap[it.productId].Revenue += it.qty*it.price;
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(prodMap)), 'By Product');
+    const partyMap = {};
+    db.deliveries.forEach(d=>{
+      if(!partyMap[d.customerId]) partyMap[d.customerId] = {Customer:d.customerName, Deliveries:0, TotalSpent:0};
+      partyMap[d.customerId].Deliveries += 1;
+      partyMap[d.customerId].TotalSpent += d.total;
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(Object.values(partyMap)), 'By Party');
+    XLSX.writeFile(wb, `Aavin_Delivery_Report_${todayStr()}.xlsx`);
+  }catch(err){
+    console.error(err);
+    toast('Excel export failed — use "Save as File" (CSV) instead');
+  }
+}
+function exportWhatsAppBackup(){
+  const dataStr = JSON.stringify(db);
+  const blob = new Blob([dataStr], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `aavin_backup_${todayStr()}.json`;
+  a.click();
+  toast('Backup file downloaded - share it via WhatsApp manually');
+}
+
+/* ---------------------------------------------------------------
+   OVERLAYS
+--------------------------------------------------------------- */
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+/* ---------------------------------------------------------------
+   GOOGLE DRIVE SYNC (appDataFolder)
+--------------------------------------------------------------- */
+const GOOGLE_CLIENT_ID = '598818197447-p4aiepu8sgear24hmhv0n6hbgsdarcac.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const DRIVE_FILE_NAME = 'aavin_delivery_db.json';
+let tokenClient = null;
+let accessToken = null;
+let driveFileId = null;
+let autoSyncTimer = null;
+
+function initGoogle(){
+  if(!window.google || !google.accounts) { setTimeout(initGoogle, 500); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: (resp)=>{
+      if(resp.access_token){
+        accessToken = resp.access_token;
+        setSyncStatus(true);
+        driveLoadAndMerge();
+        startPeriodicPull();
+      }
+    }
+  });
+}
+function connectDrive(){
+  if(!tokenClient){ toast('Google sign-in still loading, try again'); return; }
+  tokenClient.requestAccessToken();
+}
+function setSyncStatus(connected){
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  const desc = document.getElementById('driveStatusDesc');
+  const btn = document.getElementById('driveConnectBtn');
+  if(connected){
+    dot.className='sync-dot sync-ok'; text.textContent='Synced with Google Drive';
+    if(desc) desc.textContent='Connected — syncing in background';
+    if(btn) btn.textContent='Connected';
+  } else {
+    dot.className='sync-dot sync-off'; text.textContent='Not signed in to Drive';
+    if(desc) desc.textContent='Not connected';
+    if(btn) btn.textContent='Connect';
+  }
+}
+async function driveFindFile(){
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`, {
+    headers:{ Authorization: 'Bearer '+accessToken }
+  });
+  const data = await res.json();
+  if(data.files && data.files.length){ driveFileId = data.files[0].id; return driveFileId; }
+  return null;
+}
+async function driveLoadAndMerge(){
+  try{
+    const id = await driveFindFile();
+    if(id){
+      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers:{ Authorization:'Bearer '+accessToken } });
+      const remote = await res.json();
+      db = mergeDB(db, remote);
+      localStorage.setItem(DB_KEY, JSON.stringify(db));
+      refreshAllViews();
+      toast('Synced from Drive');
+      await driveSave();
+    } else {
+      await driveSave();
+    }
+  }catch(e){ console.error(e); toast('Sync failed - check connection'); }
+}
+function mergeDB(local, remote){
+  if(!remote) return local;
+  const merged = { products:[], customers:[], subscriptions:[], deliveries:[], meta: local.meta||{} };
+  ['products','customers'].forEach(key=>{
+    const map = {};
+    (remote[key]||[]).forEach(x=>map[x.id]=x);
+    (local[key]||[]).forEach(x=>map[x.id]=x); // local wins on conflict (most recent device)
+    merged[key] = Object.values(map);
+  });
+  ['subscriptions','deliveries'].forEach(key=>{
+    const map = {};
+    (remote[key]||[]).forEach(x=>map[x.id]=x);
+    (local[key]||[]).forEach(x=>map[x.id]=x);
+    merged[key] = Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  });
+  return merged;
+}
+async function driveSave(){
+  if(!accessToken) return;
+  try{
+    const id = driveFileId || await driveFindFile();
+    const metadata = { name: DRIVE_FILE_NAME, parents: id?undefined:['appDataFolder'] };
+    const boundary = '-------aavin' + Date.now();
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(db)}\r\n--${boundary}--`;
+    const url = id
+      ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
+      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+    const res = await fetch(url, {
+      method: id? 'PATCH':'POST',
+      headers:{ Authorization:'Bearer '+accessToken, 'Content-Type':`multipart/related; boundary=${boundary}` },
+      body
+    });
+    const data = await res.json();
+    if(data.id) driveFileId = data.id;
+  }catch(e){ console.error(e); }
+}
+function scheduleAutoSync(){
+  if(!accessToken) return;
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(()=>driveSave(), 2500);
+}
+function manualSync(){
+  if(!accessToken){ toast('Connect Google Drive first'); return; }
+  driveLoadAndMerge();
+}
+let periodicPullTimer = null;
+function startPeriodicPull(){
+  clearInterval(periodicPullTimer);
+  periodicPullTimer = setInterval(()=>{
+    if(accessToken && !document.hidden) driveLoadAndMerge();
+  }, 40000); // pull every 40s while app is open and connected
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden && accessToken) driveLoadAndMerge(); // pull the moment you come back to the app
+});
+function refreshAllViews(){
+  refreshCustomerDropdowns();
+  renderProducts();
+  renderCustomers();
+  renderDeliveryTab();
+  renderSubscriptionTab();
+  renderSettingsTab();
+}
+
+/* ---------------------------------------------------------------
+   PWA: ICON + MANIFEST + SERVICE WORKER (for home screen install)
+--------------------------------------------------------------- */
+function generateIconDataURL(size){
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const r = size*0.22;
+  ctx.fillStyle = '#1E5F63';
+  ctx.beginPath();
+  ctx.moveTo(r,0); ctx.arcTo(size,0,size,size,r); ctx.arcTo(size,size,0,size,r);
+  ctx.arcTo(0,size,0,0,r); ctx.arcTo(0,0,size,0,r); ctx.closePath(); ctx.fill();
+  ctx.font = `${size*0.55}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🥛', size/2, size*0.56);
+  return canvas.toDataURL('image/png');
+}
+function setupPWA(){
+  try{
+    const icon192 = generateIconDataURL(192);
+    const icon512 = generateIconDataURL(512);
+    const manifest = {
+      name: 'Aavin Fresh Milk - Delivery Manager',
+      short_name: 'Aavin Delivery',
+      start_url: './',
+      scope: './',
+      display: 'standalone',
+      background_color: '#FBF8F2',
+      theme_color: '#1E5F63',
+      icons: [
+        { src: icon192, sizes: '192x192', type: 'image/png' },
+        { src: icon512, sizes: '512x512', type: 'image/png' }
+      ]
+    };
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+    document.getElementById('manifestLink').href = URL.createObjectURL(blob);
+    document.getElementById('appleIconLink').href = icon192;
+    document.getElementById('faviconLink').href = icon192;
+  }catch(e){ console.error('PWA icon setup failed', e); }
+
+  // Service worker only registers over https/localhost - fails harmlessly on file://
+  if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* sw.js not present yet - fine, app still works */ });
+  }
+}
+
+/* ---------------------------------------------------------------
+   INIT
+--------------------------------------------------------------- */
+function init(){
+  if(!db.meta) db.meta = {deviceRole:''};
+  document.getElementById('deviceLabel').textContent = db.meta.deviceRole || 'Set device';
+  refreshCustomerDropdowns();
+  renderProducts();
+  renderCustomers();
+  renderDeliveryTab();
+  renderSubscriptionTab();
+  renderSettingsTab();
+  initGoogle();
+  setupPWA();
+}
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
