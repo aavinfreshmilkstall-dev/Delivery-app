@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Aavin Delivery">
-<link rel="manifest" id="manifestLink">
-<link rel="apple-touch-icon" id="appleIconLink">
-<link rel="icon" id="faviconLink">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1429,48 +1429,13 @@ function refreshAllViews(){
 }
 
 /* ---------------------------------------------------------------
-   PWA: ICON + MANIFEST + SERVICE WORKER (for home screen install)
+   PWA: SERVICE WORKER (manifest + icons are static files - see
+   manifest.json, icon-192.png, icon-512.png uploaded alongside this file)
 --------------------------------------------------------------- */
-function generateIconDataURL(size){
-  const canvas = document.createElement('canvas');
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const r = size*0.22;
-  ctx.fillStyle = '#1E5F63';
-  ctx.beginPath();
-  ctx.moveTo(r,0); ctx.arcTo(size,0,size,size,r); ctx.arcTo(size,size,0,size,r);
-  ctx.arcTo(0,size,0,0,r); ctx.arcTo(0,0,size,0,r); ctx.closePath(); ctx.fill();
-  ctx.font = `${size*0.55}px sans-serif`;
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('🥛', size/2, size*0.56);
-  return canvas.toDataURL('image/png');
-}
 function setupPWA(){
-  try{
-    const icon192 = generateIconDataURL(192);
-    const icon512 = generateIconDataURL(512);
-    const manifest = {
-      name: 'Aavin Fresh Milk - Delivery Manager',
-      short_name: 'Aavin Delivery',
-      start_url: './',
-      scope: './',
-      display: 'standalone',
-      background_color: '#FBF8F2',
-      theme_color: '#1E5F63',
-      icons: [
-        { src: icon192, sizes: '192x192', type: 'image/png' },
-        { src: icon512, sizes: '512x512', type: 'image/png' }
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-    document.getElementById('manifestLink').href = URL.createObjectURL(blob);
-    document.getElementById('appleIconLink').href = icon192;
-    document.getElementById('faviconLink').href = icon192;
-  }catch(e){ console.error('PWA icon setup failed', e); }
-
   // Service worker only registers over https/localhost - fails harmlessly on file://
   if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* sw.js not present yet - fine, app still works */ });
+    navigator.serviceWorker.register('./sw.js').catch((e)=>{ console.error('SW registration failed', e); });
   }
 }
 

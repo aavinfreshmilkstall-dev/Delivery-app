@@ -10,7 +10,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(['./']).catch(() => {});
+      return cache.addAll(['./aavin_delivery_app.html', './manifest.json']).catch(() => {});
     })
   );
 });
