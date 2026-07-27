@@ -68,8 +68,20 @@ header.topbar h1{
 header.topbar .sub{
   font-size:12.5px; opacity:0.8; margin-top:3px;
 }
-.device-pill{
+.top-right-controls{
   position:absolute; top:16px; right:16px;
+  display:flex; align-items:center; gap:6px;
+}
+.sync-pill{
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.3);
+  color:#fff; font-size:11px; font-weight:600;
+  padding:4px 10px; border-radius:20px;
+  cursor:pointer; display:flex; align-items:center; gap:4px;
+  border:none; font-family:inherit;
+}
+.sync-pill.connected{ background:rgba(95,227,154,0.25); border:1px solid rgba(95,227,154,0.5); }
+.device-pill{
   background:rgba(255,255,255,0.15);
   border:1px solid rgba(255,255,255,0.3);
   color:#fff; font-size:11px; font-weight:600;
@@ -277,7 +289,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 <body>
 
 <header class="topbar">
-  <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">📱 <span id="deviceLabel">Set device</span></div>
+  <div class="top-right-controls">
+    <button class="sync-pill" id="headerSyncBtn" onclick="connectDrive()">🔄 <span id="headerSyncLabel">Connect Drive</span></button>
+    <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">📱 <span id="deviceLabel">Set device</span></div>
+  </div>
   <div class="brand">AAVIN FRESH MILK STALL · 1958</div>
   <h1>Delivery Manager</h1>
   <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncText">Not signed in to Drive</span></div>
@@ -389,11 +404,17 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <button class="btn btn-sm btn-outline" id="repBtnParty" onclick="showReport('party')" style="flex:1">By Party</button>
       </div>
       <div class="field" style="margin-bottom:10px">
-        <select id="repRange" onchange="renderReport()">
+        <select id="repRangeType" onchange="onRepRangeTypeChange()">
+          <option value="date">Specific Date</option>
+          <option value="month">Whole Month</option>
           <option value="all">All time</option>
-          <option value="today">Today</option>
-          <option value="month">This month</option>
         </select>
+      </div>
+      <div class="field" style="margin-bottom:10px" id="repDateWrap">
+        <input type="date" id="repDateValue" onchange="renderReport()">
+      </div>
+      <div class="field" style="margin-bottom:10px; display:none" id="repMonthWrap">
+        <input type="month" id="repMonthValue" onchange="renderReport()">
       </div>
       <div id="reportBody"></div>
       <div style="display:flex; gap:8px; margin-top:12px">
@@ -1108,6 +1129,8 @@ function setDeviceRole(role){
 function renderSettingsTab(){
   document.getElementById('deviceRole').value = db.meta.deviceRole||'';
   const today = todayStr();
+  if(!document.getElementById('repDateValue').value) document.getElementById('repDateValue').value = today;
+  if(!document.getElementById('repMonthValue').value) document.getElementById('repMonthValue').value = today.slice(0,7);
   const dToday = db.deliveries.filter(d=>d.date===today);
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
@@ -1127,18 +1150,37 @@ function showReport(type){
   document.getElementById('repBtnParty').className = 'btn btn-sm ' + (type==='party'?'btn-primary':'btn-outline');
   renderReport();
 }
-function inRange(dateStr, range){
-  if(range==='all') return true;
-  const today = todayStr();
-  if(range==='today') return dateStr===today;
-  if(range==='month') return dateStr.slice(0,7)===today.slice(0,7);
+function onRepRangeTypeChange(){
+  const type = document.getElementById('repRangeType').value;
+  document.getElementById('repDateWrap').style.display = (type==='date') ? 'block' : 'none';
+  document.getElementById('repMonthWrap').style.display = (type==='month') ? 'block' : 'none';
+  renderReport();
+}
+function getReportFilter(){
+  const type = document.getElementById('repRangeType').value;
+  if(type==='date'){
+    const val = document.getElementById('repDateValue').value || todayStr();
+    return { type:'date', value: val, label: val };
+  }
+  if(type==='month'){
+    const val = document.getElementById('repMonthValue').value || todayStr().slice(0,7);
+    const [y,m] = val.split('-');
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return { type:'month', value: val, label: monthNames[parseInt(m,10)-1] + ' ' + y };
+  }
+  return { type:'all', value:null, label:'All time' };
+}
+function inRange(dateStr, filter){
+  if(filter.type==='all') return true;
+  if(filter.type==='date') return dateStr===filter.value;
+  if(filter.type==='month') return dateStr.slice(0,7)===filter.value;
   return true;
 }
 function renderReport(){
-  const range = document.getElementById('repRange').value;
+  const filter = getReportFilter();
   const body = document.getElementById('reportBody');
-  const deliveries = db.deliveries.filter(d=>inRange(d.date, range));
-  window._reportRange = range;
+  const deliveries = db.deliveries.filter(d=>inRange(d.date, filter));
+  window._reportRangeLabel = filter.label;
   if(currentReport==='product'){
     const map = {};
     deliveries.forEach(d=>{
@@ -1163,13 +1205,12 @@ function renderReport(){
       map[d.customerId].count += 1;
       map[d.customerId].total += d.total;
     });
-    const subs = db.subscriptions.filter(s=>inRange(s.date, range) && s.type!=='charge');
+    const subs = db.subscriptions.filter(s=>inRange(s.date, filter) && s.type!=='charge');
     subs.forEach(s=>{
       if(!map[s.customerId]) map[s.customerId] = { id: s.customerId, name: s.customerName, count:0, total:0, topup:0 };
       map[s.customerId].topup = (map[s.customerId].topup||0) + s.amount;
     });
     window._partyReportData = map;
-    window._partyReportRange = range;
     const rows = Object.values(map).sort((a,b)=>b.total-a.total);
     if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">👥</div><div class="msg">No activity in this period.</div></div>`; return; }
     body.innerHTML = rows.map(r=>`
@@ -1186,7 +1227,7 @@ function sendPartyReportWhatsApp(customerId){
   const r = (window._partyReportData||{})[customerId];
   if(!r) return;
   const c = db.customers.find(x=>x.id===customerId);
-  const rangeLabel = {all:'All time', today:'Today', month:'This month'}[window._partyReportRange] || 'All time';
+  const rangeLabel = window._reportRangeLabel || 'All time';
   const msg = `📊 *கணக்கு சுருக்கம் (${rangeLabel}) - Aavin Fresh Milk Stall*\n\n`+
     `வாடிக்கையாளர்/Customer: ${r.name}\n`+
     `டெலிவரி எண்ணிக்கை/Deliveries: ${r.count}\n`+
@@ -1197,7 +1238,7 @@ function sendPartyReportWhatsApp(customerId){
   openWhatsApp(msg, c?c.phone:'');
 }
 function rangeLabelText(){
-  return {all:'All time', today:'Today', month:'This month'}[window._reportRange] || 'All time';
+  return window._reportRangeLabel || 'All time';
 }
 function shareFullReportWhatsApp(){
   let msg = '';
@@ -1223,16 +1264,17 @@ function shareFullReportWhatsApp(){
 function downloadReportCSV(){
   let rows = [];
   let filename = '';
+  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
   if(currentReport==='product'){
     const map = window._productReportData || {};
     rows = [['Product','Units Sold','Revenue']];
     Object.values(map).sort((a,b)=>b.revenue-a.revenue).forEach(r=>rows.push([r.name, r.qty, r.revenue]));
-    filename = `By_Product_Report_${todayStr()}.csv`;
+    filename = `By_Product_${periodTag}.csv`;
   } else {
     const map = window._partyReportData || {};
     rows = [['Customer','Deliveries','Total Amount','Top-ups']];
     Object.values(map).sort((a,b)=>b.total-a.total).forEach(r=>rows.push([r.name, r.count, r.total, r.topup||0]));
-    filename = `By_Party_Report_${todayStr()}.csv`;
+    filename = `By_Party_${periodTag}.csv`;
   }
   if(rows.length<=1){ toast('No data in this report to save'); return; }
   const csv = rows.map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
@@ -1318,26 +1360,39 @@ function initGoogle(){
         driveLoadAndMerge();
         startPeriodicPull();
       }
-    }
+    },
+    error_callback: ()=>{ /* silent attempt failed or was dismissed - user can still tap Connect */ }
   });
+  // Best-effort silent reconnect: works only if the browser/Google session still
+  // remembers a prior grant. If not, this quietly does nothing and the
+  // Connect Drive button stays available for a manual tap.
+  setTimeout(()=>{
+    try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
+  }, 600);
 }
 function connectDrive(){
   if(!tokenClient){ toast('Google sign-in still loading, try again'); return; }
-  tokenClient.requestAccessToken();
+  tokenClient.requestAccessToken({ prompt: 'consent' });
 }
 function setSyncStatus(connected){
   const dot = document.getElementById('syncDot');
   const text = document.getElementById('syncText');
   const desc = document.getElementById('driveStatusDesc');
   const btn = document.getElementById('driveConnectBtn');
+  const headerBtn = document.getElementById('headerSyncBtn');
+  const headerLabel = document.getElementById('headerSyncLabel');
   if(connected){
     dot.className='sync-dot sync-ok'; text.textContent='Synced with Google Drive';
     if(desc) desc.textContent='Connected — syncing in background';
     if(btn) btn.textContent='Connected';
+    if(headerBtn) headerBtn.classList.add('connected');
+    if(headerLabel) headerLabel.textContent = 'Synced';
   } else {
     dot.className='sync-dot sync-off'; text.textContent='Not signed in to Drive';
     if(desc) desc.textContent='Not connected';
     if(btn) btn.textContent='Connect';
+    if(headerBtn) headerBtn.classList.remove('connected');
+    if(headerLabel) headerLabel.textContent = 'Connect Drive';
   }
 }
 async function driveFindFile(){
