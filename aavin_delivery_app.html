@@ -643,9 +643,9 @@ function saveProduct(){
   let id = document.getElementById('prodId').value;
   if(id){
     const p = db.products.find(x=>x.id===id);
-    Object.assign(p, {name, price, unit, icon: selectedProdIcon, photo});
+    Object.assign(p, {name, price, unit, icon: selectedProdIcon, photo, updatedAt: Date.now()});
   } else {
-    db.products.push({id: uid(), name, price, unit, icon: selectedProdIcon, photo});
+    db.products.push({id: uid(), name, price, unit, icon: selectedProdIcon, photo, updatedAt: Date.now()});
   }
   saveDB();
   closeOverlay('productOverlay');
@@ -708,10 +708,10 @@ function saveCustomer(){
   let id = document.getElementById('custId').value;
   if(id){
     const c = db.customers.find(x=>x.id===id);
-    Object.assign(c, {name, phone, address});
+    Object.assign(c, {name, phone, address, updatedAt: Date.now()});
   } else {
     const balance = parseFloat(document.getElementById('custOpenBal').value)||0;
-    db.customers.push({id: uid(), name, phone, address, balance});
+    db.customers.push({id: uid(), name, phone, address, balance, updatedAt: Date.now()});
   }
   saveDB();
   closeOverlay('customerOverlay');
@@ -824,14 +824,14 @@ function saveDelivery(shareWA){
     if(old){
       // reverse old effect on whichever customer it was applied to
       const oldCust = db.customers.find(x=>x.id===old.customerId);
-      if(oldCust) oldCust.balance = (oldCust.balance||0) + old.total;
+      if(oldCust){ oldCust.balance = (oldCust.balance||0) + old.total; oldCust.updatedAt = Date.now(); }
       // apply new effect on the (possibly different) selected customer
       const c = db.customers.find(x=>x.id===custId);
       const total = items.reduce((s,it)=>s+it.price*it.qty,0);
       const balBefore = c.balance||0;
       const balAfter = balBefore - total;
       Object.assign(old, { date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() });
-      c.balance = balAfter;
+      c.balance = balAfter; c.updatedAt = Date.now();
       cancelDeliveryEdit();
       saveDB();
       renderDeliveryTab();
@@ -848,7 +848,7 @@ function saveDelivery(shareWA){
   const balAfter = balBefore - total;
   const entry = { id: uid(), date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() };
   db.deliveries.unshift(entry);
-  c.balance = balAfter;
+  c.balance = balAfter; c.updatedAt = Date.now();
   saveDB();
   deliveryCart = {};
   renderDeliveryTab();
@@ -914,7 +914,7 @@ function deleteDelivery(id){
   if(!entry) return;
   if(!confirm('Delete this delivery entry? The amount will be added back to the customer\'s balance.')) return;
   const c = db.customers.find(x=>x.id===entry.customerId);
-  if(c) c.balance = (c.balance||0) + entry.total;
+  if(c){ c.balance = (c.balance||0) + entry.total; c.updatedAt = Date.now(); }
   db.deliveries = db.deliveries.filter(x=>x.id!==id);
   saveDB();
   renderDeliveryTab();
@@ -978,13 +978,13 @@ function saveSubscription(shareWA){
       // reverse old balance effect if it was a top-up
       if(old.type!=='charge'){
         const oldCust = db.customers.find(x=>x.id===old.customerId);
-        if(oldCust) oldCust.balance = (oldCust.balance||0) - old.amount;
+        if(oldCust){ oldCust.balance = (oldCust.balance||0) - old.amount; oldCust.updatedAt = Date.now(); }
       }
       const c = db.customers.find(x=>x.id===custId);
       const before = c.balance||0;
       const after = type==='charge' ? before : before + amount;
       Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() });
-      if(type!=='charge') c.balance = after;
+      if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
       cancelSubscriptionEdit();
       saveDB();
       renderSubscriptionTab();
@@ -998,7 +998,7 @@ function saveSubscription(shareWA){
   const c = db.customers.find(x=>x.id===custId);
   const before = c.balance||0;
   const after = type==='charge' ? before : before + amount;
-  if(type!=='charge') c.balance = after;
+  if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
   const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() };
   db.subscriptions.unshift(entry);
   saveDB();
@@ -1036,7 +1036,7 @@ function deleteSubscription(id){
   if(!confirm('Delete this entry?'+(entry.type!=='charge'?' The amount will be removed from the balance.':''))) return;
   if(entry.type!=='charge'){
     const c = db.customers.find(x=>x.id===entry.customerId);
-    if(c) c.balance = (c.balance||0) - entry.amount;
+    if(c){ c.balance = (c.balance||0) - entry.amount; c.updatedAt = Date.now(); }
   }
   db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
   saveDB();
@@ -1422,16 +1422,45 @@ async function driveLoadAndMerge(){
 function mergeDB(local, remote){
   if(!remote) return local;
   const merged = { products:[], customers:[], subscriptions:[], deliveries:[], meta: local.meta||{} };
-  ['products','customers'].forEach(key=>{
+
+  // Products: last-write-wins by updatedAt, but on a tie (common for records
+  // saved before this field existed) prefer whichever copy actually has a
+  // photo - otherwise an older device that never got the photo can keep
+  // re-overwriting the version that has it.
+  {
     const map = {};
-    (remote[key]||[]).forEach(x=>map[x.id]=x);
-    (local[key]||[]).forEach(x=>map[x.id]=x); // local wins on conflict (most recent device)
-    merged[key] = Object.values(map);
-  });
+    (remote.products||[]).forEach(x=>map[x.id]=x);
+    (local.products||[]).forEach(x=>{
+      const existing = map[x.id];
+      if(!existing){ map[x.id]=x; return; }
+      const newer = (x.updatedAt||0) > (existing.updatedAt||0);
+      const tie = (x.updatedAt||0) === (existing.updatedAt||0);
+      const tieBreakOnPhoto = tie && !!x.photo && !existing.photo;
+      if(newer || tieBreakOnPhoto) map[x.id] = x;
+    });
+    merged.products = Object.values(map);
+  }
+
+  {
+    const map = {};
+    (remote.customers||[]).forEach(x=>map[x.id]=x);
+    (local.customers||[]).forEach(x=>{
+      const existing = map[x.id];
+      // Last-write-wins by updatedAt timestamp, not "local always wins" -
+      // otherwise a device that hasn't touched a record in a while can
+      // overwrite a genuinely newer edit made elsewhere.
+      if(!existing || (x.updatedAt||0) >= (existing.updatedAt||0)) map[x.id] = x;
+    });
+    merged.customers = Object.values(map);
+  }
+
   ['subscriptions','deliveries'].forEach(key=>{
     const map = {};
     (remote[key]||[]).forEach(x=>map[x.id]=x);
-    (local[key]||[]).forEach(x=>map[x.id]=x);
+    (local[key]||[]).forEach(x=>{
+      const existing = map[x.id];
+      if(!existing || (x.ts||0) >= (existing.ts||0)) map[x.id] = x;
+    });
     merged[key] = Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
   });
   return merged;
