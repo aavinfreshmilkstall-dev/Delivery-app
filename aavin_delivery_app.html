@@ -16,7 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -1306,33 +1306,52 @@ function downloadReportExcel(){
   }
 }
 function downloadReportPDF(){
-  if(typeof window.jspdf === 'undefined'){
+  if(typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined'){
     toast('PDF export needs an internet connection the first time — try again once online');
     return;
   }
   const data = getCurrentReportRows();
   if(!data.rowsRaw.length){ toast('No data in this report to save'); return; }
   const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
-  try{
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text('Aavin Fresh Milk Stall - 1958', 14, 16);
-    doc.setFontSize(11);
-    doc.text(`${data.title} Report — ${window._reportRangeLabel||'All time'}`, 14, 24);
-    doc.autoTable({
-      head: [data.headers],
-      body: data.rows,
-      startY: 30,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [30, 95, 99] }
-    });
-    doc.save(`${data.title.replace(' ','_')}_${periodTag}.pdf`);
-    toast('PDF file saved');
-  }catch(err){
+  toast('Preparing PDF...');
+
+  // Build an off-screen printable version using the app's own fonts, so
+  // Tamil (and any other script) renders correctly - jsPDF's built-in fonts
+  // can't draw Tamil glyphs at all, but the browser can.
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:720px; background:#fff; padding:24px; font-family:Poppins,\'Noto Sans Tamil\',sans-serif; color:#1F2E33;';
+  const rowsHtml = data.rows.map((r,i)=>`
+    <tr style="background:${i%2? '#F6F3EA':'#fff'}">
+      ${r.map((cell,ci)=>`<td style="padding:8px 10px; border-bottom:1px solid #E8E2D4; text-align:${ci===0?'left':'right'}; font-size:13px;">${escapeHtml(String(cell))}</td>`).join('')}
+    </tr>`).join('');
+  wrap.innerHTML = `
+    <div style="font-size:17px; font-weight:700; color:#1E5F63;">Aavin Fresh Milk Stall - 1958</div>
+    <div style="font-size:13px; color:#555; margin-bottom:14px;">${data.title} Report — ${escapeHtml(window._reportRangeLabel||'All time')}</div>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead><tr>${data.headers.map((h,ci)=>`<th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:${ci===0?'left':'right'}; font-size:12.5px;">${escapeHtml(h)}</th>`).join('')}</tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`;
+  document.body.appendChild(wrap);
+
+  html2canvas(wrap, { scale: 2, backgroundColor: '#ffffff' }).then(canvas=>{
+    document.body.removeChild(wrap);
+    try{
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth() - 40;
+      const imgH = canvas.height * (pageWidth / canvas.width);
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, 20, pageWidth, imgH);
+      doc.save(`${data.title.replace(' ','_')}_${periodTag}.pdf`);
+      toast('PDF file saved');
+    }catch(err){
+      console.error(err);
+      toast('PDF export failed — try "Export Excel" instead');
+    }
+  }).catch(err=>{
+    document.body.removeChild(wrap);
     console.error(err);
     toast('PDF export failed — try "Export Excel" instead');
-  }
+  });
 }
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
