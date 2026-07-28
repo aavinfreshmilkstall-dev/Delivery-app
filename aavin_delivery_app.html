@@ -15,6 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -419,7 +421,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       <div id="reportBody"></div>
       <div style="display:flex; gap:8px; margin-top:12px">
         <button class="btn btn-wa btn-block" onclick="shareFullReportWhatsApp()">📲 Share This Report</button>
-        <button class="btn btn-clay btn-block" onclick="downloadReportCSV()">⬇ Save as File</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:8px">
+        <button class="btn btn-clay btn-block" onclick="downloadReportExcel()">📊 Export Excel</button>
+        <button class="btn btn-outline btn-block" onclick="downloadReportPDF()">📄 Export PDF</button>
       </div>
     </div>
 
@@ -1261,32 +1266,73 @@ function shareFullReportWhatsApp(){
   }
   openWhatsApp(msg, ''); // no fixed phone - opens WhatsApp's own contact picker
 }
-function downloadReportCSV(){
-  let rows = [];
-  let filename = '';
-  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
+function getCurrentReportRows(){
   if(currentReport==='product'){
     const map = window._productReportData || {};
-    rows = [['Product','Units Sold','Revenue']];
-    Object.values(map).sort((a,b)=>b.revenue-a.revenue).forEach(r=>rows.push([r.name, r.qty, r.revenue]));
-    filename = `By_Product_${periodTag}.csv`;
+    return {
+      title: 'By Product',
+      headers: ['Product','Units Sold','Revenue'],
+      rows: Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(r=>[r.name, r.qty, money(r.revenue)]),
+      rowsRaw: Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(r=>[r.name, r.qty, r.revenue])
+    };
   } else {
     const map = window._partyReportData || {};
-    rows = [['Customer','Deliveries','Total Amount','Top-ups']];
-    Object.values(map).sort((a,b)=>b.total-a.total).forEach(r=>rows.push([r.name, r.count, r.total, r.topup||0]));
-    filename = `By_Party_${periodTag}.csv`;
+    return {
+      title: 'By Party',
+      headers: ['Customer','Deliveries','Total Amount','Top-ups'],
+      rows: Object.values(map).sort((a,b)=>b.total-a.total).map(r=>[r.name, r.count, money(r.total), r.topup?money(r.topup):'-']),
+      rowsRaw: Object.values(map).sort((a,b)=>b.total-a.total).map(r=>[r.name, r.count, r.total, r.topup||0])
+    };
   }
-  if(rows.length<=1){ toast('No data in this report to save'); return; }
-  const csv = rows.map(row=>row.map(cell=>`"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\n');
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url), 2000);
-  toast('Report file saved');
+}
+function downloadReportExcel(){
+  if(typeof XLSX === 'undefined'){
+    toast('Excel export needs an internet connection the first time — try again once online');
+    return;
+  }
+  const data = getCurrentReportRows();
+  if(!data.rowsRaw.length){ toast('No data in this report to save'); return; }
+  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
+  try{
+    const wb = XLSX.utils.book_new();
+    const sheetData = [data.headers, ...data.rowsRaw];
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    XLSX.utils.book_append_sheet(wb, ws, data.title);
+    XLSX.writeFile(wb, `${data.title.replace(' ','_')}_${periodTag}.xlsx`);
+    toast('Excel file saved');
+  }catch(err){
+    console.error(err);
+    toast('Excel export failed — try "Export PDF" instead');
+  }
+}
+function downloadReportPDF(){
+  if(typeof window.jspdf === 'undefined'){
+    toast('PDF export needs an internet connection the first time — try again once online');
+    return;
+  }
+  const data = getCurrentReportRows();
+  if(!data.rowsRaw.length){ toast('No data in this report to save'); return; }
+  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
+  try{
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Aavin Fresh Milk Stall - 1958', 14, 16);
+    doc.setFontSize(11);
+    doc.text(`${data.title} Report — ${window._reportRangeLabel||'All time'}`, 14, 24);
+    doc.autoTable({
+      head: [data.headers],
+      body: data.rows,
+      startY: 30,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [30, 95, 99] }
+    });
+    doc.save(`${data.title.replace(' ','_')}_${periodTag}.pdf`);
+    toast('PDF file saved');
+  }catch(err){
+    console.error(err);
+    toast('PDF export failed — try "Export Excel" instead');
+  }
 }
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
