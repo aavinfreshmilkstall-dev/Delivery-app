@@ -170,6 +170,12 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 .qty-row{display:flex; align-items:center; justify-content:center; gap:12px; margin-top:2px;}
 .qty-btn{width:34px; height:34px; border-radius:9px; border:none; background:var(--teal); color:#fff; font-size:19px; line-height:1;}
 .qty-val{font-size:16px; font-weight:700; min-width:20px;}
+.qty-input{
+  width:52px; font-size:15px; font-weight:700; text-align:center;
+  border:1.5px solid var(--line); border-radius:8px; padding:5px 2px; font-family:inherit;
+}
+.qty-input:focus{outline:none; border-color:var(--teal);}
+.qty-calc{font-size:11px; color:#7C8B8E; margin-top:4px; line-height:1.4; text-align:center;}
 
 /* List rows */
 .list-row{
@@ -399,12 +405,13 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <div class="field"><label>From date</label><input type="date" id="stmtFrom" onchange="onStmtRangeChange()"></div>
         <div class="field"><label>To date</label><input type="date" id="stmtTo" onchange="onStmtRangeChange()"></div>
       </div>
+      <div id="stmtDaysNote" style="font-size:12px; color:#7C8B8E; margin:-6px 0 12px 2px;"></div>
       <div class="field">
         <label>Opening Balance (₹) — auto-filled, editable</label>
         <input type="number" id="stmtOB" oninput="updateStmtTotals()">
       </div>
       <div class="field">
-        <label>Products delivered in this period — pcs auto-filled, editable</label>
+        <label>Products — pcs PER DAY (auto-averaged from deliveries, editable) × days = total</label>
         <div class="search-bar"><span>🔍</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
         <div class="prod-grid" id="stmtProdGrid"></div>
       </div>
@@ -821,9 +828,15 @@ function renderCustomers(filter){
 }
 function refreshCustomerDropdowns(){
   const opts = '<option value="">-- Select --</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)} ${c.phone?('('+c.phone+')'):''}</option>`).join('');
-  document.getElementById('delCustomer').innerHTML = opts;
-  document.getElementById('subCustomer').innerHTML = opts;
-  document.getElementById('stmtCustomer').innerHTML = opts;
+  ['delCustomer','subCustomer','stmtCustomer','remCustomer'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    const prevValue = el.value;
+    el.innerHTML = opts;
+    // Restore whatever was selected before the rebuild, so a background
+    // Drive sync doesn't silently clear a customer mid-entry.
+    if(prevValue && db.customers.some(c=>c.id===prevValue)) el.value = prevValue;
+  });
 }
 
 /* ---------------------------------------------------------------
@@ -1210,13 +1223,27 @@ function computeOpeningBalance(customerId, fromDate, toDate){
   candidates.sort((a,b)=>(a.ts||0)-(b.ts||0));
   return candidates[0].balBefore||0;
 }
-function computeAutoProductQtys(customerId, fromDate, toDate){
+function stmtDaysCount(){
+  const from = document.getElementById('stmtFrom').value;
+  const to = document.getElementById('stmtTo').value;
+  if(!from || !to) return 0;
+  const d1 = new Date(from+'T00:00:00');
+  const d2 = new Date(to+'T00:00:00');
+  const diff = Math.round((d2-d1)/86400000) + 1; // inclusive of both ends
+  return diff > 0 ? diff : 0;
+}
+function computeAutoProductPerDay(customerId, fromDate, toDate){
   const qtyMap = {};
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate && d.date<=toDate)
     .forEach(d=>d.items.forEach(it=>{
       qtyMap[it.productId] = (qtyMap[it.productId]||0) + it.qty;
     }));
-  return qtyMap;
+  const days = stmtDaysCount() || 1;
+  const perDayMap = {};
+  Object.entries(qtyMap).forEach(([pid,totalQty])=>{
+    perDayMap[pid] = Math.round((totalQty/days)*100)/100; // 2 decimal places
+  });
+  return perDayMap;
 }
 function onStmtCustomerChange(){
   const custId = document.getElementById('stmtCustomer').value;
@@ -1230,42 +1257,63 @@ function onStmtRangeChange(){
   const to = document.getElementById('stmtTo').value;
   if(!custId || !from || !to){ renderStmtProdGrid(); updateStmtTotals(); return; }
   document.getElementById('stmtOB').value = computeOpeningBalance(custId, from, to);
-  stmtCart = computeAutoProductQtys(custId, from, to);
+  stmtCart = computeAutoProductPerDay(custId, from, to);
   renderStmtProdGrid();
   updateStmtTotals();
 }
 function renderStmtProdGrid(){
   const grid = document.getElementById('stmtProdGrid');
   const q = (document.getElementById('stmtProdSearch').value||'').trim().toLowerCase();
+  const days = stmtDaysCount();
+  document.getElementById('stmtDaysNote').textContent = days ? `📅 ${days} day${days===1?'':'s'} in this period` : '';
   const list = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (stmtCart[p.id]||0)>0);
   grid.innerHTML = list.map(p=>{
-    const qty = stmtCart[p.id]||0;
-    return `<div class="prod-tile ${qty>0?'selected':''}">
+    const perDay = stmtCart[p.id]||0;
+    const totalQty = perDay * days;
+    const amount = totalQty * p.price;
+    return `<div class="prod-tile ${perDay>0?'selected':''}">
       <div class="img-wrap">${p.photo?`<img src="${p.photo}">`:p.icon}</div>
       <div class="pname">${escapeHtml(p.name)}</div>
-      <div class="pprice">${money(p.price)}</div>
+      <div class="pprice">${money(p.price)}/pc</div>
       <div class="qty-row">
         <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">−</button>
-        <span class="qty-val">${qty}</span>
+        <input type="number" class="qty-input" id="stmtqty_${p.id}" value="${perDay}" step="0.5" min="0" onchange="setStmtQty('${p.id}', this.value)">
         <button class="qty-btn" onclick="changeStmtQty('${p.id}',1)">+</button>
       </div>
+      <div class="qty-calc">pcs/day × ${days} days = ${totalQty}<br>${money(amount)}</div>
     </div>`;
   }).join('') || (q ? `<div class="empty-state"><div class="ic">🔍</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('stmt')">＋ Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">🥛</div><div class="msg">Add products first from the Products tab.</div></div>`);
+  if(!days){
+    grid.insertAdjacentHTML('afterbegin', `<div style="grid-column:1/-1; font-size:12px; color:#C24B3D; padding:6px 2px;">Pick From/To dates above to calculate totals.</div>`);
+  }
 }
 function changeStmtQty(id, delta){
   const cur = stmtCart[id]||0;
-  const next = Math.max(0, cur+delta);
+  const next = Math.max(0, Math.round((cur+delta)*100)/100);
   if(next===0) delete stmtCart[id]; else stmtCart[id]=next;
   renderStmtProdGrid();
   updateStmtTotals();
 }
+function setStmtQty(id, value){
+  const next = Math.max(0, parseFloat(value)||0);
+  if(next===0) delete stmtCart[id]; else stmtCart[id]=next;
+  renderStmtProdGrid();
+  updateStmtTotals();
+}
+function getStmtItems(){
+  const days = stmtDaysCount();
+  return Object.entries(stmtCart).map(([pid,perDay])=>{
+    const p = db.products.find(x=>x.id===pid);
+    if(!p) return null;
+    const qty = perDay * days;
+    return { name: p.name, perDay, days, qty, amount: qty*p.price };
+  }).filter(Boolean);
+}
 function updateStmtTotals(){
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
-  const productsTotal = Object.entries(stmtCart).reduce((sum,[pid,qty])=>{
-    const p = db.products.find(x=>x.id===pid);
-    return sum + (p? p.price*qty : 0);
-  }, 0);
+  const items = getStmtItems();
+  const productsTotal = items.reduce((s,it)=>s+it.amount,0);
   const total = ob - productsTotal - deliveryCharge;
   document.getElementById('stmtProdTotal').textContent = money(productsTotal);
   document.getElementById('stmtTotal').textContent = money(total);
@@ -1280,10 +1328,7 @@ function autoFillStmtMessage(){
   const to = document.getElementById('stmtTo').value;
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
-  const items = Object.entries(stmtCart).map(([pid,qty])=>{
-    const p = db.products.find(x=>x.id===pid);
-    return p ? { name: p.name, qty, amount: p.price*qty } : null;
-  }).filter(Boolean);
+  const items = getStmtItems();
   const productsTotal = items.reduce((s,it)=>s+it.amount,0);
   const total = ob - productsTotal - deliveryCharge;
   document.getElementById('stmtMessage').value = buildStatementMessage(c, from, to, ob, items, deliveryCharge, total);
@@ -1291,7 +1336,7 @@ function autoFillStmtMessage(){
 function buildStatementMessage(c, from, to, ob, items, deliveryCharge, total){
   const periodLine = (from && to) ? `காலம்/Period: ${from} - ${to}\n` : '';
   const itemLines = items.length
-    ? items.map(it=>`  • ${it.name} x${it.qty} = ${money(it.amount)}`).join('\n') + '\n'
+    ? items.map(it=>`  • ${it.name}: ${it.perDay}/day × ${it.days} days = ${it.qty} pcs → ${money(it.amount)}`).join('\n') + '\n'
     : '';
   const dueOrCredit = total < 0
     ? `நிலுவைத் தொகை/Amount Due: ${money(Math.abs(total))}`
@@ -1318,10 +1363,7 @@ function sendStatement(channel){
   const to = document.getElementById('stmtTo').value;
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
-  const items = Object.entries(stmtCart).map(([pid,qty])=>{
-    const p = db.products.find(x=>x.id===pid);
-    return p ? { name: p.name, qty, amount: p.price*qty } : null;
-  }).filter(Boolean);
+  const items = getStmtItems();
   const productsTotal = items.reduce((s,it)=>s+it.amount,0);
   const total = ob - productsTotal - deliveryCharge;
 
@@ -1727,21 +1769,25 @@ async function driveFindFile(){
   if(data.files && data.files.length){ driveFileId = data.files[0].id; return driveFileId; }
   return null;
 }
-async function driveLoadAndMerge(){
+async function driveLoadAndMerge(silent){
   try{
     const id = await driveFindFile();
     if(id){
       const res = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers:{ Authorization:'Bearer '+accessToken } });
       const remote = await res.json();
+      const before = JSON.stringify(db);
       db = mergeDB(db, remote);
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-      refreshAllViews();
-      toast('Synced from Drive');
+      const changed = JSON.stringify(db) !== before;
+      if(changed){
+        localStorage.setItem(DB_KEY, JSON.stringify(db));
+        refreshAllViews();
+        if(!silent) toast('Synced from Drive');
+      }
       await driveSave();
     } else {
       await driveSave();
     }
-  }catch(e){ console.error(e); toast('Sync failed - check connection'); }
+  }catch(e){ console.error(e); if(!silent) toast('Sync failed - check connection'); }
 }
 function mergeDB(local, remote){
   if(!remote) return local;
@@ -1821,11 +1867,11 @@ let periodicPullTimer = null;
 function startPeriodicPull(){
   clearInterval(periodicPullTimer);
   periodicPullTimer = setInterval(()=>{
-    if(accessToken && !document.hidden) driveLoadAndMerge();
+    if(accessToken && !document.hidden) driveLoadAndMerge(true);
   }, 40000); // pull every 40s while app is open and connected
 }
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && accessToken) driveLoadAndMerge(); // pull the moment you come back to the app
+  if(!document.hidden && accessToken) driveLoadAndMerge(true); // pull the moment you come back to the app
 });
 function refreshAllViews(){
   refreshCustomerDropdowns();
