@@ -282,6 +282,23 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 .report-row .rmeta{font-size:11.5px; color:#7C8B8E; margin-top:1px;}
 .report-row .rval{font-size:14px; font-weight:700; color:var(--teal-dark);}
 
+.totals-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px;}
+.totals-tile{background:var(--teal-light); border-radius:12px; padding:10px 12px;}
+.totals-tile .tt-label{font-size:11px; color:var(--teal-dark); font-weight:600; opacity:0.85;}
+.totals-tile .tt-val{font-size:16px; font-weight:800; color:var(--teal-dark); margin-top:2px;}
+.totals-tile .tt-val.neg{color:var(--bad);}
+.totals-tile .tt-val.pos{color:var(--good);}
+
+.ledger-row{
+  border-bottom:1px solid var(--line); padding:10px 0; font-size:12.5px;
+}
+.ledger-row:last-child{border-bottom:none;}
+.ledger-top{display:flex; justify-content:space-between; font-weight:700; color:var(--teal-dark); margin-bottom:3px;}
+.ledger-mid{display:flex; justify-content:space-between; gap:6px; color:var(--ink); margin-bottom:3px;}
+.ledger-mid .amt{font-weight:700; color:var(--clay); white-space:nowrap;}
+.ledger-mid .amt.good{color:var(--good);}
+.ledger-bottom{display:flex; justify-content:space-between; font-size:11px; color:#7C8B8E;}
+
 .sync-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px;}
 .sync-ok{background:#5FE39A;}
 .sync-off{background:#F0A85A;}
@@ -450,11 +467,14 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
     <div class="section-title">Reports</div>
     <div class="card">
-      <div style="display:flex; gap:8px; margin-bottom:12px">
-        <button class="btn btn-sm btn-primary" id="repBtnProduct" onclick="showReport('product')" style="flex:1">By Product</button>
-        <button class="btn btn-sm btn-outline" id="repBtnParty" onclick="showReport('party')" style="flex:1">By Party</button>
+      <div style="display:flex; gap:6px; margin-bottom:14px">
+        <button class="btn btn-sm btn-primary" id="repBtnDetailed" onclick="showReport('detailed')" style="flex:1">📋 Detailed</button>
+        <button class="btn btn-sm btn-outline" id="repBtnProduct" onclick="showReport('product')" style="flex:1">📦 Product</button>
+        <button class="btn btn-sm btn-outline" id="repBtnParty" onclick="showReport('party')" style="flex:1">👤 Party</button>
       </div>
+
       <div class="field" style="margin-bottom:10px">
+        <label>📅 Date</label>
         <select id="repRangeType" onchange="onRepRangeTypeChange()">
           <option value="date">Specific Date</option>
           <option value="month">Whole Month</option>
@@ -462,12 +482,29 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         </select>
       </div>
       <div class="field" style="margin-bottom:10px" id="repDateWrap">
-        <input type="date" id="repDateValue" onchange="renderReport()">
+        <input type="date" id="repDateValue">
       </div>
       <div class="field" style="margin-bottom:10px; display:none" id="repMonthWrap">
-        <input type="month" id="repMonthValue" onchange="renderReport()">
+        <input type="month" id="repMonthValue">
       </div>
+      <div class="row2">
+        <div class="field">
+          <label>👤 Party</label>
+          <select id="repPartyFilter"><option value="">All customers</option></select>
+        </div>
+        <div class="field">
+          <label>📦 Product</label>
+          <select id="repProductFilter"><option value="">All products</option></select>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:14px">
+        <button class="btn btn-primary btn-block" onclick="applyReportFilters()">✔ Apply Filters</button>
+        <button class="btn btn-outline btn-block" onclick="clearReportFilters()">✕ Clear Filters</button>
+      </div>
+
+      <div id="reportTotals"></div>
       <div id="reportBody"></div>
+
       <div style="display:flex; gap:8px; margin-top:12px">
         <button class="btn btn-wa btn-block" onclick="shareFullReportWhatsApp()">📲 Share This Report</button>
       </div>
@@ -1437,6 +1474,7 @@ function renderSettingsTab(){
   const today = todayStr();
   if(!document.getElementById('repDateValue').value) document.getElementById('repDateValue').value = today;
   if(!document.getElementById('repMonthValue').value) document.getElementById('repMonthValue').value = today.slice(0,7);
+  populateReportFilterDropdowns();
   const dToday = db.deliveries.filter(d=>d.date===today);
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
@@ -1449,9 +1487,22 @@ function renderSettingsTab(){
   `;
   renderReport();
 }
-let currentReport = 'product';
+function populateReportFilterDropdowns(){
+  const partySel = document.getElementById('repPartyFilter');
+  const prevParty = partySel.value;
+  partySel.innerHTML = '<option value="">All customers</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  if(prevParty && db.customers.some(c=>c.id===prevParty)) partySel.value = prevParty;
+
+  const prodSel = document.getElementById('repProductFilter');
+  const prevProd = prodSel.value;
+  prodSel.innerHTML = '<option value="">All products</option>' + db.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+  if(prevProd && db.products.some(p=>p.id===prevProd)) prodSel.value = prevProd;
+}
+let currentReport = 'detailed';
+let appliedFilters = { rangeType:'date', dateValue:'', monthValue:'', partyId:'', productId:'' };
 function showReport(type){
   currentReport = type;
+  document.getElementById('repBtnDetailed').className = 'btn btn-sm ' + (type==='detailed'?'btn-primary':'btn-outline');
   document.getElementById('repBtnProduct').className = 'btn btn-sm ' + (type==='product'?'btn-primary':'btn-outline');
   document.getElementById('repBtnParty').className = 'btn btn-sm ' + (type==='party'?'btn-primary':'btn-outline');
   renderReport();
@@ -1460,16 +1511,37 @@ function onRepRangeTypeChange(){
   const type = document.getElementById('repRangeType').value;
   document.getElementById('repDateWrap').style.display = (type==='date') ? 'block' : 'none';
   document.getElementById('repMonthWrap').style.display = (type==='month') ? 'block' : 'none';
-  renderReport();
+  // Filter changes only take effect once "Apply Filters" is tapped.
 }
-function getReportFilter(){
-  const type = document.getElementById('repRangeType').value;
-  if(type==='date'){
-    const val = document.getElementById('repDateValue').value || todayStr();
+function applyReportFilters(){
+  appliedFilters = {
+    rangeType: document.getElementById('repRangeType').value,
+    dateValue: document.getElementById('repDateValue').value,
+    monthValue: document.getElementById('repMonthValue').value,
+    partyId: document.getElementById('repPartyFilter').value,
+    productId: document.getElementById('repProductFilter').value
+  };
+  renderReport();
+  toast('Filters applied');
+}
+function clearReportFilters(){
+  document.getElementById('repRangeType').value = 'all';
+  document.getElementById('repDateValue').value = '';
+  document.getElementById('repMonthValue').value = '';
+  document.getElementById('repPartyFilter').value = '';
+  document.getElementById('repProductFilter').value = '';
+  onRepRangeTypeChange();
+  appliedFilters = { rangeType:'all', dateValue:'', monthValue:'', partyId:'', productId:'' };
+  renderReport();
+  toast('Filters cleared');
+}
+function buildDateFilterObj(rangeType, dateValue, monthValue){
+  if(rangeType==='date'){
+    const val = dateValue || todayStr();
     return { type:'date', value: val, label: val };
   }
-  if(type==='month'){
-    const val = document.getElementById('repMonthValue').value || todayStr().slice(0,7);
+  if(rangeType==='month'){
+    const val = monthValue || todayStr().slice(0,7);
     const [y,m] = val.split('-');
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     return { type:'month', value: val, label: monthNames[parseInt(m,10)-1] + ' ' + y };
@@ -1482,44 +1554,104 @@ function inRange(dateStr, filter){
   if(filter.type==='month') return dateStr.slice(0,7)===filter.value;
   return true;
 }
-function renderReport(){
-  const filter = getReportFilter();
-  const body = document.getElementById('reportBody');
-  const deliveries = db.deliveries.filter(d=>inRange(d.date, filter));
-  window._reportRangeLabel = filter.label;
-  if(currentReport==='product'){
-    const map = {};
-    deliveries.forEach(d=>{
-      d.items.forEach(it=>{
-        if(!map[it.productId]) map[it.productId] = { name: it.name, qty:0, revenue:0 };
-        map[it.productId].qty += it.qty;
-        map[it.productId].revenue += it.qty*it.price;
+function buildLedgerRows(){
+  const dateFilter = buildDateFilterObj(appliedFilters.rangeType, appliedFilters.dateValue, appliedFilters.monthValue);
+  const partyId = appliedFilters.partyId;
+  const productId = appliedFilters.productId;
+  window._reportRangeLabel = dateFilter.label;
+  const rows = [];
+
+  // One row per product line within each matching delivery.
+  db.deliveries.filter(d=> inRange(d.date, dateFilter) && (!partyId || d.customerId===partyId))
+    .forEach(d=>{
+      const items = productId ? d.items.filter(it=>it.productId===productId) : d.items;
+      items.forEach(it=>{
+        rows.push({
+          type:'delivery', deliveryId:d.id, date:d.date, time:d.time, ts:d.ts||0,
+          customerId:d.customerId, customerName:d.customerName,
+          productId: it.productId, productName:it.name, qty:it.qty, rate:it.price, amount:it.qty*it.price,
+          collection:0, balance:d.balAfter
+        });
       });
     });
+
+  // Top-up rows - not tied to a product, so the product filter doesn't apply to these.
+  db.subscriptions.filter(s=> s.type!=='charge' && inRange(s.date, dateFilter) && (!partyId || s.customerId===partyId))
+    .forEach(s=>{
+      rows.push({
+        type:'collection', deliveryId:null, date:s.date, time:'', ts:s.ts||0,
+        customerId:s.customerId, customerName:s.customerName,
+        productId:null, productName:'💰 Top-up', qty:0, rate:0, amount:0,
+        collection:s.amount, balance:s.balAfter
+      });
+    });
+
+  rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
+  return rows;
+}
+function ledgerRowHtml(r){
+  if(r.type==='collection'){
+    return `<div class="ledger-row">
+      <div class="ledger-top"><span>${r.date}</span><span>${escapeHtml(r.customerName)}</span></div>
+      <div class="ledger-mid"><span>${r.productName}</span><span></span><span class="amt good">+${money(r.collection)}</span></div>
+      <div class="ledger-bottom"><span>Collection: ${money(r.collection)}</span><span>Balance: ${money(r.balance)}</span></div>
+    </div>`;
+  }
+  return `<div class="ledger-row">
+    <div class="ledger-top"><span>${r.date}${r.time?(' · '+r.time):''}</span><span>${escapeHtml(r.customerName)}</span></div>
+    <div class="ledger-mid"><span>${escapeHtml(r.productName)}</span><span>${r.qty} × ${money(r.rate)}</span><span class="amt">${money(r.amount)}</span></div>
+    <div class="ledger-bottom"><span>Collection: ${r.collection?money(r.collection):'-'}</span><span>Balance: ${money(r.balance)}</span></div>
+  </div>`;
+}
+function renderReport(){
+  const rows = buildLedgerRows();
+  window._ledgerRows = rows;
+
+  const totalQty = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.qty,0);
+  const totalSales = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.amount,0);
+  const totalCollection = rows.filter(r=>r.type==='collection').reduce((s,r)=>s+r.collection,0);
+  const customerIds = [...new Set(rows.map(r=>r.customerId))];
+  const totalBalance = customerIds.reduce((s,cid)=>{ const c=db.customers.find(x=>x.id===cid); return s + (c? (c.balance||0) : 0); }, 0);
+  document.getElementById('reportTotals').innerHTML = `
+    <div class="totals-grid">
+      <div class="totals-tile"><div class="tt-label">Total Quantity</div><div class="tt-val">${totalQty}</div></div>
+      <div class="totals-tile"><div class="tt-label">Total Sales</div><div class="tt-val">${money(totalSales)}</div></div>
+      <div class="totals-tile"><div class="tt-label">Total Collection</div><div class="tt-val">${money(totalCollection)}</div></div>
+      <div class="totals-tile"><div class="tt-label">Total Balance</div><div class="tt-val ${totalBalance<0?'neg':'pos'}">${money(totalBalance)}</div></div>
+    </div>`;
+
+  const body = document.getElementById('reportBody');
+  if(currentReport==='detailed'){
+    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">📋</div><div class="msg">No records match these filters.</div></div>`; return; }
+    body.innerHTML = rows.map(r=>ledgerRowHtml(r)).join('');
+  } else if(currentReport==='product'){
+    const map = {};
+    rows.filter(r=>r.type==='delivery').forEach(r=>{
+      const key = r.productId || r.productName;
+      if(!map[key]) map[key] = { name: r.productName, qty:0, revenue:0 };
+      map[key].qty += r.qty;
+      map[key].revenue += r.amount;
+    });
     window._productReportData = map;
-    const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
-    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">🥛</div><div class="msg">No sales in this period.</div></div>`; return; }
-    body.innerHTML = rows.map(r=>`
+    const prows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
+    if(!prows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">🥛</div><div class="msg">No sales match these filters.</div></div>`; return; }
+    body.innerHTML = prows.map(r=>`
       <div class="report-row">
         <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.qty} units sold</div></div>
         <div class="rval">${money(r.revenue)}</div>
       </div>`).join('');
   } else {
     const map = {};
-    deliveries.forEach(d=>{
-      if(!map[d.customerId]) map[d.customerId] = { id: d.customerId, name: d.customerName, count:0, total:0 };
-      map[d.customerId].count += 1;
-      map[d.customerId].total += d.total;
+    rows.forEach(r=>{
+      if(!map[r.customerId]) map[r.customerId] = { id: r.customerId, name: r.customerName, deliverySet: new Set(), total:0, topup:0 };
+      if(r.type==='delivery'){ map[r.customerId].total += r.amount; map[r.customerId].deliverySet.add(r.deliveryId); }
+      else { map[r.customerId].topup += r.collection; }
     });
-    const subs = db.subscriptions.filter(s=>inRange(s.date, filter) && s.type!=='charge');
-    subs.forEach(s=>{
-      if(!map[s.customerId]) map[s.customerId] = { id: s.customerId, name: s.customerName, count:0, total:0, topup:0 };
-      map[s.customerId].topup = (map[s.customerId].topup||0) + s.amount;
-    });
+    Object.values(map).forEach(m=>{ m.count = m.deliverySet.size; });
     window._partyReportData = map;
-    const rows = Object.values(map).sort((a,b)=>b.total-a.total);
-    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">👥</div><div class="msg">No activity in this period.</div></div>`; return; }
-    body.innerHTML = rows.map(r=>`
+    const prows = Object.values(map).sort((a,b)=>b.total-a.total);
+    if(!prows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">👥</div><div class="msg">No activity matches these filters.</div></div>`; return; }
+    body.innerHTML = prows.map(r=>`
       <div class="report-row">
         <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.count} deliveries${r.topup?(' · '+money(r.topup)+' topped up'):''}</div></div>
         <div style="text-align:right">
@@ -1548,7 +1680,20 @@ function rangeLabelText(){
 }
 function shareFullReportWhatsApp(){
   let msg = '';
-  if(currentReport==='product'){
+  if(currentReport==='detailed'){
+    const rows = window._ledgerRows || [];
+    if(!rows.length){ toast('No data in this report to share'); return; }
+    msg = `📊 *விரிவான அறிக்கை - Detailed Report (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
+    rows.slice(0,40).forEach(r=>{
+      if(r.type==='collection') msg += `• ${r.date} ${r.customerName}: Top-up +${money(r.collection)}\n`;
+      else msg += `• ${r.date} ${r.customerName}: ${r.productName} x${r.qty} = ${money(r.amount)}\n`;
+    });
+    if(rows.length>40) msg += `...and ${rows.length-40} more rows (see Excel/PDF for the full list)\n`;
+    const totalQty = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.qty,0);
+    const totalSales = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.amount,0);
+    const totalCollection = rows.filter(r=>r.type==='collection').reduce((s,r)=>s+r.collection,0);
+    msg += `\nமொத்த அளவு/Total Qty: ${totalQty}\nமொத்த விற்பனை/Total Sales: ${money(totalSales)}\nமொத்த வசூல்/Total Collection: ${money(totalCollection)}`;
+  } else if(currentReport==='product'){
     const map = window._productReportData || {};
     const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
     if(!rows.length){ toast('No data in this report to share'); return; }
@@ -1568,6 +1713,15 @@ function shareFullReportWhatsApp(){
   openWhatsApp(msg, ''); // no fixed phone - opens WhatsApp's own contact picker
 }
 function getCurrentReportRows(){
+  if(currentReport==='detailed'){
+    const rows = window._ledgerRows || [];
+    return {
+      title: 'Detailed Report',
+      headers: ['Date','Party','Product','Qty','Rate','Amount','Collection','Balance'],
+      rows: rows.map(r=>[r.date, r.customerName, r.productName, r.qty||'-', r.rate?money(r.rate):'-', r.amount?money(r.amount):'-', r.collection?money(r.collection):'-', money(r.balance)]),
+      rowsRaw: rows.map(r=>[r.date, r.customerName, r.productName, r.qty||0, r.rate||0, r.amount||0, r.collection||0, r.balance||0])
+    };
+  }
   if(currentReport==='product'){
     const map = window._productReportData || {};
     return {
