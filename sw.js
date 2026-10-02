@@ -1,6 +1,6 @@
 // Aavin Delivery App Service Worker
 
-const CACHE_NAME = 'aavin-delivery-shell-v2';
+const CACHE_NAME = 'aavin-delivery-shell-v3';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
