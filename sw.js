@@ -1,6 +1,4 @@
-// Aavin Delivery App Service Worker
-
-const CACHE_NAME = 'aavin-delivery-shell-v3';
+const CACHE_NAME = 'aavin-delivery-shell-v10';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -10,7 +8,9 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         './',
         './index.html',
-        './manifest.json'
+        './manifest.json',
+        './icon-192.png',
+        './icon-512.png'
       ]);
     })
   );
@@ -34,16 +34,6 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        const responseClone = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });
