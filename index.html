@@ -314,6 +314,21 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 .day-product-row .amt{font-weight:700; color:var(--teal-dark);}
 .day-tap-hint{font-size:10.5px; color:#AAB6B8; text-align:right; margin-top:6px;}
 
+.ledger-doc{background:var(--milk); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
+.ledger-doc-head{margin-bottom:8px; padding-bottom:8px; border-bottom:2px solid var(--teal-light);}
+.ledger-doc-head .ld-name{font-size:16px; font-weight:800; color:var(--teal-dark);}
+.ledger-doc-head .ld-period{font-size:12px; color:#7C8B8E; margin-top:2px;}
+.ledger-doc-row{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid var(--line);}
+.ledger-doc-row .ld-main{font-size:13.5px; font-weight:600;}
+.ledger-doc-row .ld-sub{font-size:11.5px; color:#7C8B8E; margin-top:1px;}
+.ledger-doc-row .ld-amt{font-size:14px; font-weight:700; color:var(--clay); white-space:nowrap;}
+.ledger-doc-row .ld-amt.good{color:var(--good);}
+.ledger-doc-foot{margin-top:8px; padding-top:6px; border-top:2px solid var(--teal-light);}
+.ld-final .k{font-weight:800; color:var(--teal-dark);}
+.ld-final .v{font-size:16px; font-weight:800;}
+.ld-final .v.neg{color:var(--bad);}
+.ld-final .v.pos{color:var(--good);}
+
 .sync-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:5px;}
 .sync-ok{background:#5FE39A;}
 .sync-off{background:#F0A85A;}
@@ -330,10 +345,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
 <header class="topbar">
   <div class="top-right-controls">
-    <button class="sync-pill" id="headerSyncBtn" onclick="connectDrive()">🔄 <span id="headerSyncLabel">Connect Drive</span></button>
-    <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">📱 <span id="deviceLabel">Set device</span></div>
+    <button class="sync-pill" id="headerSyncBtn" onclick="connectDrive()">ЁЯФД <span id="headerSyncLabel">Connect Drive</span></button>
+    <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">ЁЯУ▒ <span id="deviceLabel">Set device</span></div>
   </div>
-  <div class="brand">AAVIN FRESH MILK STALL · 1958</div>
+  <div class="brand">AAVIN FRESH MILK STALL ┬╖ 1958</div>
   <h1>Delivery Manager</h1>
   <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncText">Not signed in to Drive</span></div>
 </header>
@@ -342,20 +357,20 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
   <!-- DELIVERY TAB -->
   <section class="tab-panel active" id="tab-delivery">
-    <div class="section-title">இன்றைய டெலிவரி <span class="count" id="todayCount">0</span></div>
+    <div class="section-title">роЗройрпНро▒рпИроп роЯрпЖро▓ро┐ро╡ро░ро┐ <span class="count" id="todayCount">0</span></div>
     <div class="card" id="deliveryFormCard">
-      <div class="edit-banner" id="delFormMode" style="display:none">✎ Editing entry — save to update, or cancel below</div>
+      <div class="edit-banner" id="delFormMode" style="display:none">тЬО Editing entry тАФ save to update, or cancel below</div>
       <div class="field">
-        <label>Customer / வாடிக்கையாளர்</label>
+        <label>Customer / ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН</label>
         <select id="delCustomer" onchange="onDeliveryCustomerChange()"><option value="">-- Select --</option></select>
       </div>
       <div class="bal-banner" id="delBalBanner" style="display:none">
-        <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">₹0</div></div>
-        <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">₹0</div></div>
+        <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">тВ╣0</div></div>
+        <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">тВ╣0</div></div>
       </div>
       <div class="field">
-        <label>Products / பொருட்கள்</label>
-        <div class="search-bar"><span>🔍</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
+        <label>Products / рокрпКро░рпБроЯрпНроХро│рпН</label>
+        <div class="search-bar"><span>ЁЯФН</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
         <div class="prod-grid" id="delProdGrid"></div>
       </div>
       <div class="row2">
@@ -369,12 +384,12 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         </div>
       </div>
       <div class="total-strip">
-        <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">₹0</div></div>
-        <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">₹0</div></div>
+        <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">тВ╣0</div></div>
+        <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">тВ╣0</div></div>
       </div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">💾 Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">📲 Save &amp; WhatsApp</button>
+        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">ЁЯТ╛ Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">ЁЯУ╖ Save &amp; Send Bill</button>
       </div>
       <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="delCancelEditBtn" onclick="cancelDeliveryEdit()">Cancel edit</button>
     </div>
@@ -391,7 +406,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <!-- CUSTOMERS TAB -->
   <section class="tab-panel" id="tab-customers">
     <div class="section-title">Customers <span class="count" id="custCount">0</span></div>
-    <div class="search-bar"><span>🔍</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
+    <div class="search-bar"><span>ЁЯФН</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
     <div class="card"><div id="customerList"></div></div>
   </section>
 
@@ -399,7 +414,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <section class="tab-panel" id="tab-subscription">
     <div class="section-title">Subscription</div>
     <div class="card">
-      <div class="edit-banner" id="subFormMode" style="display:none">✎ Editing entry — save to update, or cancel below</div>
+      <div class="edit-banner" id="subFormMode" style="display:none">тЬО Editing entry тАФ save to update, or cancel below</div>
       <div class="field">
         <label>Entry type</label>
         <select id="subType" onchange="onSubTypeChange()">
@@ -412,17 +427,17 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
       </div>
       <div class="bal-banner" id="subBalBanner" style="display:none">
-        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">₹0</div></div>
-        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">₹0</div></div>
+        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">тВ╣0</div></div>
+        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">тВ╣0</div></div>
       </div>
       <div class="row2">
         <div class="field"><label>Date</label><input type="date" id="subDate"></div>
-        <div class="field"><label id="subAmountLbl">Amount (₹)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+        <div class="field"><label id="subAmountLbl">Amount (тВ╣)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
       </div>
       <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">💾 Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">📲 Save &amp; WhatsApp</button>
+        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">ЁЯТ╛ Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">ЁЯУ▓ Save &amp; WhatsApp</button>
       </div>
       <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="subCancelEditBtn" onclick="cancelSubscriptionEdit()">Cancel edit</button>
     </div>
@@ -439,29 +454,29 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       </div>
       <div id="stmtDaysNote" style="font-size:12px; color:#7C8B8E; margin:-6px 0 12px 2px;"></div>
       <div class="field">
-        <label>Opening Balance (₹) — auto-filled, editable</label>
+        <label>Opening Balance (тВ╣) тАФ auto-filled, editable</label>
         <input type="number" id="stmtOB" oninput="updateStmtTotals()">
       </div>
       <div class="field">
-        <label>Products — pcs PER DAY (auto-averaged from deliveries, editable) × days = total</label>
-        <div class="search-bar"><span>🔍</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
+        <label>Products тАФ pcs PER DAY (auto-averaged from deliveries, editable) ├Ч days = total</label>
+        <div class="search-bar"><span>ЁЯФН</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
         <div class="prod-grid" id="stmtProdGrid"></div>
       </div>
       <div class="field">
-        <label>Delivery / Service Charge (₹) — manual</label>
+        <label>Delivery / Service Charge (тВ╣) тАФ manual</label>
         <input type="number" id="stmtDeliveryCharge" placeholder="0" oninput="updateStmtTotals()">
       </div>
       <div class="total-strip">
-        <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">₹0</div></div>
-        <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">₹0</div></div>
+        <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">тВ╣0</div></div>
+        <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">тВ╣0</div></div>
       </div>
       <div class="field">
         <label>Message (auto-built, editable before sending)</label>
         <textarea id="stmtMessage" rows="6" placeholder="Select a customer and date range to auto-fill a statement message"></textarea>
       </div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">📲 Send WhatsApp</button>
-        <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">💬 Send SMS</button>
+        <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">ЁЯУ▓ Send WhatsApp</button>
+        <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">ЁЯТм Send SMS</button>
       </div>
     </div>
 
@@ -477,57 +492,42 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="section-title">Today's Summary</div>
     <div class="card">
       <div id="daySummary"></div>
-      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="shareDaySummary()">📲 Share Day Summary to WhatsApp</button>
+      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="shareDaySummary()">ЁЯУ▓ Share Day Summary to WhatsApp</button>
     </div>
 
-    <div class="section-title">Reports</div>
+    <div class="section-title">Customer Ledger Report</div>
     <div class="card">
-      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:14px">
-        <button class="btn btn-sm btn-primary" id="repBtnDetailed" onclick="showReport('detailed')">📋 Detailed</button>
-        <button class="btn btn-sm btn-outline" id="repBtnDay" onclick="showReport('day')">📅 Day-by-Day</button>
-        <button class="btn btn-sm btn-outline" id="repBtnProduct" onclick="showReport('product')">📦 Product</button>
-        <button class="btn btn-sm btn-outline" id="repBtnParty" onclick="showReport('party')">👤 Party</button>
-      </div>
-
-      <div class="field" style="margin-bottom:10px">
-        <label>📅 Date</label>
-        <select id="repRangeType" onchange="onRepRangeTypeChange()">
-          <option value="date">Specific Date</option>
-          <option value="month">Whole Month</option>
-          <option value="all">All time</option>
+      <div class="field">
+        <label>ЁЯУЕ Date</label>
+        <select id="repDateType" onchange="onRepDateTypeChange()">
+          <option value="today">Today</option>
+          <option value="month">This Month</option>
+          <option value="range">Date to Date</option>
         </select>
       </div>
-      <div class="field" style="margin-bottom:10px" id="repDateWrap">
-        <input type="date" id="repDateValue">
+      <div class="row2" id="repRangeWrap" style="display:none">
+        <div class="field"><label>From</label><input type="date" id="repFromDate"></div>
+        <div class="field"><label>To</label><input type="date" id="repToDate"></div>
       </div>
-      <div class="field" style="margin-bottom:10px; display:none" id="repMonthWrap">
-        <input type="month" id="repMonthValue">
+      <div class="field">
+        <label>ЁЯСд Party (one customer)</label>
+        <select id="repParty"><option value="">-- Select Customer --</option></select>
       </div>
-      <div class="row2">
-        <div class="field">
-          <label>👤 Party</label>
-          <select id="repPartyFilter"><option value="">All customers</option></select>
-        </div>
-        <div class="field">
-          <label>📦 Product</label>
-          <select id="repProductFilter"><option value="">All products</option></select>
-        </div>
+      <div class="field">
+        <label>ЁЯУж Product</label>
+        <select id="repProductFilter"><option value="">All products</option></select>
       </div>
-      <div style="display:flex; gap:8px; margin-bottom:14px">
-        <button class="btn btn-primary btn-block" onclick="applyReportFilters()">✔ Apply Filters</button>
-        <button class="btn btn-outline btn-block" onclick="clearReportFilters()">✕ Clear Filters</button>
+      <div class="field">
+        <label>ЁЯУд View / Output</label>
+        <select id="repOutput">
+          <option value="screen">Show on screen only</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="excel">Excel</option>
+          <option value="pdf">PDF</option>
+        </select>
       </div>
-
-      <div id="reportTotals"></div>
-      <div id="reportBody"></div>
-
-      <div style="display:flex; gap:8px; margin-top:12px">
-        <button class="btn btn-wa btn-block" onclick="shareFullReportWhatsApp()">📲 Share This Report</button>
-      </div>
-      <div style="display:flex; gap:8px; margin-top:8px">
-        <button class="btn btn-clay btn-block" onclick="downloadReportExcel()">📊 Export Excel</button>
-        <button class="btn btn-outline btn-block" onclick="downloadReportPDF()">📄 Export PDF</button>
-      </div>
+      <button class="btn btn-primary btn-block" onclick="generateReport()">ЁЯУД Generate Report</button>
+      <div id="reportBody" style="margin-top:14px"></div>
     </div>
 
     <div class="section-title">This Device</div>
@@ -541,6 +541,31 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
           <option value="Shop">Shop tablet</option>
         </select>
       </div>
+    </div>
+
+    <div class="section-title">Bill Image Template</div>
+    <div class="card">
+      <div class="field">
+        <label>Header (top of the bill image)</label>
+        <textarea id="billHeaderInput" oninput="billTemplateDirty=true" rows="3" placeholder="Shop name, address, phone..."></textarea>
+      </div>
+      <div class="field">
+        <label>Footer (bottom of the bill image)</label>
+        <textarea id="billFooterInput" oninput="billTemplateDirty=true" rows="2" placeholder="Thank-you note, offer, UPI details..."></textarea>
+      </div>
+      <div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-bottom:10px">The middle part (date, party, products, total, balance) is fixed as a bill. Only the header and footer change.</div>
+      <div style="display:flex; gap:8px">
+        <button class="btn btn-primary btn-block" onclick="saveBillTemplate()">ЁЯТ╛ Save Template</button>
+        <button class="btn btn-outline btn-block" onclick="previewBillTemplate()">ЁЯСБ Preview</button>
+      </div>
+    </div>
+
+    <div class="section-title">Send Image to All Customers</div>
+    <div class="card">
+      <input type="file" accept="image/*" id="bulkImageInput" class="visually-hidden-file" onchange="onBulkImageChosen(event)">
+      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('bulkImageInput').click()">ЁЯЦ╝ Choose Image</button>
+      <div id="bulkImagePreview" style="margin-top:10px; text-align:center"></div>
+      <div id="bulkSendPanel" style="margin-top:12px"></div>
     </div>
 
     <div class="section-title">Google Drive Sync</div>
@@ -560,22 +585,22 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
     <div class="section-title">Backup</div>
     <div class="card">
-      <button class="btn btn-clay btn-block" style="margin-bottom:10px" onclick="exportExcel()">⬇ Export Excel Report</button>
-      <button class="btn btn-outline btn-block" onclick="exportWhatsAppBackup()">📤 Share Backup File via WhatsApp</button>
+      <button class="btn btn-clay btn-block" style="margin-bottom:10px" onclick="exportExcel()">тмЗ Export Excel Report</button>
+      <button class="btn btn-outline btn-block" onclick="exportWhatsAppBackup()">ЁЯУд Share Backup File via WhatsApp</button>
     </div>
   </section>
 
 </main>
 
 <nav class="bottombar">
-  <button class="active" onclick="showTab('delivery')" id="nav-delivery"><span class="ic">🧾</span><span class="lb">Delivery</span></button>
-  <button onclick="showTab('products')" id="nav-products"><span class="ic">🥛</span><span class="lb">Products</span></button>
-  <button onclick="showTab('customers')" id="nav-customers"><span class="ic">👥</span><span class="lb">Customers</span></button>
-  <button onclick="showTab('subscription')" id="nav-subscription"><span class="ic">💳</span><span class="lb">Subscription</span></button>
-  <button onclick="showTab('settings')" id="nav-settings"><span class="ic">⚙️</span><span class="lb">More</span></button>
+  <button class="active" onclick="showTab('delivery')" id="nav-delivery"><span class="ic">ЁЯз╛</span><span class="lb">Delivery</span></button>
+  <button onclick="showTab('products')" id="nav-products"><span class="ic">ЁЯеЫ</span><span class="lb">Products</span></button>
+  <button onclick="showTab('customers')" id="nav-customers"><span class="ic">ЁЯСе</span><span class="lb">Customers</span></button>
+  <button onclick="showTab('subscription')" id="nav-subscription"><span class="ic">ЁЯТ│</span><span class="lb">Subscription</span></button>
+  <button onclick="showTab('settings')" id="nav-settings"><span class="ic">тЪЩя╕П</span><span class="lb">More</span></button>
 </nav>
 
-<button class="fab" id="fabBtn" onclick="openCustomerForm()">＋</button>
+<button class="fab" id="fabBtn" onclick="openCustomerForm()">я╝Л</button>
 
 <!-- Customer Add/Edit Sheet -->
 <div class="overlay" id="customerOverlay">
@@ -583,10 +608,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="custFormTitle">Add Customer</div>
     <input type="hidden" id="custId">
-    <div class="field"><label>Name / பெயர்</label><input id="custName" placeholder="Customer name"></div>
-    <div class="field"><label>Phone / போன்</label><input id="custPhone" type="tel" placeholder="10-digit number"></div>
-    <div class="field"><label>Address / முகவரி</label><textarea id="custAddress" placeholder="Delivery address"></textarea></div>
-    <div class="field"><label>Opening balance (₹)</label><input id="custOpenBal" type="number" placeholder="0"></div>
+    <div class="field"><label>Name / рокрпЖропро░рпН</label><input id="custName" placeholder="Customer name"></div>
+    <div class="field"><label>Phone / рокрпЛройрпН</label><input id="custPhone" type="tel" placeholder="10-digit number"></div>
+    <div class="field"><label>Address / роорпБроХро╡ро░ро┐</label><textarea id="custAddress" placeholder="Delivery address"></textarea></div>
+    <div class="field"><label>Opening balance (тВ╣)</label><input id="custOpenBal" type="number" placeholder="0"></div>
     <div style="display:flex; gap:10px; margin-top:6px">
       <button class="btn btn-outline btn-block" onclick="closeOverlay('customerOverlay')">Cancel</button>
       <button class="btn btn-primary btn-block" onclick="saveCustomer()">Save</button>
@@ -602,13 +627,13 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="sheet-title" id="prodFormTitle">Add Product</div>
     <input type="hidden" id="prodId">
     <div class="field"><label>Product name</label><input id="prodName" placeholder="e.g. Milk 500ml"></div>
-    <div class="field"><label>Price (₹)</label><input id="prodPrice" type="number" placeholder="0"></div>
+    <div class="field"><label>Price (тВ╣)</label><input id="prodPrice" type="number" placeholder="0"></div>
     <div class="field"><label>Unit</label><input id="prodUnit" placeholder="e.g. packet, litre, cup"></div>
     <div class="field">
       <label>Photo (optional)</label>
       <input type="file" accept="image/*" id="prodPhotoInput" class="visually-hidden-file" onchange="onProdPhotoChange(event)">
-      <button type="button" class="btn btn-outline btn-sm" onclick="triggerPhotoPicker()">📷 Choose Photo</button>
-      <div class="field-hint">If nothing opens: this file must be hosted online (not opened from a Files app / WhatsApp preview) — open it in Chrome or Safari directly, or use an icon below instead.</div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="triggerPhotoPicker()">ЁЯУ╖ Choose Photo</button>
+      <div class="field-hint">If nothing opens: this file must be hosted online (not opened from a Files app / WhatsApp preview) тАФ open it in Chrome or Safari directly, or use an icon below instead.</div>
       <div id="prodPhotoPreview" style="margin-top:8px"></div>
     </div>
     <div class="field">
@@ -623,6 +648,19 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   </div>
 </div>
 
+<!-- Bill image preview -->
+<div class="overlay" id="billPreviewOverlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Bill Image</div>
+    <div style="text-align:center; margin-bottom:12px"><img id="billPreviewImg" style="max-width:100%; border:1px solid var(--line); border-radius:8px"></div>
+    <div style="display:flex; gap:8px">
+      <button class="btn btn-outline btn-block" onclick="closeOverlay('billPreviewOverlay')">Close</button>
+      <button class="btn btn-wa btn-block" onclick="shareBillPreview()">ЁЯУ▓ Share</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -630,7 +668,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
    DATA LAYER
 --------------------------------------------------------------- */
 const DB_KEY = 'aavin_delivery_db_v1';
-const ICONS = ['🥛','🧈','🧀','🍶','🫙','🍼','🧃','🥣','🍵','🫖','🧉','🍦'];
+const ICONS = ['ЁЯеЫ','ЁЯзИ','ЁЯзА','ЁЯН╢','ЁЯлЩ','ЁЯН╝','ЁЯзГ','ЁЯег','ЁЯН╡','ЁЯлЦ','ЁЯзЙ','ЁЯНж'];
 let db = loadDB();
 let selectedProdIcon = ICONS[0];
 let deliveryCart = {}; // productId -> qty
@@ -643,14 +681,14 @@ function loadDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], meta:{ deviceRole:'' } };
+  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], settings: {}, meta:{ deviceRole:'' } };
 }
 function saveDB(){
   localStorage.setItem(DB_KEY, JSON.stringify(db));
   scheduleAutoSync();
 }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function money(n){ n = Number(n)||0; return '₹' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function money(n){ n = Number(n)||0; return 'тВ╣' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
 function todayStr(){ const d = new Date(); return d.toISOString().slice(0,10); }
 function nowTimeStr(){ const d = new Date(); return d.toTimeString().slice(0,5); }
 function toast(msg){
@@ -689,7 +727,7 @@ function triggerPhotoPicker(){
   try{
     input.click();
   }catch(err){
-    toast('Photo picker blocked — try opening this app in Chrome/Safari, not a preview window');
+    toast('Photo picker blocked тАФ try opening this app in Chrome/Safari, not a preview window');
   }
 }
 function onProdPhotoChange(e){
@@ -804,7 +842,7 @@ function renderProducts(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}${p.unit?('/'+escapeHtml(p.unit)):''}</div>
     </div>`).join('');
-  html += `<div class="prod-tile add-tile" onclick="openProductForm()"><div class="img-wrap">＋</div><div class="pname">Add Product</div></div>`;
+  html += `<div class="prod-tile add-tile" onclick="openProductForm()"><div class="img-wrap">я╝Л</div><div class="pname">Add Product</div></div>`;
   grid.innerHTML = html;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -868,7 +906,7 @@ function renderCustomers(filter){
   document.getElementById('custCount').textContent = db.customers.length;
   const list = db.customers.filter(c=> !filter || c.name.toLowerCase().includes(filter) || (c.phone||'').includes(filter));
   const el = document.getElementById('customerList');
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">👤</div><div class="msg">No customers yet. Tap + to add one.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯСд</div><div class="msg">No customers yet. Tap + to add one.</div></div>`; return; }
   el.innerHTML = list.map(c=>{
     const bal = c.balance||0;
     const cls = bal>0?'balance-good':(bal<0?'balance-bad':'balance-zero');
@@ -914,12 +952,12 @@ function renderDelProdGrid(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}</div>
       <div class="qty-row">
-        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">−</button>
+        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">тИТ</button>
         <span class="qty-val">${qty}</span>
         <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
       </div>
     </div>`;
-  }).join('') || (q ? `<div class="empty-state"><div class="ic">🔍</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('delivery')">＋ Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">🥛</div><div class="msg">Add products first from the Products tab.</div></div>`);
+  }).join('') || (q ? `<div class="empty-state"><div class="ic">ЁЯФН</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('delivery')">я╝Л Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">ЁЯеЫ</div><div class="msg">Add products first from the Products tab.</div></div>`);
 }
 function addToCart(id){ changeQty(id,1); }
 function changeQty(id, delta){
@@ -940,7 +978,14 @@ function updateDeliveryTotals(){
   const banner = document.getElementById('delBalBanner');
   if(custId){
     const c = db.customers.find(x=>x.id===custId);
-    const before = c? (c.balance||0) : 0;
+    let before = c? (c.balance||0) : 0;
+    // While editing, the customer's live balance still has the ORIGINAL
+    // delivery deducted. Save reverses that first, so the preview must too -
+    // otherwise the old amount looks like it's being charged twice.
+    if(editingDeliveryId){
+      const orig = db.deliveries.find(x=>x.id===editingDeliveryId);
+      if(orig && orig.customerId===custId) before += orig.total;
+    }
     const after = before - total;
     banner.style.display='flex';
     document.getElementById('delBalBefore').textContent = money(before);
@@ -980,7 +1025,7 @@ function saveDelivery(shareWA){
       renderDeliveryTab();
       renderCustomers();
       toast('Delivery entry updated');
-      if(shareWA) openWhatsApp(buildDeliveryMessage(old, true), c.phone);
+      if(shareWA) shareDeliveryBillImage(old);
       return;
     }
   }
@@ -997,26 +1042,26 @@ function saveDelivery(shareWA){
   renderDeliveryTab();
   renderCustomers();
   toast('Delivery saved');
-  if(shareWA) openWhatsApp(buildDeliveryMessage(entry), c.phone);
+  if(shareWA) shareDeliveryBillImage(entry);
 }
 function renderDeliveryList(){
   const el = document.getElementById('deliveryList');
   const list = db.deliveries.slice(0,15);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">🧾</div><div class="msg">No delivery entries yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯз╛</div><div class="msg">No delivery entries yet.</div></div>`; return; }
   el.innerHTML = list.map(d=>{
     const itemsStr = d.items.map(i=>`${i.name} x${i.qty}`).join(', ');
     return `<div class="list-row">
       <div class="avatar">${(d.customerName||'?').charAt(0).toUpperCase()}</div>
       <div class="list-main">
         <div class="name">${escapeHtml(d.customerName)}</div>
-        <div class="meta">${d.date} ${d.time} · ${escapeHtml(itemsStr)}</div>
+        <div class="meta">${d.date} ${d.time} ┬╖ ${escapeHtml(itemsStr)}</div>
       </div>
       <div style="text-align:right">
         <div class="balance-tag balance-zero">${money(d.total)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">🗑</button>
-          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">📲</button>
+          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">тЬО</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">ЁЯЧС</button>
+          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">ЁЯУ▓</button>
         </div>
       </div>
     </div>`;
@@ -1025,8 +1070,7 @@ function renderDeliveryList(){
 function shareEntryAgain(id){
   const entry = db.deliveries.find(x=>x.id===id);
   if(!entry) return;
-  const c = db.customers.find(x=>x.id===entry.customerId);
-  openWhatsApp(buildDeliveryMessage(entry), c?c.phone:'');
+  shareDeliveryBillImage(entry);
 }
 function openDeliveryEdit(id){
   const entry = db.deliveries.find(x=>x.id===id);
@@ -1039,7 +1083,7 @@ function openDeliveryEdit(id){
   entry.items.forEach(it=>{ deliveryCart[it.productId] = it.qty; });
   renderDelProdGrid();
   updateDeliveryTotals();
-  document.getElementById('delFormMode').textContent = 'Editing entry — save to update, or cancel below';
+  document.getElementById('delFormMode').textContent = 'Editing entry тАФ save to update, or cancel below';
   document.getElementById('delFormMode').style.display = 'block';
   document.getElementById('delCancelEditBtn').style.display = 'block';
   document.getElementById('deliveryFormCard').scrollIntoView({behavior:'smooth'});
@@ -1084,17 +1128,17 @@ function onSubCustomerChange(){ updateSubPreview(); }
 function onSubTypeChange(){
   const type = document.getElementById('subType').value;
   if(type==='charge'){
-    document.getElementById('subAmountLbl').textContent = 'Monthly charge (₹)';
+    document.getElementById('subAmountLbl').textContent = 'Monthly charge (тВ╣)';
     document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'Balance (unchanged)';
-    document.getElementById('subSaveOnlyBtn').textContent = '💾 Save Only';
-    document.getElementById('subSaveWABtn').textContent = '📲 Save & WhatsApp';
+    document.getElementById('subSaveOnlyBtn').textContent = 'ЁЯТ╛ Save Only';
+    document.getElementById('subSaveWABtn').textContent = 'ЁЯУ▓ Save & WhatsApp';
   } else {
-    document.getElementById('subAmountLbl').textContent = 'Amount (₹)';
+    document.getElementById('subAmountLbl').textContent = 'Amount (тВ╣)';
     document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'After top-up';
-    document.getElementById('subSaveOnlyBtn').textContent = '💾 Save Only';
-    document.getElementById('subSaveWABtn').textContent = '📲 Save & WhatsApp';
+    document.getElementById('subSaveOnlyBtn').textContent = 'ЁЯТ╛ Save Only';
+    document.getElementById('subSaveWABtn').textContent = 'ЁЯУ▓ Save & WhatsApp';
   }
   updateSubPreview();
 }
@@ -1197,17 +1241,17 @@ function deleteSubscription(id){
 function renderSubscriptionList(){
   const el = document.getElementById('subscriptionList');
   const list = db.subscriptions.slice(0,20);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">💳</div><div class="msg">No entries yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯТ│</div><div class="msg">No entries yet.</div></div>`; return; }
   el.innerHTML = list.map(s=>{
     const isCharge = s.type==='charge';
     return `<div class="list-row">
       <div class="avatar">${(s.customerName||'?').charAt(0).toUpperCase()}</div>
-      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' · Monthly charge':''}${s.details?(' · '+escapeHtml(s.details)):''}</div></div>
+      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' ┬╖ Monthly charge':''}${s.details?(' ┬╖ '+escapeHtml(s.details)):''}</div></div>
       <div style="text-align:right">
         <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'+'}${money(s.amount)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">✎</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">🗑</button>
+          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">тЬО</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">ЁЯЧС</button>
         </div>
       </div>
     </div>`;
@@ -1218,30 +1262,30 @@ function renderSubscriptionList(){
    WHATSAPP MESSAGING
 --------------------------------------------------------------- */
 function buildDeliveryMessage(d, modified){
-  const itemsLines = d.items.map(i=>`  • ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
-  return `📦 *${modified? 'திருத்தப்பட்ட டெலிவரி ரசீது (Updated)':'டெலிவரி ரசீது'} - Aavin Fresh Milk Stall*\n\n`+
-    `தேதி/Date: ${d.date} ${d.time}\n`+
-    `வாடிக்கையாளர்/Customer: ${d.customerName}\n\n`+
-    `பொருட்கள்/Items:\n${itemsLines}\n\n`+
-    `மொத்தம்/Total: ${money(d.total)}\n`+
-    `கையிருப்பு (முன்பு)/Balance before: ${money(d.balBefore)}\n`+
-    `மீதி இருப்பு/Balance after: ${money(d.balAfter)}\n\n`+
-    `நன்றி! 🙏`;
+  const itemsLines = d.items.map(i=>`  тАв ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
+  return `ЁЯУж *${modified? 'родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯ роЯрпЖро▓ро┐ро╡ро░ро┐ ро░роЪрпАродрпБ (Updated)':'роЯрпЖро▓ро┐ро╡ро░ро┐ ро░роЪрпАродрпБ'} - Aavin Fresh Milk Stall*\n\n`+
+    `родрпЗродро┐/Date: ${d.date} ${d.time}\n`+
+    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${d.customerName}\n\n`+
+    `рокрпКро░рпБроЯрпНроХро│рпН/Items:\n${itemsLines}\n\n`+
+    `роорпКродрпНродроорпН/Total: ${money(d.total)}\n`+
+    `роХрпИропро┐ро░рпБрокрпНрокрпБ (роорпБройрпНрокрпБ)/Balance before: ${money(d.balBefore)}\n`+
+    `роорпАродро┐ роЗро░рпБрокрпНрокрпБ/Balance after: ${money(d.balAfter)}\n\n`+
+    `роиройрпНро▒ро┐! ЁЯЩП`;
 }
 function buildSubscriptionMessage(s, modified){
   const isCharge = s.type==='charge';
   const title = isCharge
-    ? (modified? 'மாத கட்டண குறிப்பு - திருத்தப்பட்டது (Updated)':'மாத கட்டண குறிப்பு')
-    : (modified? 'சந்தா தொகை - திருத்தப்பட்டது (Updated)':'சந்தா தொகை சேர்க்கப்பட்டது');
-  return `💰 *${title} - Aavin Fresh Milk Stall*\n\n`+
-    `தேதி/Date: ${s.date}\n`+
-    `வாடிக்கையாளர்/Customer: ${s.customerName}\n`+
+    ? (modified? 'рооро╛род роХроЯрпНроЯрог роХрпБро▒ро┐рокрпНрокрпБ - родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯродрпБ (Updated)':'рооро╛род роХроЯрпНроЯрог роХрпБро▒ро┐рокрпНрокрпБ')
+    : (modified? 'роЪроирпНродро╛ родрпКроХрпИ - родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯродрпБ (Updated)':'роЪроирпНродро╛ родрпКроХрпИ роЪрпЗро░рпНроХрпНроХрокрпНрокроЯрпНроЯродрпБ');
+  return `ЁЯТ░ *${title} - Aavin Fresh Milk Stall*\n\n`+
+    `родрпЗродро┐/Date: ${s.date}\n`+
+    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${s.customerName}\n`+
     (isCharge
-      ? `மாத கட்டணம்/Monthly charge: ${money(s.amount)}\n`
-      : `சேர்க்கப்பட்ட தொகை/Amount added: ${money(s.amount)}\n`)+
-    (s.details? `விவரம்/Details: ${s.details}\n`:'')+
-    (isCharge ? '' : `\nமொத்த இருப்பு/New balance: ${money(s.balAfter)}\n`)+
-    `\nநன்றி! 🙏`;
+      ? `рооро╛род роХроЯрпНроЯрогроорпН/Monthly charge: ${money(s.amount)}\n`
+      : `роЪрпЗро░рпНроХрпНроХрокрпНрокроЯрпНроЯ родрпКроХрпИ/Amount added: ${money(s.amount)}\n`)+
+    (s.details? `ро╡ро┐ро╡ро░роорпН/Details: ${s.details}\n`:'')+
+    (isCharge ? '' : `\nроорпКродрпНрод роЗро░рпБрокрпНрокрпБ/New balance: ${money(s.balAfter)}\n`)+
+    `\nроиройрпНро▒ро┐! ЁЯЩП`;
 }
 function openWhatsApp(message, phone){
   let url = 'https://wa.me/';
@@ -1318,7 +1362,7 @@ function renderStmtProdGrid(){
   const grid = document.getElementById('stmtProdGrid');
   const q = (document.getElementById('stmtProdSearch').value||'').trim().toLowerCase();
   const days = stmtDaysCount();
-  document.getElementById('stmtDaysNote').textContent = days ? `📅 ${days} day${days===1?'':'s'} in this period` : '';
+  document.getElementById('stmtDaysNote').textContent = days ? `ЁЯУЕ ${days} day${days===1?'':'s'} in this period` : '';
   const list = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (stmtCart[p.id]||0)>0);
   grid.innerHTML = list.map(p=>{
     const perDay = stmtCart[p.id]||0;
@@ -1329,13 +1373,13 @@ function renderStmtProdGrid(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}/pc</div>
       <div class="qty-row">
-        <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">−</button>
+        <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">тИТ</button>
         <input type="number" class="qty-input" id="stmtqty_${p.id}" value="${perDay}" step="0.5" min="0" onchange="setStmtQty('${p.id}', this.value)">
         <button class="qty-btn" onclick="changeStmtQty('${p.id}',1)">+</button>
       </div>
-      <div class="qty-calc">pcs/day × ${days} days = ${totalQty}<br>${money(amount)}</div>
+      <div class="qty-calc">pcs/day ├Ч ${days} days = ${totalQty}<br>${money(amount)}</div>
     </div>`;
-  }).join('') || (q ? `<div class="empty-state"><div class="ic">🔍</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('stmt')">＋ Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">🥛</div><div class="msg">Add products first from the Products tab.</div></div>`);
+  }).join('') || (q ? `<div class="empty-state"><div class="ic">ЁЯФН</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('stmt')">я╝Л Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">ЁЯеЫ</div><div class="msg">Add products first from the Products tab.</div></div>`);
   if(!days){
     grid.insertAdjacentHTML('afterbegin', `<div style="grid-column:1/-1; font-size:12px; color:#C24B3D; padding:6px 2px;">Pick From/To dates above to calculate totals.</div>`);
   }
@@ -1387,29 +1431,29 @@ function autoFillStmtMessage(){
   document.getElementById('stmtMessage').value = buildStatementMessage(c, from, to, ob, items, deliveryCharge, total);
 }
 function buildStatementMessage(c, from, to, ob, items, deliveryCharge, total){
-  const periodLine = (from && to) ? `காலம்/Period: ${from} - ${to}\n` : '';
+  const periodLine = (from && to) ? `роХро╛ро▓роорпН/Period: ${from} - ${to}\n` : '';
   const itemLines = items.length
-    ? items.map(it=>`  • ${it.name}: ${it.perDay}/day × ${it.days} days = ${it.qty} pcs → ${money(it.amount)}`).join('\n') + '\n'
+    ? items.map(it=>`  тАв ${it.name}: ${it.perDay}/day ├Ч ${it.days} days = ${it.qty} pcs тЖТ ${money(it.amount)}`).join('\n') + '\n'
     : '';
   const dueOrCredit = total < 0
-    ? `நிலுவைத் தொகை/Amount Due: ${money(Math.abs(total))}`
-    : `இருப்பு/Balance: ${money(total)}`;
-  return `வணக்கம் ${c.name},\n\n`+
-    `கணக்கு அறிக்கை - Aavin Fresh Milk Stall\n`+
+    ? `роиро┐ро▓рпБро╡рпИродрпН родрпКроХрпИ/Amount Due: ${money(Math.abs(total))}`
+    : `роЗро░рпБрокрпНрокрпБ/Balance: ${money(total)}`;
+  return `ро╡рогроХрпНроХроорпН ${c.name},\n\n`+
+    `роХрогроХрпНроХрпБ роЕро▒ро┐роХрпНроХрпИ - Aavin Fresh Milk Stall\n`+
     periodLine+
-    `முந்தைய இருப்பு/Opening Balance: ${money(ob)}\n`+
+    `роорпБроирпНродрпИроп роЗро░рпБрокрпНрокрпБ/Opening Balance: ${money(ob)}\n`+
     itemLines+
-    (deliveryCharge ? `டெலிவரி கட்டணம்/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
+    (deliveryCharge ? `роЯрпЖро▓ро┐ро╡ро░ро┐ роХроЯрпНроЯрогроорпН/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
     `\n${dueOrCredit}\n\n`+
-    `தயவுசெய்து விரைவில் நிலுவைத் தொகையை செலுத்தவும்.\nKindly settle at your convenience.\n\n`+
-    `நன்றி!\nAavin Fresh Milk Stall - 1958`;
+    `родропро╡рпБроЪрпЖропрпНродрпБ ро╡ро┐ро░рпИро╡ро┐ро▓рпН роиро┐ро▓рпБро╡рпИродрпН родрпКроХрпИропрпИ роЪрпЖро▓рпБродрпНродро╡рпБроорпН.\nKindly settle at your convenience.\n\n`+
+    `роиройрпНро▒ро┐!\nAavin Fresh Milk Stall - 1958`;
 }
 function sendStatement(channel){
   const custId = document.getElementById('stmtCustomer').value;
   if(!custId){ toast('Select a customer'); return; }
   const c = db.customers.find(x=>x.id===custId);
   const msg = document.getElementById('stmtMessage').value.trim();
-  if(!msg){ toast('Message is empty — fill in the statement first'); return; }
+  if(!msg){ toast('Message is empty тАФ fill in the statement first'); return; }
   if(!c.phone){ toast('This customer has no phone number saved'); return; }
 
   const from = document.getElementById('stmtFrom').value;
@@ -1445,19 +1489,19 @@ function renderReminderHistory(){
   const list = db.reminders || [];
   document.getElementById('reminderCount').textContent = list.length;
   const el = document.getElementById('reminderHistoryList');
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">🔔</div><div class="msg">No statements sent yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯФФ</div><div class="msg">No statements sent yet.</div></div>`; return; }
   el.innerHTML = list.slice(0,25).map(r=>`
     <div class="list-row">
       <div class="avatar">${(r.customerName||'?').charAt(0).toUpperCase()}</div>
       <div class="list-main">
         <div class="name">${escapeHtml(r.customerName)}</div>
-        <div class="meta">${r.date} · ${r.channel==='whatsapp'?'WhatsApp':'SMS'}${r.from?(' · '+r.from+' to '+r.to):''}</div>
+        <div class="meta">${r.date} ┬╖ ${r.channel==='whatsapp'?'WhatsApp':'SMS'}${r.from?(' ┬╖ '+r.from+' to '+r.to):''}</div>
       </div>
       <div style="text-align:right">
         <div class="balance-tag ${r.total<0?'balance-bad':'balance-good'}">${money(r.total)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-wa btn-sm" onclick="resendReminder('${r.id}','whatsapp')">📲</button>
-          <button class="btn btn-clay btn-sm" onclick="resendReminder('${r.id}','sms')">💬</button>
+          <button class="btn btn-wa btn-sm" onclick="resendReminder('${r.id}','whatsapp')">ЁЯУ▓</button>
+          <button class="btn btn-clay btn-sm" onclick="resendReminder('${r.id}','sms')">ЁЯТм</button>
         </div>
       </div>
     </div>`).join('');
@@ -1468,11 +1512,11 @@ function shareDaySummary(){
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
   const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
-  let msg = `📊 *இன்றைய சுருக்கம் - ${today}*\n\n`+
-    `டெலிவரி எண்ணிக்கை/Deliveries: ${dToday.length}\n`+
-    `மொத்த விற்பனை/Total sales: ${money(totalSales)}\n`+
-    `சந்தா சேர்க்கை/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
-    `Aavin Fresh Milk Stall 🥛`;
+  let msg = `ЁЯУК *роЗройрпНро▒рпИроп роЪрпБро░рпБроХрпНроХроорпН - ${today}*\n\n`+
+    `роЯрпЖро▓ро┐ро╡ро░ро┐ роОрогрпНрогро┐роХрпНроХрпИ/Deliveries: ${dToday.length}\n`+
+    `роорпКродрпНрод ро╡ро┐ро▒рпНрокройрпИ/Total sales: ${money(totalSales)}\n`+
+    `роЪроирпНродро╛ роЪрпЗро░рпНроХрпНроХрпИ/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
+    `Aavin Fresh Milk Stall ЁЯеЫ`;
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
 }
@@ -1488,9 +1532,9 @@ function setDeviceRole(role){
 function renderSettingsTab(){
   document.getElementById('deviceRole').value = db.meta.deviceRole||'';
   const today = todayStr();
-  if(!document.getElementById('repDateValue').value) document.getElementById('repDateValue').value = today;
-  if(!document.getElementById('repMonthValue').value) document.getElementById('repMonthValue').value = today.slice(0,7);
   populateReportFilterDropdowns();
+  if(!document.getElementById('repFromDate').value) document.getElementById('repFromDate').value = today.slice(0,8) + '01';
+  if(!document.getElementById('repToDate').value) document.getElementById('repToDate').value = today;
   const dToday = db.deliveries.filter(d=>d.date===today);
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
@@ -1501,12 +1545,18 @@ function renderSettingsTab(){
     <div class="day-summary-row"><span class="k">Top-ups received</span><span class="v">${money(totalTopup)}</span></div>
     <div class="day-summary-row"><span class="k">Total customers</span><span class="v">${db.customers.length}</span></div>
   `;
-  renderReport();
+  if(typeof renderBillTemplateFields === 'function') renderBillTemplateFields();
+  if(typeof renderBulkSendPanel === 'function') renderBulkSendPanel();
 }
+
+/* ---------------------------------------------------------------
+   CUSTOMER LEDGER REPORT
+   One customer at a time. Opening Balance - products + top-ups = Remaining
+--------------------------------------------------------------- */
 function populateReportFilterDropdowns(){
-  const partySel = document.getElementById('repPartyFilter');
+  const partySel = document.getElementById('repParty');
   const prevParty = partySel.value;
-  partySel.innerHTML = '<option value="">All customers</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  partySel.innerHTML = '<option value="">-- Select Customer --</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
   if(prevParty && db.customers.some(c=>c.id===prevParty)) partySel.value = prevParty;
 
   const prodSel = document.getElementById('repProductFilter');
@@ -1514,402 +1564,467 @@ function populateReportFilterDropdowns(){
   prodSel.innerHTML = '<option value="">All products</option>' + db.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
   if(prevProd && db.products.some(p=>p.id===prevProd)) prodSel.value = prevProd;
 }
-let currentReport = 'detailed';
-let appliedFilters = { rangeType:'date', dateValue:'', monthValue:'', partyId:'', productId:'' };
-function showReport(type){
-  currentReport = type;
-  document.getElementById('repBtnDetailed').className = 'btn btn-sm ' + (type==='detailed'?'btn-primary':'btn-outline');
-  document.getElementById('repBtnDay').className = 'btn btn-sm ' + (type==='day'?'btn-primary':'btn-outline');
-  document.getElementById('repBtnProduct').className = 'btn btn-sm ' + (type==='product'?'btn-primary':'btn-outline');
-  document.getElementById('repBtnParty').className = 'btn btn-sm ' + (type==='party'?'btn-primary':'btn-outline');
-  renderReport();
+function onRepDateTypeChange(){
+  const type = document.getElementById('repDateType').value;
+  document.getElementById('repRangeWrap').style.display = (type==='range') ? 'flex' : 'none';
 }
-function onRepRangeTypeChange(){
-  const type = document.getElementById('repRangeType').value;
-  document.getElementById('repDateWrap').style.display = (type==='date') ? 'block' : 'none';
-  document.getElementById('repMonthWrap').style.display = (type==='month') ? 'block' : 'none';
-  // Filter changes only take effect once "Apply Filters" is tapped.
-}
-function applyReportFilters(){
-  appliedFilters = {
-    rangeType: document.getElementById('repRangeType').value,
-    dateValue: document.getElementById('repDateValue').value,
-    monthValue: document.getElementById('repMonthValue').value,
-    partyId: document.getElementById('repPartyFilter').value,
-    productId: document.getElementById('repProductFilter').value
-  };
-  renderReport();
-  toast('Filters applied');
-}
-function clearReportFilters(){
-  document.getElementById('repRangeType').value = 'all';
-  document.getElementById('repDateValue').value = '';
-  document.getElementById('repMonthValue').value = '';
-  document.getElementById('repPartyFilter').value = '';
-  document.getElementById('repProductFilter').value = '';
-  onRepRangeTypeChange();
-  appliedFilters = { rangeType:'all', dateValue:'', monthValue:'', partyId:'', productId:'' };
-  renderReport();
-  toast('Filters cleared');
-}
-function buildDateFilterObj(rangeType, dateValue, monthValue){
-  if(rangeType==='date'){
-    const val = dateValue || todayStr();
-    return { type:'date', value: val, label: val };
-  }
-  if(rangeType==='month'){
-    const val = monthValue || todayStr().slice(0,7);
-    const [y,m] = val.split('-');
+function getReportDateFilter(){
+  const type = document.getElementById('repDateType').value;
+  const today = todayStr();
+  if(type==='today') return { from: today, to: today, label: today };
+  if(type==='month'){
     const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    return { type:'month', value: val, label: monthNames[parseInt(m,10)-1] + ' ' + y };
+    const [y,m] = today.split('-');
+    return { from: today.slice(0,8)+'01', to: today, label: monthNames[parseInt(m,10)-1] + ' ' + y };
   }
-  return { type:'all', value:null, label:'All time' };
+  const from = document.getElementById('repFromDate').value;
+  const to = document.getElementById('repToDate').value;
+  if(!from || !to) return { error: 'Pick both From and To dates' };
+  if(from > to) return { error: 'From date is after To date' };
+  return { from, to, label: `${from} to ${to}` };
 }
-function inRange(dateStr, filter){
-  if(filter.type==='all') return true;
-  if(filter.type==='date') return dateStr===filter.value;
-  if(filter.type==='month') return dateStr.slice(0,7)===filter.value;
-  return true;
-}
-function buildLedgerRows(){
-  const dateFilter = buildDateFilterObj(appliedFilters.rangeType, appliedFilters.dateValue, appliedFilters.monthValue);
-  const partyId = appliedFilters.partyId;
-  const productId = appliedFilters.productId;
-  window._reportRangeLabel = dateFilter.label;
-  const rows = [];
-
-  // One row per product line within each matching delivery.
-  db.deliveries.filter(d=> inRange(d.date, dateFilter) && (!partyId || d.customerId===partyId))
-    .forEach(d=>{
-      const items = productId ? d.items.filter(it=>it.productId===productId) : d.items;
-      items.forEach(it=>{
-        rows.push({
-          type:'delivery', deliveryId:d.id, date:d.date, time:d.time, ts:d.ts||0,
-          customerId:d.customerId, customerName:d.customerName,
-          productId: it.productId, productName:it.name, qty:it.qty, rate:it.price, amount:it.qty*it.price,
-          collection:0, balance:d.balAfter
-        });
-      });
-    });
-
-  // Top-up rows - not tied to a product, so the product filter doesn't apply to these.
-  db.subscriptions.filter(s=> s.type!=='charge' && inRange(s.date, dateFilter) && (!partyId || s.customerId===partyId))
-    .forEach(s=>{
-      rows.push({
-        type:'collection', deliveryId:null, date:s.date, time:'', ts:s.ts||0,
-        customerId:s.customerId, customerName:s.customerName,
-        productId:null, productName:'💰 Top-up', qty:0, rate:0, amount:0,
-        collection:s.amount, balance:s.balAfter
-      });
-    });
-
-  rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
-  return rows;
-}
-function ledgerRowHtml(r){
-  if(r.type==='collection'){
-    return `<div class="ledger-row">
-      <div class="ledger-top"><span>${r.date}</span><span>${escapeHtml(r.customerName)}</span></div>
-      <div class="ledger-mid"><span>${r.productName}</span><span></span><span class="amt good">+${money(r.collection)}</span></div>
-      <div class="ledger-bottom"><span>Collection: ${money(r.collection)}</span><span>Balance: ${money(r.balance)}</span></div>
-    </div>`;
-  }
-  return `<div class="ledger-row">
-    <div class="ledger-top"><span>${r.date}${r.time?(' · '+r.time):''}</span><span>${escapeHtml(r.customerName)}</span></div>
-    <div class="ledger-mid"><span>${escapeHtml(r.productName)}</span><span>${r.qty} × ${money(r.rate)}</span><span class="amt">${money(r.amount)}</span></div>
-    <div class="ledger-bottom"><span>Collection: ${r.collection?money(r.collection):'-'}</span><span>Balance: ${money(r.balance)}</span></div>
-  </div>`;
-}
-function buildDayGroups(rows){
-  const dayMap = {};
-  rows.forEach(r=>{
-    if(!dayMap[r.date]) dayMap[r.date] = { date:r.date, deliverySet:new Set(), products:{}, collection:0, salesTotal:0 };
-    const day = dayMap[r.date];
-    if(r.type==='delivery'){
-      day.deliverySet.add(r.deliveryId);
-      const key = r.productId || r.productName;
-      if(!day.products[key]) day.products[key] = { name:r.productName, qty:0, amount:0 };
-      day.products[key].qty += r.qty;
-      day.products[key].amount += r.amount;
-      day.salesTotal += r.amount;
-    } else {
-      day.collection += r.collection;
-    }
-  });
-  return Object.values(dayMap)
-    .map(d=>({ ...d, deliveries: d.deliverySet.size, products: Object.values(d.products).sort((a,b)=>b.amount-a.amount) }))
-    .sort((a,b)=> a.date<b.date?-1:(a.date>b.date?1:0));
-}
-function dayGroupHtml(d){
-  const productLines = d.products.map(p=>`
-    <div class="day-product-row">
-      <span>${escapeHtml(p.name)}</span>
-      <span>${p.qty} pcs</span>
-      <span class="amt">${money(p.amount)}</span>
-    </div>`).join('') || `<div class="day-meta">No product deliveries.</div>`;
-  return `<div class="day-card" onclick="goToDayDetail('${d.date}')">
-    <div class="day-card-head">
-      <div><strong>${d.date}</strong><div class="day-meta">${d.deliveries} deliver${d.deliveries===1?'y':'ies'}</div></div>
-      <div class="day-card-totals">
-        <div class="amt">${money(d.salesTotal)}</div>
-        ${d.collection?`<div class="day-collect">+${money(d.collection)} collected</div>`:''}
-      </div>
-    </div>
-    <div class="day-products">${productLines}</div>
-    <div class="day-tap-hint">Tap to view this day's full ledger →</div>
-  </div>`;
-}
-function goToDayDetail(date){
-  document.getElementById('repRangeType').value = 'date';
-  document.getElementById('repDateValue').value = date;
-  onRepRangeTypeChange();
-  appliedFilters.rangeType = 'date';
-  appliedFilters.dateValue = date;
-  showReport('detailed');
-}
-function renderReport(){
-  const rows = buildLedgerRows();
-  window._ledgerRows = rows;
-
-  const totalQty = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.qty,0);
-  const totalSales = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.amount,0);
-  const totalCollection = rows.filter(r=>r.type==='collection').reduce((s,r)=>s+r.collection,0);
-  const customerIds = [...new Set(rows.map(r=>r.customerId))];
-  const totalBalance = customerIds.reduce((s,cid)=>{ const c=db.customers.find(x=>x.id===cid); return s + (c? (c.balance||0) : 0); }, 0);
-  document.getElementById('reportTotals').innerHTML = `
-    <div class="totals-grid">
-      <div class="totals-tile"><div class="tt-label">Total Quantity</div><div class="tt-val">${totalQty}</div></div>
-      <div class="totals-tile"><div class="tt-label">Total Sales</div><div class="tt-val">${money(totalSales)}</div></div>
-      <div class="totals-tile"><div class="tt-label">Total Collection</div><div class="tt-val">${money(totalCollection)}</div></div>
-      <div class="totals-tile"><div class="tt-label">Total Balance</div><div class="tt-val ${totalBalance<0?'neg':'pos'}">${money(totalBalance)}</div></div>
-    </div>`;
-
-  const body = document.getElementById('reportBody');
-  if(currentReport==='detailed'){
-    if(!rows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">📋</div><div class="msg">No records match these filters.</div></div>`; return; }
-    body.innerHTML = rows.map(r=>ledgerRowHtml(r)).join('');
-  } else if(currentReport==='day'){
-    const days = buildDayGroups(rows);
-    window._dayReportData = days;
-    if(!days.length){ body.innerHTML = `<div class="empty-state"><div class="ic">📅</div><div class="msg">No records match these filters.</div></div>`; return; }
-    body.innerHTML = days.map(d=>dayGroupHtml(d)).join('');
-  } else if(currentReport==='product'){
-    const map = {};
-    rows.filter(r=>r.type==='delivery').forEach(r=>{
-      const key = r.productId || r.productName;
-      if(!map[key]) map[key] = { name: r.productName, qty:0, revenue:0 };
-      map[key].qty += r.qty;
-      map[key].revenue += r.amount;
-    });
-    window._productReportData = map;
-    const prows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
-    if(!prows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">🥛</div><div class="msg">No sales match these filters.</div></div>`; return; }
-    body.innerHTML = prows.map(r=>`
-      <div class="report-row">
-        <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.qty} units sold</div></div>
-        <div class="rval">${money(r.revenue)}</div>
-      </div>`).join('');
-  } else {
-    const map = {};
-    rows.forEach(r=>{
-      if(!map[r.customerId]) map[r.customerId] = { id: r.customerId, name: r.customerName, deliverySet: new Set(), total:0, topup:0 };
-      if(r.type==='delivery'){ map[r.customerId].total += r.amount; map[r.customerId].deliverySet.add(r.deliveryId); }
-      else { map[r.customerId].topup += r.collection; }
-    });
-    Object.values(map).forEach(m=>{ m.count = m.deliverySet.size; });
-    window._partyReportData = map;
-    const prows = Object.values(map).sort((a,b)=>b.total-a.total);
-    if(!prows.length){ body.innerHTML = `<div class="empty-state"><div class="ic">👥</div><div class="msg">No activity matches these filters.</div></div>`; return; }
-    body.innerHTML = prows.map(r=>`
-      <div class="report-row">
-        <div><div class="rname">${escapeHtml(r.name)}</div><div class="rmeta">${r.count} deliveries${r.topup?(' · '+money(r.topup)+' topped up'):''}</div></div>
-        <div style="text-align:right">
-          <div class="rval">${money(r.total)}</div>
-          <button class="btn btn-wa btn-sm" style="margin-top:4px" onclick="sendPartyReportWhatsApp('${r.id}')">📲 Send</button>
-        </div>
-      </div>`).join('');
-  }
-}
-function sendPartyReportWhatsApp(customerId){
-  const r = (window._partyReportData||{})[customerId];
-  if(!r) return;
+// Balance as it stood the day BEFORE fromDate: take today's balance and undo
+// every delivery / top-up dated on or after fromDate.
+function computeOpeningBalanceAsOf(customerId, fromDate){
   const c = db.customers.find(x=>x.id===customerId);
-  const rangeLabel = window._reportRangeLabel || 'All time';
-  const msg = `📊 *கணக்கு சுருக்கம் (${rangeLabel}) - Aavin Fresh Milk Stall*\n\n`+
-    `வாடிக்கையாளர்/Customer: ${r.name}\n`+
-    `டெலிவரி எண்ணிக்கை/Deliveries: ${r.count}\n`+
-    `மொத்த தொகை/Total amount: ${money(r.total)}\n`+
-    (r.topup ? `சந்தா சேர்க்கை/Top-ups: ${money(r.topup)}\n` : '')+
-    (c ? `தற்போதைய இருப்பு/Current balance: ${money(c.balance||0)}\n` : '')+
-    `\nநன்றி! 🙏`;
-  openWhatsApp(msg, c?c.phone:'');
+  if(!c) return 0;
+  let bal = c.balance||0;
+  db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate).forEach(d=>{ bal += d.total; });
+  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal -= s.amount; });
+  return bal;
 }
-function rangeLabelText(){
-  return window._reportRangeLabel || 'All time';
+function computeCustomerLedger(customerId, filter, productId){
+  const c = db.customers.find(x=>x.id===customerId);
+  if(!c) return null;
+  const ob = computeOpeningBalanceAsOf(customerId, filter.from);
+  const rows = [];
+  let otherProductsTotal = 0;
+  db.deliveries.filter(d=>d.customerId===customerId && d.date>=filter.from && d.date<=filter.to).forEach(d=>{
+    d.items.forEach(it=>{
+      const amount = it.qty * it.price;
+      if(!productId || it.productId===productId){
+        rows.push({ type:'product', date:d.date, time:d.time, ts:d.ts||0, name:it.name, qty:it.qty, rate:it.price, amount });
+      } else {
+        otherProductsTotal += amount;
+      }
+    });
+  });
+  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=filter.from && s.date<=filter.to).forEach(s=>{
+    rows.push({ type:'topup', date:s.date, time:'', ts:s.ts||0, amount:s.amount, details:s.details||'' });
+  });
+  rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
+  const productTotal = rows.filter(r=>r.type==='product').reduce((s,r)=>s+r.amount,0);
+  const topupTotal = rows.filter(r=>r.type==='topup').reduce((s,r)=>s+r.amount,0);
+  const remaining = ob - productTotal - otherProductsTotal + topupTotal;
+  const prod = productId ? db.products.find(p=>p.id===productId) : null;
+  return { customer:c, filter, productId, productName: prod?prod.name:'', ob, rows, productTotal, otherProductsTotal, topupTotal, remaining };
 }
-function shareFullReportWhatsApp(){
-  let msg = '';
-  if(currentReport==='detailed'){
-    const rows = window._ledgerRows || [];
-    if(!rows.length){ toast('No data in this report to share'); return; }
-    msg = `📊 *விரிவான அறிக்கை - Detailed Report (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
-    rows.slice(0,40).forEach(r=>{
-      if(r.type==='collection') msg += `• ${r.date} ${r.customerName}: Top-up +${money(r.collection)}\n`;
-      else msg += `• ${r.date} ${r.customerName}: ${r.productName} x${r.qty} = ${money(r.amount)}\n`;
-    });
-    if(rows.length>40) msg += `...and ${rows.length-40} more rows (see Excel/PDF for the full list)\n`;
-    const totalQty = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.qty,0);
-    const totalSales = rows.filter(r=>r.type==='delivery').reduce((s,r)=>s+r.amount,0);
-    const totalCollection = rows.filter(r=>r.type==='collection').reduce((s,r)=>s+r.collection,0);
-    msg += `\nமொத்த அளவு/Total Qty: ${totalQty}\nமொத்த விற்பனை/Total Sales: ${money(totalSales)}\nமொத்த வசூல்/Total Collection: ${money(totalCollection)}`;
-  } else if(currentReport==='day'){
-    const days = window._dayReportData || [];
-    if(!days.length){ toast('No data in this report to share'); return; }
-    msg = `📊 *நாள்வாரி அறிக்கை - Day by Day (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
-    days.slice(0,25).forEach(d=>{
-      msg += `📅 *${d.date}* (${d.deliveries} deliveries)\n`;
-      d.products.forEach(p=>{ msg += `  • ${p.name}: ${p.qty} pcs = ${money(p.amount)}\n`; });
-      if(d.collection) msg += `  • 💰 Collected: ${money(d.collection)}\n`;
-      msg += `  Day total: ${money(d.salesTotal)}\n\n`;
-    });
-    if(days.length>25) msg += `...and ${days.length-25} more days (see Excel/PDF for the full list)\n`;
-  } else if(currentReport==='product'){
-    const map = window._productReportData || {};
-    const rows = Object.values(map).sort((a,b)=>b.revenue-a.revenue);
-    if(!rows.length){ toast('No data in this report to share'); return; }
-    msg = `📊 *விற்பனை அறிக்கை - By Product (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
-    rows.forEach(r=>{ msg += `• ${r.name}: ${r.qty} units — ${money(r.revenue)}\n`; });
-    const totalRev = rows.reduce((s,r)=>s+r.revenue,0);
-    msg += `\nமொத்தம்/Total: ${money(totalRev)}`;
-  } else {
-    const map = window._partyReportData || {};
-    const rows = Object.values(map).sort((a,b)=>b.total-a.total);
-    if(!rows.length){ toast('No data in this report to share'); return; }
-    msg = `📊 *கணக்கு அறிக்கை - By Party (${rangeLabelText()})*\nAavin Fresh Milk Stall\n\n`;
-    rows.forEach(r=>{ msg += `• ${r.name}: ${r.count} deliveries — ${money(r.total)}${r.topup?(' (+'+money(r.topup)+' topped up)'):''}\n`; });
-    const totalAmt = rows.reduce((s,r)=>s+r.total,0);
-    msg += `\nமொத்தம்/Total: ${money(totalAmt)}`;
-  }
-  openWhatsApp(msg, ''); // no fixed phone - opens WhatsApp's own contact picker
+function renderLedgerPreview(L){
+  const body = document.getElementById('reportBody');
+  const lines = L.rows.length ? L.rows.map(r=>{
+    if(r.type==='topup'){
+      return `<div class="ledger-doc-row"><div><div class="ld-main">ЁЯТ░ Top-up${r.details?(' ┬╖ '+escapeHtml(r.details)):''}</div><div class="ld-sub">${r.date}</div></div><div class="ld-amt good">+${money(r.amount)}</div></div>`;
+    }
+    return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' ┬╖ '+r.time):''} ┬╖ ${r.qty} ├Ч ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
+  }).join('') : `<div class="empty-state"><div class="ic">ЁЯУЛ</div><div class="msg">No deliveries or top-ups in this period.</div></div>`;
+  body.innerHTML = `
+    <div class="ledger-doc">
+      <div class="ledger-doc-head">
+        <div class="ld-name">${escapeHtml(L.customer.name)}</div>
+        <div class="ld-period">${escapeHtml(L.filter.label)}${L.productName?(' ┬╖ '+escapeHtml(L.productName)):''}</div>
+      </div>
+      <div class="day-summary-row"><span class="k">Opening Balance</span><span class="v">${money(L.ob)}</span></div>
+      ${lines}
+      <div class="ledger-doc-foot">
+        <div class="day-summary-row"><span class="k">Total products delivered</span><span class="v">${money(L.productTotal)}</span></div>
+        ${L.otherProductsTotal>0?`<div class="day-summary-row"><span class="k">Other products (hidden by filter)</span><span class="v">${money(L.otherProductsTotal)}</span></div>`:''}
+        <div class="day-summary-row"><span class="k">Total top-ups</span><span class="v">+${money(L.topupTotal)}</span></div>
+        <div class="day-summary-row ld-final"><span class="k">Remaining Balance</span><span class="v ${L.remaining<0?'neg':'pos'}">${money(L.remaining)}</span></div>
+      </div>
+    </div>`;
 }
-function getCurrentReportRows(){
-  if(currentReport==='detailed'){
-    const rows = window._ledgerRows || [];
-    return {
-      title: 'Detailed Report',
-      headers: ['Date','Party','Product','Qty','Rate','Amount','Collection','Balance'],
-      rows: rows.map(r=>[r.date, r.customerName, r.productName, r.qty||'-', r.rate?money(r.rate):'-', r.amount?money(r.amount):'-', r.collection?money(r.collection):'-', money(r.balance)]),
-      rowsRaw: rows.map(r=>[r.date, r.customerName, r.productName, r.qty||0, r.rate||0, r.amount||0, r.collection||0, r.balance||0])
-    };
-  }
-  if(currentReport==='day'){
-    const days = window._dayReportData || [];
-    const flat = [];
-    days.forEach(d=>{
-      d.products.forEach(p=>flat.push([d.date, p.name, p.qty, money(p.amount)]));
-      if(d.collection) flat.push([d.date, '💰 Top-up Collected', '-', money(d.collection)]);
-    });
-    const flatRaw = [];
-    days.forEach(d=>{
-      d.products.forEach(p=>flatRaw.push([d.date, p.name, p.qty, p.amount]));
-      if(d.collection) flatRaw.push([d.date, 'Top-up Collected', 0, d.collection]);
-    });
-    return {
-      title: 'Day by Day Report',
-      headers: ['Date','Product','Qty','Amount'],
-      rows: flat,
-      rowsRaw: flatRaw
-    };
-  }
-  if(currentReport==='product'){
-    const map = window._productReportData || {};
-    return {
-      title: 'By Product',
-      headers: ['Product','Units Sold','Revenue'],
-      rows: Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(r=>[r.name, r.qty, money(r.revenue)]),
-      rowsRaw: Object.values(map).sort((a,b)=>b.revenue-a.revenue).map(r=>[r.name, r.qty, r.revenue])
-    };
-  } else {
-    const map = window._partyReportData || {};
-    return {
-      title: 'By Party',
-      headers: ['Customer','Deliveries','Total Amount','Top-ups'],
-      rows: Object.values(map).sort((a,b)=>b.total-a.total).map(r=>[r.name, r.count, money(r.total), r.topup?money(r.topup):'-']),
-      rowsRaw: Object.values(map).sort((a,b)=>b.total-a.total).map(r=>[r.name, r.count, r.total, r.topup||0])
-    };
-  }
+function generateReport(){
+  const customerId = document.getElementById('repParty').value;
+  if(!customerId){ toast('Select a customer first'); return; }
+  const filter = getReportDateFilter();
+  if(filter.error){ toast(filter.error); return; }
+  const productId = document.getElementById('repProductFilter').value;
+  const L = computeCustomerLedger(customerId, filter, productId);
+  if(!L){ toast('Customer not found'); return; }
+  window._currentLedger = L;
+  renderLedgerPreview(L);
+  const output = document.getElementById('repOutput').value;
+  if(output==='whatsapp') sendLedgerWhatsApp(L);
+  else if(output==='excel') downloadLedgerExcel(L);
+  else if(output==='pdf') downloadLedgerPDF(L);
 }
-function downloadReportExcel(){
+function ledgerFileTag(L){
+  const safe = s => String(s).replace(/[^A-Za-z0-9\u0B80-\u0BFF]+/g,'_').replace(/^_+|_+$/g,'');
+  return `Ledger_${safe(L.customer.name)}_${safe(L.filter.label)}`;
+}
+function buildLedgerMessage(L){
+  const c = L.customer;
+  const MAX_LINES = 40;
+  let msg = `ЁЯУТ *роХрогроХрпНроХрпБ роЕро▒ро┐роХрпНроХрпИ - Aavin Fresh Milk Stall*\n\n`+
+    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${c.name}\n`+
+    `роХро╛ро▓роорпН/Period: ${L.filter.label}${L.productName?(' ┬╖ '+L.productName):''}\n\n`+
+    `роорпБроирпНродрпИроп роЗро░рпБрокрпНрокрпБ/Opening Balance: ${money(L.ob)}\n\n`;
+  L.rows.slice(0, MAX_LINES).forEach(r=>{
+    if(r.type==='topup') msg += `${r.date}  ЁЯТ░ Top-up  +${money(r.amount)}\n`;
+    else msg += `${r.date}  ${r.name}  ${r.qty} ├Ч ${money(r.rate)} = ${money(r.amount)}\n`;
+  });
+  if(L.rows.length > MAX_LINES) msg += `...and ${L.rows.length-MAX_LINES} more lines (use Excel/PDF for the full list)\n`;
+  msg += `\nроорпКродрпНрод рокрпКро░рпБроЯрпНроХро│рпН/Total products: ${money(L.productTotal)}\n`;
+  if(L.otherProductsTotal>0) msg += `рооро▒рпНро▒ рокрпКро░рпБроЯрпНроХро│рпН/Other products: ${money(L.otherProductsTotal)}\n`;
+  msg += `роорпКродрпНрод роЯро╛рокрпН-роЕрокрпН/Total top-ups: +${money(L.topupTotal)}\n`+
+    `*роорпАродро┐ роЗро░рпБрокрпНрокрпБ/Remaining Balance: ${money(L.remaining)}*\n\nроиройрпНро▒ро┐! ЁЯЩП`;
+  return msg;
+}
+function sendLedgerWhatsApp(L){
+  const msg = buildLedgerMessage(L);
+  if(!L.customer.phone) toast('No phone saved for this customer - pick the contact in WhatsApp');
+  openWhatsApp(msg, L.customer.phone||'');
+}
+function downloadLedgerExcel(L){
   if(typeof XLSX === 'undefined'){
-    toast('Excel export needs an internet connection the first time — try again once online');
+    toast('Excel export needs an internet connection the first time - try again once online');
     return;
   }
-  const data = getCurrentReportRows();
-  if(!data.rowsRaw.length){ toast('No data in this report to save'); return; }
-  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
   try{
+    const aoa = [];
+    aoa.push(['Aavin Fresh Milk Stall - Customer Ledger']);
+    aoa.push(['Customer', L.customer.name]);
+    aoa.push(['Period', L.filter.label]);
+    if(L.productName) aoa.push(['Product filter', L.productName]);
+    aoa.push([]);
+    aoa.push(['', 'Opening Balance', '', '', L.ob, '']);
+    aoa.push(['Date','Particulars','Qty','Rate','Amount','Top-up']);
+    L.rows.forEach(r=>{
+      if(r.type==='topup') aoa.push([r.date, 'Top-up' + (r.details?(' - '+r.details):''), '', '', '', r.amount]);
+      else aoa.push([r.date, r.name, r.qty, r.rate, r.amount, '']);
+    });
+    aoa.push([]);
+    aoa.push(['', 'Total products delivered', '', '', L.productTotal, '']);
+    if(L.otherProductsTotal>0) aoa.push(['', 'Other products (hidden by filter)', '', '', L.otherProductsTotal, '']);
+    aoa.push(['', 'Total top-ups', '', '', '', L.topupTotal]);
+    aoa.push(['', 'Remaining Balance', '', '', L.remaining, '']);
     const wb = XLSX.utils.book_new();
-    const sheetData = [data.headers, ...data.rowsRaw];
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    XLSX.utils.book_append_sheet(wb, ws, data.title);
-    XLSX.writeFile(wb, `${data.title.replace(' ','_')}_${periodTag}.xlsx`);
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{wch:12},{wch:34},{wch:8},{wch:8},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws, 'Ledger');
+    XLSX.writeFile(wb, ledgerFileTag(L) + '.xlsx');
     toast('Excel file saved');
   }catch(err){
     console.error(err);
-    toast('Excel export failed — try "Export PDF" instead');
+    toast('Excel export failed - try PDF instead');
   }
 }
-function downloadReportPDF(){
+function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
+  const cell = 'padding:8px 10px; border-bottom:1px solid #E8E2D4; font-size:13px;';
+  const rowsHtml = chunk.map((r,i)=>{
+    const bg = i%2 ? '#F6F3EA' : '#fff';
+    if(r.type==='topup'){
+      return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">ЁЯТ░ Top-up${r.details?(' - '+escapeHtml(r.details)):''}</td><td style="${cell} text-align:right;">-</td><td style="${cell} text-align:right; color:#2E7D4F; font-weight:700;">+${money(r.amount)}</td></tr>`;
+    }
+    return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">${escapeHtml(r.name)}</td><td style="${cell} text-align:right;">${r.qty} ├Ч ${money(r.rate)}</td><td style="${cell} text-align:right; font-weight:700;">${money(r.amount)}</td></tr>`;
+  }).join('');
+  const sumRow = (k,v,bold,color)=>`<tr><td colspan="3" style="padding:7px 10px; text-align:right; font-size:13px; ${bold?'font-weight:800;':''}">${k}</td><td style="padding:7px 10px; text-align:right; font-size:13px; ${bold?'font-weight:800;':'font-weight:700;'} ${color?('color:'+color+';'):''}">${v}</td></tr>`;
+  const isFirst = pageIdx===0, isLast = pageIdx===totalPages-1;
+  return `
+    <div style="font-size:17px; font-weight:700; color:#1E5F63;">Aavin Fresh Milk Stall - 1958</div>
+    <div style="font-size:13px; color:#555; margin-bottom:2px;">Customer Ledger${totalPages>1?` (page ${pageIdx+1} of ${totalPages})`:''}</div>
+    <div style="font-size:14px; font-weight:700; margin-top:6px;">${escapeHtml(L.customer.name)}</div>
+    <div style="font-size:12px; color:#555; margin-bottom:12px;">${escapeHtml(L.filter.label)}${L.productName?(' ┬╖ '+escapeHtml(L.productName)):''}</div>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead><tr>
+        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:left; font-size:12.5px;">Date</th>
+        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:left; font-size:12.5px;">Particulars</th>
+        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:right; font-size:12.5px;">Qty ├Ч Rate</th>
+        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:right; font-size:12.5px;">Amount</th>
+      </tr></thead>
+      <tbody>
+        ${isFirst ? sumRow('Opening Balance', money(L.ob), true) : ''}
+        ${rowsHtml}
+        ${isLast ? sumRow('Total products delivered', money(L.productTotal)) : ''}
+        ${isLast && L.otherProductsTotal>0 ? sumRow('Other products (hidden by filter)', money(L.otherProductsTotal)) : ''}
+        ${isLast ? sumRow('Total top-ups', '+'+money(L.topupTotal), false, '#2E7D4F') : ''}
+        ${isLast ? sumRow('Remaining Balance', money(L.remaining), true, L.remaining<0?'#C24B3D':'#2E7D4F') : ''}
+      </tbody>
+    </table>`;
+}
+async function downloadLedgerPDF(L){
   if(typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined'){
-    toast('PDF export needs an internet connection the first time — try again once online');
+    toast('PDF export needs an internet connection the first time - try again once online');
     return;
   }
-  const data = getCurrentReportRows();
-  if(!data.rowsRaw.length){ toast('No data in this report to save'); return; }
-  const periodTag = (window._reportRangeLabel||todayStr()).replace(/[^a-zA-Z0-9]+/g,'_');
   toast('Preparing PDF...');
-
-  // Build an off-screen printable version using the app's own fonts, so
-  // Tamil (and any other script) renders correctly - jsPDF's built-in fonts
-  // can't draw Tamil glyphs at all, but the browser can.
-  const wrap = document.createElement('div');
-  wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:720px; background:#fff; padding:24px; font-family:Poppins,\'Noto Sans Tamil\',sans-serif; color:#1F2E33;';
-  const rowsHtml = data.rows.map((r,i)=>`
-    <tr style="background:${i%2? '#F6F3EA':'#fff'}">
-      ${r.map((cell,ci)=>`<td style="padding:8px 10px; border-bottom:1px solid #E8E2D4; text-align:${ci===0?'left':'right'}; font-size:13px;">${escapeHtml(String(cell))}</td>`).join('')}
-    </tr>`).join('');
-  wrap.innerHTML = `
-    <div style="font-size:17px; font-weight:700; color:#1E5F63;">Aavin Fresh Milk Stall - 1958</div>
-    <div style="font-size:13px; color:#555; margin-bottom:14px;">${data.title} Report — ${escapeHtml(window._reportRangeLabel||'All time')}</div>
-    <table style="width:100%; border-collapse:collapse;">
-      <thead><tr>${data.headers.map((h,ci)=>`<th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:${ci===0?'left':'right'}; font-size:12.5px;">${escapeHtml(h)}</th>`).join('')}</tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`;
-  document.body.appendChild(wrap);
-
-  html2canvas(wrap, { scale: 2, backgroundColor: '#ffffff' }).then(canvas=>{
-    document.body.removeChild(wrap);
-    try{
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-      const pageWidth = doc.internal.pageSize.getWidth() - 40;
-      const imgH = canvas.height * (pageWidth / canvas.width);
-      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, 20, pageWidth, imgH);
-      doc.save(`${data.title.replace(' ','_')}_${periodTag}.pdf`);
-      toast('PDF file saved');
-    }catch(err){
-      console.error(err);
-      toast('PDF export failed — try "Export Excel" instead');
+  const PER_PAGE = 18;
+  const chunks = [];
+  for(let i=0;i<L.rows.length;i+=PER_PAGE) chunks.push(L.rows.slice(i,i+PER_PAGE));
+  if(!chunks.length) chunks.push([]);
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth() - 40;
+  const pageH = doc.internal.pageSize.getHeight() - 40;
+  try{
+    for(let p=0;p<chunks.length;p++){
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:720px; background:#fff; padding:24px; font-family:Poppins,\'Noto Sans Tamil\',sans-serif; color:#1F2E33;';
+      wrap.innerHTML = buildLedgerPageHtml(L, chunks[p], p, chunks.length);
+      document.body.appendChild(wrap);
+      let canvas;
+      try{
+        canvas = await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' });
+      } finally {
+        document.body.removeChild(wrap);
+      }
+      const ratio = Math.min(pageW/canvas.width, pageH/canvas.height);
+      if(p>0) doc.addPage();
+      doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, 20, canvas.width*ratio, canvas.height*ratio);
     }
-  }).catch(err=>{
-    document.body.removeChild(wrap);
+    doc.save(ledgerFileTag(L) + '.pdf');
+    toast('PDF file saved');
+  }catch(err){
     console.error(err);
-    toast('PDF export failed — try "Export Excel" instead');
+    toast('PDF export failed - try Excel instead');
+  }
+}
+/* ---------------------------------------------------------------
+   BILL IMAGE (JPEG) - header/footer editable, body is a fixed bill
+--------------------------------------------------------------- */
+let billTemplateDirty = false;
+function getBillTemplate(){
+  const s = db.settings || {};
+  return {
+    header: (typeof s.billHeader === 'string') ? s.billHeader : 'AAVIN FRESH MILK STALL ┬╖ 1958\nDelivery Bill',
+    footer: (typeof s.billFooter === 'string') ? s.billFooter : 'роиройрпНро▒ро┐! Thank you!'
+  };
+}
+function renderBillTemplateFields(){
+  const h = document.getElementById('billHeaderInput'), f = document.getElementById('billFooterInput');
+  if(!h || !f || billTemplateDirty) return;   // never overwrite text the user is still editing
+  const t = getBillTemplate();
+  h.value = t.header;
+  f.value = t.footer;
+}
+function saveBillTemplate(){
+  db.settings = db.settings || {};
+  db.settings.billHeader = document.getElementById('billHeaderInput').value;
+  db.settings.billFooter = document.getElementById('billFooterInput').value;
+  db.settings.updatedAt = Date.now();
+  billTemplateDirty = false;
+  saveDB();
+  toast('Template saved');
+}
+function nl2br(s){ return escapeHtml(s).replace(/\n/g,'<br>'); }
+function buildBillHtml(entry, customer, tpl){
+  const t = tpl || getBillTemplate();
+  const name = customer ? customer.name : (entry.customerName||'');
+  const th = (txt,align)=>`<th style="background:#1E5F63; color:#fff; padding:9px 6px; text-align:${align}; font-size:14px;">${txt}</th>`;
+  const cell = 'padding:9px 6px; border-bottom:1px solid #E8E2D4; font-size:15px;';
+  const itemsHtml = entry.items.map(it=>`
+    <tr>
+      <td style="${cell}">${escapeHtml(it.name)}</td>
+      <td style="${cell} text-align:center;">${it.qty}</td>
+      <td style="${cell} text-align:right;">${money(it.price)}</td>
+      <td style="${cell} text-align:right; font-weight:700;">${money(it.qty*it.price)}</td>
+    </tr>`).join('');
+  const line = (k,v,big,color)=>`<div style="display:flex; justify-content:space-between; padding:6px 0; font-size:${big?18:15}px; ${big?'font-weight:800;':''} ${color?('color:'+color+';'):''}"><span>${k}</span><span style="font-weight:700;">${v}</span></div>`;
+  return `
+    ${t.header ? `<div style="text-align:center; font-size:20px; font-weight:800; color:#1E5F63; line-height:1.35; padding-bottom:12px; border-bottom:2px solid #1E5F63;">${nl2br(t.header)}</div>` : ''}
+    <div style="margin-top:14px; font-size:15px; line-height:1.7;">
+      <div><b>Date:</b> ${entry.date}${entry.time?('  '+entry.time):''}</div>
+      <div><b>Party:</b> ${escapeHtml(name)}</div>
+      <div><b>Amount in hand:</b> ${money(entry.balBefore)}</div>
+    </div>
+    <table style="width:100%; border-collapse:collapse; margin-top:14px;">
+      <thead><tr>${th('Product','left')}${th('Qty','center')}${th('Rate','right')}${th('Amount','right')}</tr></thead>
+      <tbody>${itemsHtml}</tbody>
+    </table>
+    <div style="margin-top:12px; padding-top:8px; border-top:2px solid #E8E2D4;">
+      ${line('Total', money(entry.total), false)}
+      ${line('Remaining Balance', money(entry.balAfter), true, entry.balAfter<0?'#C24B3D':'#2E7D4F')}
+    </div>
+    ${t.footer ? `<div style="text-align:center; font-size:14px; color:#555; margin-top:16px; padding-top:10px; border-top:1px dashed #C9BFA6; line-height:1.4;">${nl2br(t.footer)}</div>` : ''}`;
+}
+async function renderBillCanvas(entry, tpl){
+  const c = db.customers.find(x=>x.id===entry.customerId);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:600px; background:#fff; padding:28px; font-family:Poppins,\'Noto Sans Tamil\',sans-serif; color:#1F2E33;';
+  wrap.innerHTML = buildBillHtml(entry, c, tpl);
+  document.body.appendChild(wrap);
+  try{
+    return await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' });
+  } finally {
+    document.body.removeChild(wrap);
+  }
+}
+function canvasToJpegBlob(canvas){
+  return new Promise((resolve,reject)=>{
+    canvas.toBlob(b=> b ? resolve(b) : reject(new Error('Image creation failed')), 'image/jpeg', 0.92);
   });
 }
+function billFileName(entry){
+  const safe = s => String(s).replace(/[^A-Za-z0-9\u0B80-\u0BFF]+/g,'_').replace(/^_+|_+$/g,'');
+  return `Bill_${safe(entry.customerName||'customer')}_${entry.date}.jpg`;
+}
+function downloadBlob(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 3000);
+}
+// Opens Android's share sheet with the image attached (pick WhatsApp there).
+// Returns 'shared' | 'cancelled' | 'needs-tap' | 'unsupported'
+async function shareImageBlob(blob, filename, title){
+  const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], title });
+      return 'shared';
+    }catch(e){
+      if(e && e.name==='AbortError') return 'cancelled';
+      if(e && e.name==='NotAllowedError') return 'needs-tap';
+      console.error(e);
+    }
+  }
+  return 'unsupported';
+}
+function showBillPreview(blob, name){
+  window._pendingBill = { blob, name };
+  const img = document.getElementById('billPreviewImg');
+  if(img.dataset.url) URL.revokeObjectURL(img.dataset.url);
+  const url = URL.createObjectURL(blob);
+  img.dataset.url = url;
+  img.src = url;
+  document.getElementById('billPreviewOverlay').classList.add('open');
+}
+async function shareBillPreview(){
+  const p = window._pendingBill;
+  if(!p) return;
+  const r = await shareImageBlob(p.blob, p.name, 'Bill');
+  if(r==='shared') closeOverlay('billPreviewOverlay');
+  else if(r==='unsupported'){ downloadBlob(p.blob, p.name); toast('Image saved - share it from your gallery'); }
+}
+async function shareDeliveryBillImage(entry){
+  if(typeof window.html2canvas === 'undefined'){
+    toast('Bill image needs an internet connection the first time - try again once online');
+    return;
+  }
+  try{
+    toast('Preparing bill image...');
+    const canvas = await renderBillCanvas(entry);
+    const blob = await canvasToJpegBlob(canvas);
+    const name = billFileName(entry);
+    const r = await shareImageBlob(blob, name, 'Delivery Bill');
+    if(r==='needs-tap') showBillPreview(blob, name);          // share sheet needs a fresh tap - show preview with Share button
+    else if(r==='unsupported'){ downloadBlob(blob, name); toast('Bill image saved - share it from your gallery'); }
+  }catch(err){
+    console.error(err);
+    toast('Could not create the bill image');
+  }
+}
+async function previewBillTemplate(){
+  if(typeof window.html2canvas === 'undefined'){ toast('Preview needs an internet connection the first time'); return; }
+  const entry = db.deliveries[0];
+  if(!entry){ toast('Save at least one delivery first, then preview'); return; }
+  try{
+    const tpl = {
+      header: document.getElementById('billHeaderInput').value,
+      footer: document.getElementById('billFooterInput').value
+    };
+    const canvas = await renderBillCanvas(entry, tpl);
+    const blob = await canvasToJpegBlob(canvas);
+    showBillPreview(blob, billFileName(entry));
+  }catch(err){
+    console.error(err);
+    toast('Could not create the preview');
+  }
+}
+
+/* ---------------------------------------------------------------
+   SEND ONE IMAGE TO ALL CUSTOMERS (one at a time, Next Customer)
+--------------------------------------------------------------- */
+let bulk = { file:null, list:[], index:-1, sent:{} };
+function bulkEligibleCustomers(){
+  return db.customers
+    .filter(c=>c.phone && c.phone.replace(/\D/g,'').length >= 10)
+    .slice()
+    .sort((a,b)=>a.name.localeCompare(b.name));
+}
+function onBulkImageChosen(e){
+  const f = e.target.files[0];
+  if(!f) return;
+  bulk = { file:f, list:[], index:-1, sent:{} };
+  const prev = document.getElementById('bulkImagePreview');
+  const old = prev.querySelector('img');
+  if(old && old.dataset.url) URL.revokeObjectURL(old.dataset.url);
+  const url = URL.createObjectURL(f);
+  prev.innerHTML = `<img src="${url}" data-url="${url}" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid var(--line)">`;
+  renderBulkSendPanel();
+}
+function renderBulkSendPanel(){
+  const el = document.getElementById('bulkSendPanel');
+  if(!el) return;
+  if(!bulk.file){
+    el.innerHTML = `<div class="desc" style="font-size:12px; color:#7C8B8E">Choose the image first. ${bulkEligibleCustomers().length} customers have phone numbers saved.</div>`;
+    return;
+  }
+  if(bulk.index < 0){
+    el.innerHTML = `<div class="desc" style="font-size:12px; color:#7C8B8E; margin-bottom:8px">${bulkEligibleCustomers().length} customers with phone numbers. You will go through them one by one.</div>
+      <button class="btn btn-primary btn-block" onclick="startBulkSend()">тЦ╢ Start</button>`;
+    return;
+  }
+  if(bulk.index >= bulk.list.length){
+    const sentCount = Object.keys(bulk.sent).length;
+    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="ic">тЬЕ</div><div class="msg">Finished - ${sentCount} of ${bulk.list.length} customers shared.</div></div>
+      <button class="btn btn-outline btn-block" onclick="stopBulkSend()">Close</button>`;
+    return;
+  }
+  const c = bulk.list[bulk.index];
+  const done = !!bulk.sent[c.id];
+  el.innerHTML = `
+    <div class="bal-banner" style="flex-direction:column; gap:2px">
+      <div class="lbl">Customer ${bulk.index+1} of ${bulk.list.length}${done?' ┬╖ тЬУ shared':''}</div>
+      <div class="val" style="font-size:16px">${escapeHtml(c.name)}</div>
+      <div class="lbl">${escapeHtml(c.phone)}</div>
+    </div>
+    <button class="btn btn-wa btn-block" onclick="bulkShareCurrent()">ЁЯУ▓ Send image</button>
+    <div style="display:flex; gap:8px; margin-top:8px">
+      <button class="btn btn-primary btn-block" onclick="bulkNext()">Next Customer тЖТ</button>
+      <button class="btn btn-outline btn-block" onclick="stopBulkSend()">Stop</button>
+    </div>`;
+}
+function startBulkSend(){
+  bulk.list = bulkEligibleCustomers();   // snapshot so the order doesn't shift mid-way
+  bulk.index = bulk.list.length ? 0 : -1;
+  bulk.sent = {};
+  if(!bulk.list.length){ toast('No customers have phone numbers saved'); }
+  renderBulkSendPanel();
+}
+async function bulkShareCurrent(){
+  const c = bulk.list[bulk.index];
+  if(!c || !bulk.file) return;
+  const file = new File([bulk.file], bulk.file.name || 'image.jpg', { type: bulk.file.type || 'image/jpeg' });
+  if(navigator.canShare && navigator.canShare({ files:[file] })){
+    try{
+      await navigator.share({ files:[file], title:'Aavin Fresh Milk Stall' });
+      bulk.sent[c.id] = true;
+      renderBulkSendPanel();
+    }catch(e){
+      if(!(e && e.name==='AbortError')){ console.error(e); toast('Could not open the share sheet'); }
+    }
+  } else {
+    toast('This browser cannot share images directly');
+  }
+}
+function bulkNext(){ bulk.index++; renderBulkSendPanel(); }
+function stopBulkSend(){ bulk.index = -1; bulk.list = []; renderBulkSendPanel(); }
+
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
-    toast('Excel export needs an internet connection the first time — try again once online');
+    toast('Excel export needs an internet connection the first time тАФ try again once online');
     return;
   }
   try{
@@ -1935,7 +2050,7 @@ function exportExcel(){
     XLSX.writeFile(wb, `Aavin_Delivery_Report_${todayStr()}.xlsx`);
   }catch(err){
     console.error(err);
-    toast('Excel export failed — use "Save as File" (CSV) instead');
+    toast('Excel export failed тАФ use "Save as File" (CSV) instead');
   }
 }
 function exportWhatsAppBackup(){
@@ -2002,7 +2117,7 @@ function setSyncStatus(connected){
   const headerLabel = document.getElementById('headerSyncLabel');
   if(connected){
     dot.className='sync-dot sync-ok'; text.textContent='Synced with Google Drive';
-    if(desc) desc.textContent='Connected — syncing in background';
+    if(desc) desc.textContent='Connected тАФ syncing in background';
     if(btn) btn.textContent='Connected';
     if(headerBtn) headerBtn.classList.add('connected');
     if(headerLabel) headerLabel.textContent = 'Synced';
@@ -2044,7 +2159,11 @@ async function driveLoadAndMerge(silent){
 }
 function mergeDB(local, remote){
   if(!remote) return local;
-  const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], meta: local.meta||{} };
+  const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, meta: local.meta||{} };
+  {
+    const ls = local.settings, rs = remote.settings;
+    merged.settings = !rs ? (ls||{}) : (!ls ? rs : ((ls.updatedAt||0) >= (rs.updatedAt||0) ? ls : rs));
+  }
 
   // Products: last-write-wins by updatedAt, but on a tie (common for records
   // saved before this field existed) prefer whichever copy actually has a
@@ -2152,6 +2271,7 @@ function setupPWA(){
 function init(){
   if(!db.meta) db.meta = {deviceRole:''};
   if(!db.reminders) db.reminders = [];
+  if(!db.settings) db.settings = {};
   document.getElementById('deviceLabel').textContent = db.meta.deviceRole || 'Set device';
   refreshCustomerDropdowns();
   renderProducts();
