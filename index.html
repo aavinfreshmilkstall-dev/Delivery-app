@@ -345,10 +345,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
 <header class="topbar">
   <div class="top-right-controls">
-    <button class="sync-pill" id="headerSyncBtn" onclick="connectDrive()">ЁЯФД <span id="headerSyncLabel">Connect Drive</span></button>
-    <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">ЁЯУ▒ <span id="deviceLabel">Set device</span></div>
+    <button class="sync-pill" id="headerSyncBtn" onclick="connectDrive()">&#128260; <span id="headerSyncLabel">Connect Drive</span></button>
+    <div class="device-pill" onclick="showTab('settings')" id="deviceIndicator">&#128241; <span id="deviceLabel">Set device</span></div>
   </div>
-  <div class="brand">AAVIN FRESH MILK STALL ┬╖ 1958</div>
+  <div class="brand">AAVIN FRESH MILK STALL &#183; 1958</div>
   <h1>Delivery Manager</h1>
   <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncText">Not signed in to Drive</span></div>
 </header>
@@ -357,20 +357,20 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
   <!-- DELIVERY TAB -->
   <section class="tab-panel active" id="tab-delivery">
-    <div class="section-title">роЗройрпНро▒рпИроп роЯрпЖро▓ро┐ро╡ро░ро┐ <span class="count" id="todayCount">0</span></div>
+    <div class="section-title">&#2951;&#2985;&#3021;&#2993;&#3016;&#2991; &#2975;&#3014;&#2994;&#3007;&#2997;&#2992;&#3007; <span class="count" id="todayCount">0</span></div>
     <div class="card" id="deliveryFormCard">
-      <div class="edit-banner" id="delFormMode" style="display:none">тЬО Editing entry тАФ save to update, or cancel below</div>
+      <div class="edit-banner" id="delFormMode" style="display:none">&#9998; Editing entry &#8212; save to update, or cancel below</div>
       <div class="field">
-        <label>Customer / ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН</label>
+        <label>Customer / &#2997;&#3006;&#2975;&#3007;&#2965;&#3021;&#2965;&#3016;&#2991;&#3006;&#2995;&#2992;&#3021;</label>
         <select id="delCustomer" onchange="onDeliveryCustomerChange()"><option value="">-- Select --</option></select>
       </div>
       <div class="bal-banner" id="delBalBanner" style="display:none">
-        <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">тВ╣0</div></div>
-        <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">тВ╣0</div></div>
+        <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">&#8377;0</div></div>
+        <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">&#8377;0</div></div>
       </div>
       <div class="field">
-        <label>Products / рокрпКро░рпБроЯрпНроХро│рпН</label>
-        <div class="search-bar"><span>ЁЯФН</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
+        <label>Products / &#2986;&#3018;&#2992;&#3009;&#2975;&#3021;&#2965;&#2995;&#3021;</label>
+        <div class="search-bar"><span>&#128269;</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
         <div class="prod-grid" id="delProdGrid"></div>
       </div>
       <div class="row2">
@@ -384,12 +384,12 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         </div>
       </div>
       <div class="total-strip">
-        <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">тВ╣0</div></div>
-        <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">тВ╣0</div></div>
+        <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">&#8377;0</div></div>
+        <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">&#8377;0</div></div>
       </div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">ЁЯТ╛ Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">ЁЯУ╖ Save &amp; Send Bill</button>
+        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">&#128190; Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">&#128247; Save &amp; Send Bill</button>
       </div>
       <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="delCancelEditBtn" onclick="cancelDeliveryEdit()">Cancel edit</button>
     </div>
@@ -406,7 +406,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <!-- CUSTOMERS TAB -->
   <section class="tab-panel" id="tab-customers">
     <div class="section-title">Customers <span class="count" id="custCount">0</span></div>
-    <div class="search-bar"><span>ЁЯФН</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
+    <div class="search-bar"><span>&#128269;</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
     <div class="card"><div id="customerList"></div></div>
   </section>
 
@@ -414,7 +414,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <section class="tab-panel" id="tab-subscription">
     <div class="section-title">Subscription</div>
     <div class="card">
-      <div class="edit-banner" id="subFormMode" style="display:none">тЬО Editing entry тАФ save to update, or cancel below</div>
+      <div class="edit-banner" id="subFormMode" style="display:none">&#9998; Editing entry &#8212; save to update, or cancel below</div>
       <div class="field">
         <label>Entry type</label>
         <select id="subType" onchange="onSubTypeChange()">
@@ -427,17 +427,17 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
       </div>
       <div class="bal-banner" id="subBalBanner" style="display:none">
-        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">тВ╣0</div></div>
-        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">тВ╣0</div></div>
+        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">&#8377;0</div></div>
+        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">&#8377;0</div></div>
       </div>
       <div class="row2">
         <div class="field"><label>Date</label><input type="date" id="subDate"></div>
-        <div class="field"><label id="subAmountLbl">Amount (тВ╣)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+        <div class="field"><label id="subAmountLbl">Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
       </div>
       <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">ЁЯТ╛ Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">ЁЯУ▓ Save &amp; WhatsApp</button>
+        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">&#128190; Save Only</button>
+        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">&#128242; Save &amp; WhatsApp</button>
       </div>
       <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="subCancelEditBtn" onclick="cancelSubscriptionEdit()">Cancel edit</button>
     </div>
@@ -454,29 +454,29 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       </div>
       <div id="stmtDaysNote" style="font-size:12px; color:#7C8B8E; margin:-6px 0 12px 2px;"></div>
       <div class="field">
-        <label>Opening Balance (тВ╣) тАФ auto-filled, editable</label>
+        <label>Opening Balance (&#8377;) &#8212; auto-filled, editable</label>
         <input type="number" id="stmtOB" oninput="updateStmtTotals()">
       </div>
       <div class="field">
-        <label>Products тАФ pcs PER DAY (auto-averaged from deliveries, editable) ├Ч days = total</label>
-        <div class="search-bar"><span>ЁЯФН</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
+        <label>Products &#8212; pcs PER DAY (auto-averaged from deliveries, editable) &#215; days = total</label>
+        <div class="search-bar"><span>&#128269;</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
         <div class="prod-grid" id="stmtProdGrid"></div>
       </div>
       <div class="field">
-        <label>Delivery / Service Charge (тВ╣) тАФ manual</label>
+        <label>Delivery / Service Charge (&#8377;) &#8212; manual</label>
         <input type="number" id="stmtDeliveryCharge" placeholder="0" oninput="updateStmtTotals()">
       </div>
       <div class="total-strip">
-        <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">тВ╣0</div></div>
-        <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">тВ╣0</div></div>
+        <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">&#8377;0</div></div>
+        <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">&#8377;0</div></div>
       </div>
       <div class="field">
         <label>Message (auto-built, editable before sending)</label>
         <textarea id="stmtMessage" rows="6" placeholder="Select a customer and date range to auto-fill a statement message"></textarea>
       </div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">ЁЯУ▓ Send WhatsApp</button>
-        <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">ЁЯТм Send SMS</button>
+        <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">&#128242; Send WhatsApp</button>
+        <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">&#128172; Send SMS</button>
       </div>
     </div>
 
@@ -492,13 +492,13 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="section-title">Today's Summary</div>
     <div class="card">
       <div id="daySummary"></div>
-      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="shareDaySummary()">ЁЯУ▓ Share Day Summary to WhatsApp</button>
+      <button class="btn btn-wa btn-block" style="margin-top:12px" onclick="shareDaySummary()">&#128242; Share Day Summary to WhatsApp</button>
     </div>
 
     <div class="section-title">Customer Ledger Report</div>
     <div class="card">
       <div class="field">
-        <label>ЁЯУЕ Date</label>
+        <label>&#128197; Date</label>
         <select id="repDateType" onchange="onRepDateTypeChange()">
           <option value="today">Today</option>
           <option value="month">This Month</option>
@@ -510,15 +510,15 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <div class="field"><label>To</label><input type="date" id="repToDate"></div>
       </div>
       <div class="field">
-        <label>ЁЯСд Party (one customer)</label>
+        <label>&#128100; Party (one customer)</label>
         <select id="repParty"><option value="">-- Select Customer --</option></select>
       </div>
       <div class="field">
-        <label>ЁЯУж Product</label>
+        <label>&#128230; Product</label>
         <select id="repProductFilter"><option value="">All products</option></select>
       </div>
       <div class="field">
-        <label>ЁЯУд View / Output</label>
+        <label>&#128228; View / Output</label>
         <select id="repOutput">
           <option value="screen">Show on screen only</option>
           <option value="whatsapp">WhatsApp</option>
@@ -526,7 +526,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
           <option value="pdf">PDF</option>
         </select>
       </div>
-      <button class="btn btn-primary btn-block" onclick="generateReport()">ЁЯУД Generate Report</button>
+      <button class="btn btn-primary btn-block" onclick="generateReport()">&#128196; Generate Report</button>
       <div id="reportBody" style="margin-top:14px"></div>
     </div>
 
@@ -555,15 +555,15 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       </div>
       <div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-bottom:10px">The middle part (date, party, products, total, balance) is fixed as a bill. Only the header and footer change.</div>
       <div style="display:flex; gap:8px">
-        <button class="btn btn-primary btn-block" onclick="saveBillTemplate()">ЁЯТ╛ Save Template</button>
-        <button class="btn btn-outline btn-block" onclick="previewBillTemplate()">ЁЯСБ Preview</button>
+        <button class="btn btn-primary btn-block" onclick="saveBillTemplate()">&#128190; Save Template</button>
+        <button class="btn btn-outline btn-block" onclick="previewBillTemplate()">&#128065; Preview</button>
       </div>
     </div>
 
     <div class="section-title">Send Image to All Customers</div>
     <div class="card">
       <input type="file" accept="image/*" id="bulkImageInput" class="visually-hidden-file" onchange="onBulkImageChosen(event)">
-      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('bulkImageInput').click()">ЁЯЦ╝ Choose Image</button>
+      <button type="button" class="btn btn-outline btn-block" onclick="document.getElementById('bulkImageInput').click()">&#128444; Choose Image</button>
       <div id="bulkImagePreview" style="margin-top:10px; text-align:center"></div>
       <div id="bulkSendPanel" style="margin-top:12px"></div>
     </div>
@@ -585,22 +585,22 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
     <div class="section-title">Backup</div>
     <div class="card">
-      <button class="btn btn-clay btn-block" style="margin-bottom:10px" onclick="exportExcel()">тмЗ Export Excel Report</button>
-      <button class="btn btn-outline btn-block" onclick="exportWhatsAppBackup()">ЁЯУд Share Backup File via WhatsApp</button>
+      <button class="btn btn-clay btn-block" style="margin-bottom:10px" onclick="exportExcel()">&#11015; Export Excel Report</button>
+      <button class="btn btn-outline btn-block" onclick="exportWhatsAppBackup()">&#128228; Share Backup File via WhatsApp</button>
     </div>
   </section>
 
 </main>
 
 <nav class="bottombar">
-  <button class="active" onclick="showTab('delivery')" id="nav-delivery"><span class="ic">ЁЯз╛</span><span class="lb">Delivery</span></button>
-  <button onclick="showTab('products')" id="nav-products"><span class="ic">ЁЯеЫ</span><span class="lb">Products</span></button>
-  <button onclick="showTab('customers')" id="nav-customers"><span class="ic">ЁЯСе</span><span class="lb">Customers</span></button>
-  <button onclick="showTab('subscription')" id="nav-subscription"><span class="ic">ЁЯТ│</span><span class="lb">Subscription</span></button>
-  <button onclick="showTab('settings')" id="nav-settings"><span class="ic">тЪЩя╕П</span><span class="lb">More</span></button>
+  <button class="active" onclick="showTab('delivery')" id="nav-delivery"><span class="ic">&#129534;</span><span class="lb">Delivery</span></button>
+  <button onclick="showTab('products')" id="nav-products"><span class="ic">&#129371;</span><span class="lb">Products</span></button>
+  <button onclick="showTab('customers')" id="nav-customers"><span class="ic">&#128101;</span><span class="lb">Customers</span></button>
+  <button onclick="showTab('subscription')" id="nav-subscription"><span class="ic">&#128179;</span><span class="lb">Subscription</span></button>
+  <button onclick="showTab('settings')" id="nav-settings"><span class="ic">&#9881;&#65039;</span><span class="lb">More</span></button>
 </nav>
 
-<button class="fab" id="fabBtn" onclick="openCustomerForm()">я╝Л</button>
+<button class="fab" id="fabBtn" onclick="openCustomerForm()">&#65291;</button>
 
 <!-- Customer Add/Edit Sheet -->
 <div class="overlay" id="customerOverlay">
@@ -608,10 +608,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="custFormTitle">Add Customer</div>
     <input type="hidden" id="custId">
-    <div class="field"><label>Name / рокрпЖропро░рпН</label><input id="custName" placeholder="Customer name"></div>
-    <div class="field"><label>Phone / рокрпЛройрпН</label><input id="custPhone" type="tel" placeholder="10-digit number"></div>
-    <div class="field"><label>Address / роорпБроХро╡ро░ро┐</label><textarea id="custAddress" placeholder="Delivery address"></textarea></div>
-    <div class="field"><label>Opening balance (тВ╣)</label><input id="custOpenBal" type="number" placeholder="0"></div>
+    <div class="field"><label>Name / &#2986;&#3014;&#2991;&#2992;&#3021;</label><input id="custName" placeholder="Customer name"></div>
+    <div class="field"><label>Phone / &#2986;&#3019;&#2985;&#3021;</label><input id="custPhone" type="tel" placeholder="10-digit number"></div>
+    <div class="field"><label>Address / &#2990;&#3009;&#2965;&#2997;&#2992;&#3007;</label><textarea id="custAddress" placeholder="Delivery address"></textarea></div>
+    <div class="field"><label>Opening balance (&#8377;)</label><input id="custOpenBal" type="number" placeholder="0"></div>
     <div style="display:flex; gap:10px; margin-top:6px">
       <button class="btn btn-outline btn-block" onclick="closeOverlay('customerOverlay')">Cancel</button>
       <button class="btn btn-primary btn-block" onclick="saveCustomer()">Save</button>
@@ -627,13 +627,13 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="sheet-title" id="prodFormTitle">Add Product</div>
     <input type="hidden" id="prodId">
     <div class="field"><label>Product name</label><input id="prodName" placeholder="e.g. Milk 500ml"></div>
-    <div class="field"><label>Price (тВ╣)</label><input id="prodPrice" type="number" placeholder="0"></div>
+    <div class="field"><label>Price (&#8377;)</label><input id="prodPrice" type="number" placeholder="0"></div>
     <div class="field"><label>Unit</label><input id="prodUnit" placeholder="e.g. packet, litre, cup"></div>
     <div class="field">
       <label>Photo (optional)</label>
       <input type="file" accept="image/*" id="prodPhotoInput" class="visually-hidden-file" onchange="onProdPhotoChange(event)">
-      <button type="button" class="btn btn-outline btn-sm" onclick="triggerPhotoPicker()">ЁЯУ╖ Choose Photo</button>
-      <div class="field-hint">If nothing opens: this file must be hosted online (not opened from a Files app / WhatsApp preview) тАФ open it in Chrome or Safari directly, or use an icon below instead.</div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="triggerPhotoPicker()">&#128247; Choose Photo</button>
+      <div class="field-hint">If nothing opens: this file must be hosted online (not opened from a Files app / WhatsApp preview) &#8212; open it in Chrome or Safari directly, or use an icon below instead.</div>
       <div id="prodPhotoPreview" style="margin-top:8px"></div>
     </div>
     <div class="field">
@@ -656,7 +656,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div style="text-align:center; margin-bottom:12px"><img id="billPreviewImg" style="max-width:100%; border:1px solid var(--line); border-radius:8px"></div>
     <div style="display:flex; gap:8px">
       <button class="btn btn-outline btn-block" onclick="closeOverlay('billPreviewOverlay')">Close</button>
-      <button class="btn btn-wa btn-block" onclick="shareBillPreview()">ЁЯУ▓ Share</button>
+      <button class="btn btn-wa btn-block" onclick="shareBillPreview()">&#128242; Share</button>
     </div>
   </div>
 </div>
@@ -668,7 +668,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
    DATA LAYER
 --------------------------------------------------------------- */
 const DB_KEY = 'aavin_delivery_db_v1';
-const ICONS = ['ЁЯеЫ','ЁЯзИ','ЁЯзА','ЁЯН╢','ЁЯлЩ','ЁЯН╝','ЁЯзГ','ЁЯег','ЁЯН╡','ЁЯлЦ','ЁЯзЙ','ЁЯНж'];
+const ICONS = ['\uD83E\uDD5B','\uD83E\uDDC8','\uD83E\uDDC0','\uD83C\uDF76','\uD83E\uDED9','\uD83C\uDF7C','\uD83E\uDDC3','\uD83E\uDD63','\uD83C\uDF75','\uD83E\uDED6','\uD83E\uDDC9','\uD83C\uDF66'];
 let db = loadDB();
 let selectedProdIcon = ICONS[0];
 let deliveryCart = {}; // productId -> qty
@@ -688,7 +688,7 @@ function saveDB(){
   scheduleAutoSync();
 }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function money(n){ n = Number(n)||0; return 'тВ╣' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
+function money(n){ n = Number(n)||0; return '\u20B9' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
 function todayStr(){ const d = new Date(); return d.toISOString().slice(0,10); }
 function nowTimeStr(){ const d = new Date(); return d.toTimeString().slice(0,5); }
 function toast(msg){
@@ -727,7 +727,7 @@ function triggerPhotoPicker(){
   try{
     input.click();
   }catch(err){
-    toast('Photo picker blocked тАФ try opening this app in Chrome/Safari, not a preview window');
+    toast('Photo picker blocked \u2014 try opening this app in Chrome/Safari, not a preview window');
   }
 }
 function onProdPhotoChange(e){
@@ -842,7 +842,7 @@ function renderProducts(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}${p.unit?('/'+escapeHtml(p.unit)):''}</div>
     </div>`).join('');
-  html += `<div class="prod-tile add-tile" onclick="openProductForm()"><div class="img-wrap">я╝Л</div><div class="pname">Add Product</div></div>`;
+  html += `<div class="prod-tile add-tile" onclick="openProductForm()"><div class="img-wrap">\uFF0B</div><div class="pname">Add Product</div></div>`;
   grid.innerHTML = html;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -906,7 +906,7 @@ function renderCustomers(filter){
   document.getElementById('custCount').textContent = db.customers.length;
   const list = db.customers.filter(c=> !filter || c.name.toLowerCase().includes(filter) || (c.phone||'').includes(filter));
   const el = document.getElementById('customerList');
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯСд</div><div class="msg">No customers yet. Tap + to add one.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83D\uDC64</div><div class="msg">No customers yet. Tap + to add one.</div></div>`; return; }
   el.innerHTML = list.map(c=>{
     const bal = c.balance||0;
     const cls = bal>0?'balance-good':(bal<0?'balance-bad':'balance-zero');
@@ -952,12 +952,12 @@ function renderDelProdGrid(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}</div>
       <div class="qty-row">
-        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">тИТ</button>
+        <button class="qty-btn" onclick="changeQty('${p.id}',-1)">\u2212</button>
         <span class="qty-val">${qty}</span>
         <button class="qty-btn" onclick="changeQty('${p.id}',1)">+</button>
       </div>
     </div>`;
-  }).join('') || (q ? `<div class="empty-state"><div class="ic">ЁЯФН</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('delivery')">я╝Л Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">ЁЯеЫ</div><div class="msg">Add products first from the Products tab.</div></div>`);
+  }).join('') || (q ? `<div class="empty-state"><div class="ic">\uD83D\uDD0D</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('delivery')">\uFF0B Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">\uD83E\uDD5B</div><div class="msg">Add products first from the Products tab.</div></div>`);
 }
 function addToCart(id){ changeQty(id,1); }
 function changeQty(id, delta){
@@ -1047,21 +1047,21 @@ function saveDelivery(shareWA){
 function renderDeliveryList(){
   const el = document.getElementById('deliveryList');
   const list = db.deliveries.slice(0,15);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯз╛</div><div class="msg">No delivery entries yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83E\uDDFE</div><div class="msg">No delivery entries yet.</div></div>`; return; }
   el.innerHTML = list.map(d=>{
     const itemsStr = d.items.map(i=>`${i.name} x${i.qty}`).join(', ');
     return `<div class="list-row">
       <div class="avatar">${(d.customerName||'?').charAt(0).toUpperCase()}</div>
       <div class="list-main">
         <div class="name">${escapeHtml(d.customerName)}</div>
-        <div class="meta">${d.date} ${d.time} ┬╖ ${escapeHtml(itemsStr)}</div>
+        <div class="meta">${d.date} ${d.time} \u00B7 ${escapeHtml(itemsStr)}</div>
       </div>
       <div style="text-align:right">
         <div class="balance-tag balance-zero">${money(d.total)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">тЬО</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">ЁЯЧС</button>
-          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">ЁЯУ▓</button>
+          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">\u270E</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">\uD83D\uDDD1</button>
+          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">\uD83D\uDCF2</button>
         </div>
       </div>
     </div>`;
@@ -1083,7 +1083,7 @@ function openDeliveryEdit(id){
   entry.items.forEach(it=>{ deliveryCart[it.productId] = it.qty; });
   renderDelProdGrid();
   updateDeliveryTotals();
-  document.getElementById('delFormMode').textContent = 'Editing entry тАФ save to update, or cancel below';
+  document.getElementById('delFormMode').textContent = 'Editing entry \u2014 save to update, or cancel below';
   document.getElementById('delFormMode').style.display = 'block';
   document.getElementById('delCancelEditBtn').style.display = 'block';
   document.getElementById('deliveryFormCard').scrollIntoView({behavior:'smooth'});
@@ -1128,17 +1128,17 @@ function onSubCustomerChange(){ updateSubPreview(); }
 function onSubTypeChange(){
   const type = document.getElementById('subType').value;
   if(type==='charge'){
-    document.getElementById('subAmountLbl').textContent = 'Monthly charge (тВ╣)';
+    document.getElementById('subAmountLbl').textContent = 'Monthly charge (\u20B9)';
     document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'Balance (unchanged)';
-    document.getElementById('subSaveOnlyBtn').textContent = 'ЁЯТ╛ Save Only';
-    document.getElementById('subSaveWABtn').textContent = 'ЁЯУ▓ Save & WhatsApp';
+    document.getElementById('subSaveOnlyBtn').textContent = '\uD83D\uDCBE Save Only';
+    document.getElementById('subSaveWABtn').textContent = '\uD83D\uDCF2 Save & WhatsApp';
   } else {
-    document.getElementById('subAmountLbl').textContent = 'Amount (тВ╣)';
+    document.getElementById('subAmountLbl').textContent = 'Amount (\u20B9)';
     document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'After top-up';
-    document.getElementById('subSaveOnlyBtn').textContent = 'ЁЯТ╛ Save Only';
-    document.getElementById('subSaveWABtn').textContent = 'ЁЯУ▓ Save & WhatsApp';
+    document.getElementById('subSaveOnlyBtn').textContent = '\uD83D\uDCBE Save Only';
+    document.getElementById('subSaveWABtn').textContent = '\uD83D\uDCF2 Save & WhatsApp';
   }
   updateSubPreview();
 }
@@ -1241,17 +1241,17 @@ function deleteSubscription(id){
 function renderSubscriptionList(){
   const el = document.getElementById('subscriptionList');
   const list = db.subscriptions.slice(0,20);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯТ│</div><div class="msg">No entries yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83D\uDCB3</div><div class="msg">No entries yet.</div></div>`; return; }
   el.innerHTML = list.map(s=>{
     const isCharge = s.type==='charge';
     return `<div class="list-row">
       <div class="avatar">${(s.customerName||'?').charAt(0).toUpperCase()}</div>
-      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' ┬╖ Monthly charge':''}${s.details?(' ┬╖ '+escapeHtml(s.details)):''}</div></div>
+      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' \u00B7 Monthly charge':''}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</div></div>
       <div style="text-align:right">
         <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'+'}${money(s.amount)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">тЬО</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">ЁЯЧС</button>
+          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">\u270E</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">\uD83D\uDDD1</button>
         </div>
       </div>
     </div>`;
@@ -1262,30 +1262,30 @@ function renderSubscriptionList(){
    WHATSAPP MESSAGING
 --------------------------------------------------------------- */
 function buildDeliveryMessage(d, modified){
-  const itemsLines = d.items.map(i=>`  тАв ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
-  return `ЁЯУж *${modified? 'родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯ роЯрпЖро▓ро┐ро╡ро░ро┐ ро░роЪрпАродрпБ (Updated)':'роЯрпЖро▓ро┐ро╡ро░ро┐ ро░роЪрпАродрпБ'} - Aavin Fresh Milk Stall*\n\n`+
-    `родрпЗродро┐/Date: ${d.date} ${d.time}\n`+
-    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${d.customerName}\n\n`+
-    `рокрпКро░рпБроЯрпНроХро│рпН/Items:\n${itemsLines}\n\n`+
-    `роорпКродрпНродроорпН/Total: ${money(d.total)}\n`+
-    `роХрпИропро┐ро░рпБрокрпНрокрпБ (роорпБройрпНрокрпБ)/Balance before: ${money(d.balBefore)}\n`+
-    `роорпАродро┐ роЗро░рпБрокрпНрокрпБ/Balance after: ${money(d.balAfter)}\n\n`+
-    `роиройрпНро▒ро┐! ЁЯЩП`;
+  const itemsLines = d.items.map(i=>`  \u2022 ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
+  return `\uD83D\uDCE6 *${modified? '\u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F \u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0BB0\u0B9A\u0BC0\u0BA4\u0BC1 (Updated)':'\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0BB0\u0B9A\u0BC0\u0BA4\u0BC1'} - Aavin Fresh Milk Stall*\n\n`+
+    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${d.date} ${d.time}\n`+
+    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${d.customerName}\n\n`+
+    `\u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Items:\n${itemsLines}\n\n`+
+    `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD/Total: ${money(d.total)}\n`+
+    `\u0B95\u0BC8\u0BAF\u0BBF\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1 (\u0BAE\u0BC1\u0BA9\u0BCD\u0BAA\u0BC1)/Balance before: ${money(d.balBefore)}\n`+
+    `\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Balance after: ${money(d.balAfter)}\n\n`+
+    `\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
 }
 function buildSubscriptionMessage(s, modified){
   const isCharge = s.type==='charge';
   const title = isCharge
-    ? (modified? 'рооро╛род роХроЯрпНроЯрог роХрпБро▒ро┐рокрпНрокрпБ - родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯродрпБ (Updated)':'рооро╛род роХроЯрпНроЯрог роХрпБро▒ро┐рокрпНрокрпБ')
-    : (modified? 'роЪроирпНродро╛ родрпКроХрпИ - родро┐ро░рпБродрпНродрокрпНрокроЯрпНроЯродрпБ (Updated)':'роЪроирпНродро╛ родрпКроХрпИ роЪрпЗро░рпНроХрпНроХрокрпНрокроЯрпНроЯродрпБ');
-  return `ЁЯТ░ *${title} - Aavin Fresh Milk Stall*\n\n`+
-    `родрпЗродро┐/Date: ${s.date}\n`+
-    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${s.customerName}\n`+
+    ? (modified? '\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1')
+    : (modified? '\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1');
+  return `\uD83D\uDCB0 *${title} - Aavin Fresh Milk Stall*\n\n`+
+    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${s.date}\n`+
+    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${s.customerName}\n`+
     (isCharge
-      ? `рооро╛род роХроЯрпНроЯрогроорпН/Monthly charge: ${money(s.amount)}\n`
-      : `роЪрпЗро░рпНроХрпНроХрокрпНрокроЯрпНроЯ родрпКроХрпИ/Amount added: ${money(s.amount)}\n`)+
-    (s.details? `ро╡ро┐ро╡ро░роорпН/Details: ${s.details}\n`:'')+
-    (isCharge ? '' : `\nроорпКродрпНрод роЗро░рпБрокрпНрокрпБ/New balance: ${money(s.balAfter)}\n`)+
-    `\nроиройрпНро▒ро┐! ЁЯЩП`;
+      ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Monthly charge: ${money(s.amount)}\n`
+      : `\u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F \u0BA4\u0BCA\u0B95\u0BC8/Amount added: ${money(s.amount)}\n`)+
+    (s.details? `\u0BB5\u0BBF\u0BB5\u0BB0\u0BAE\u0BCD/Details: ${s.details}\n`:'')+
+    (isCharge ? '' : `\n\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/New balance: ${money(s.balAfter)}\n`)+
+    `\n\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
 }
 function openWhatsApp(message, phone){
   let url = 'https://wa.me/';
@@ -1362,7 +1362,7 @@ function renderStmtProdGrid(){
   const grid = document.getElementById('stmtProdGrid');
   const q = (document.getElementById('stmtProdSearch').value||'').trim().toLowerCase();
   const days = stmtDaysCount();
-  document.getElementById('stmtDaysNote').textContent = days ? `ЁЯУЕ ${days} day${days===1?'':'s'} in this period` : '';
+  document.getElementById('stmtDaysNote').textContent = days ? `\uD83D\uDCC5 ${days} day${days===1?'':'s'} in this period` : '';
   const list = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (stmtCart[p.id]||0)>0);
   grid.innerHTML = list.map(p=>{
     const perDay = stmtCart[p.id]||0;
@@ -1373,13 +1373,13 @@ function renderStmtProdGrid(){
       <div class="pname">${escapeHtml(p.name)}</div>
       <div class="pprice">${money(p.price)}/pc</div>
       <div class="qty-row">
-        <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">тИТ</button>
+        <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">\u2212</button>
         <input type="number" class="qty-input" id="stmtqty_${p.id}" value="${perDay}" step="0.5" min="0" onchange="setStmtQty('${p.id}', this.value)">
         <button class="qty-btn" onclick="changeStmtQty('${p.id}',1)">+</button>
       </div>
-      <div class="qty-calc">pcs/day ├Ч ${days} days = ${totalQty}<br>${money(amount)}</div>
+      <div class="qty-calc">pcs/day \u00D7 ${days} days = ${totalQty}<br>${money(amount)}</div>
     </div>`;
-  }).join('') || (q ? `<div class="empty-state"><div class="ic">ЁЯФН</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('stmt')">я╝Л Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">ЁЯеЫ</div><div class="msg">Add products first from the Products tab.</div></div>`);
+  }).join('') || (q ? `<div class="empty-state"><div class="ic">\uD83D\uDD0D</div><div class="msg">No product matches "${escapeHtml(q)}".</div><button class="btn btn-clay btn-sm" style="margin-top:10px" onclick="quickAddProduct('stmt')">\uFF0B Add "${escapeHtml(q)}" as new product</button></div>` : `<div class="empty-state"><div class="ic">\uD83E\uDD5B</div><div class="msg">Add products first from the Products tab.</div></div>`);
   if(!days){
     grid.insertAdjacentHTML('afterbegin', `<div style="grid-column:1/-1; font-size:12px; color:#C24B3D; padding:6px 2px;">Pick From/To dates above to calculate totals.</div>`);
   }
@@ -1431,29 +1431,29 @@ function autoFillStmtMessage(){
   document.getElementById('stmtMessage').value = buildStatementMessage(c, from, to, ob, items, deliveryCharge, total);
 }
 function buildStatementMessage(c, from, to, ob, items, deliveryCharge, total){
-  const periodLine = (from && to) ? `роХро╛ро▓роорпН/Period: ${from} - ${to}\n` : '';
+  const periodLine = (from && to) ? `\u0B95\u0BBE\u0BB2\u0BAE\u0BCD/Period: ${from} - ${to}\n` : '';
   const itemLines = items.length
-    ? items.map(it=>`  тАв ${it.name}: ${it.perDay}/day ├Ч ${it.days} days = ${it.qty} pcs тЖТ ${money(it.amount)}`).join('\n') + '\n'
+    ? items.map(it=>`  \u2022 ${it.name}: ${it.perDay}/day \u00D7 ${it.days} days = ${it.qty} pcs \u2192 ${money(it.amount)}`).join('\n') + '\n'
     : '';
   const dueOrCredit = total < 0
-    ? `роиро┐ро▓рпБро╡рпИродрпН родрпКроХрпИ/Amount Due: ${money(Math.abs(total))}`
-    : `роЗро░рпБрокрпНрокрпБ/Balance: ${money(total)}`;
-  return `ро╡рогроХрпНроХроорпН ${c.name},\n\n`+
-    `роХрогроХрпНроХрпБ роЕро▒ро┐роХрпНроХрпИ - Aavin Fresh Milk Stall\n`+
+    ? `\u0BA8\u0BBF\u0BB2\u0BC1\u0BB5\u0BC8\u0BA4\u0BCD \u0BA4\u0BCA\u0B95\u0BC8/Amount Due: ${money(Math.abs(total))}`
+    : `\u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Balance: ${money(total)}`;
+  return `\u0BB5\u0BA3\u0B95\u0BCD\u0B95\u0BAE\u0BCD ${c.name},\n\n`+
+    `\u0B95\u0BA3\u0B95\u0BCD\u0B95\u0BC1 \u0B85\u0BB1\u0BBF\u0B95\u0BCD\u0B95\u0BC8 - Aavin Fresh Milk Stall\n`+
     periodLine+
-    `роорпБроирпНродрпИроп роЗро░рпБрокрпНрокрпБ/Opening Balance: ${money(ob)}\n`+
+    `\u0BAE\u0BC1\u0BA8\u0BCD\u0BA4\u0BC8\u0BAF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Opening Balance: ${money(ob)}\n`+
     itemLines+
-    (deliveryCharge ? `роЯрпЖро▓ро┐ро╡ро░ро┐ роХроЯрпНроЯрогроорпН/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
+    (deliveryCharge ? `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
     `\n${dueOrCredit}\n\n`+
-    `родропро╡рпБроЪрпЖропрпНродрпБ ро╡ро┐ро░рпИро╡ро┐ро▓рпН роиро┐ро▓рпБро╡рпИродрпН родрпКроХрпИропрпИ роЪрпЖро▓рпБродрпНродро╡рпБроорпН.\nKindly settle at your convenience.\n\n`+
-    `роиройрпНро▒ро┐!\nAavin Fresh Milk Stall - 1958`;
+    `\u0BA4\u0BAF\u0BB5\u0BC1\u0B9A\u0BC6\u0BAF\u0BCD\u0BA4\u0BC1 \u0BB5\u0BBF\u0BB0\u0BC8\u0BB5\u0BBF\u0BB2\u0BCD \u0BA8\u0BBF\u0BB2\u0BC1\u0BB5\u0BC8\u0BA4\u0BCD \u0BA4\u0BCA\u0B95\u0BC8\u0BAF\u0BC8 \u0B9A\u0BC6\u0BB2\u0BC1\u0BA4\u0BCD\u0BA4\u0BB5\u0BC1\u0BAE\u0BCD.\nKindly settle at your convenience.\n\n`+
+    `\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF!\nAavin Fresh Milk Stall - 1958`;
 }
 function sendStatement(channel){
   const custId = document.getElementById('stmtCustomer').value;
   if(!custId){ toast('Select a customer'); return; }
   const c = db.customers.find(x=>x.id===custId);
   const msg = document.getElementById('stmtMessage').value.trim();
-  if(!msg){ toast('Message is empty тАФ fill in the statement first'); return; }
+  if(!msg){ toast('Message is empty \u2014 fill in the statement first'); return; }
   if(!c.phone){ toast('This customer has no phone number saved'); return; }
 
   const from = document.getElementById('stmtFrom').value;
@@ -1489,19 +1489,19 @@ function renderReminderHistory(){
   const list = db.reminders || [];
   document.getElementById('reminderCount').textContent = list.length;
   const el = document.getElementById('reminderHistoryList');
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">ЁЯФФ</div><div class="msg">No statements sent yet.</div></div>`; return; }
+  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83D\uDD14</div><div class="msg">No statements sent yet.</div></div>`; return; }
   el.innerHTML = list.slice(0,25).map(r=>`
     <div class="list-row">
       <div class="avatar">${(r.customerName||'?').charAt(0).toUpperCase()}</div>
       <div class="list-main">
         <div class="name">${escapeHtml(r.customerName)}</div>
-        <div class="meta">${r.date} ┬╖ ${r.channel==='whatsapp'?'WhatsApp':'SMS'}${r.from?(' ┬╖ '+r.from+' to '+r.to):''}</div>
+        <div class="meta">${r.date} \u00B7 ${r.channel==='whatsapp'?'WhatsApp':'SMS'}${r.from?(' \u00B7 '+r.from+' to '+r.to):''}</div>
       </div>
       <div style="text-align:right">
         <div class="balance-tag ${r.total<0?'balance-bad':'balance-good'}">${money(r.total)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-wa btn-sm" onclick="resendReminder('${r.id}','whatsapp')">ЁЯУ▓</button>
-          <button class="btn btn-clay btn-sm" onclick="resendReminder('${r.id}','sms')">ЁЯТм</button>
+          <button class="btn btn-wa btn-sm" onclick="resendReminder('${r.id}','whatsapp')">\uD83D\uDCF2</button>
+          <button class="btn btn-clay btn-sm" onclick="resendReminder('${r.id}','sms')">\uD83D\uDCAC</button>
         </div>
       </div>
     </div>`).join('');
@@ -1512,11 +1512,11 @@ function shareDaySummary(){
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
   const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
-  let msg = `ЁЯУК *роЗройрпНро▒рпИроп роЪрпБро░рпБроХрпНроХроорпН - ${today}*\n\n`+
-    `роЯрпЖро▓ро┐ро╡ро░ро┐ роОрогрпНрогро┐роХрпНроХрпИ/Deliveries: ${dToday.length}\n`+
-    `роорпКродрпНрод ро╡ро┐ро▒рпНрокройрпИ/Total sales: ${money(totalSales)}\n`+
-    `роЪроирпНродро╛ роЪрпЗро░рпНроХрпНроХрпИ/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
-    `Aavin Fresh Milk Stall ЁЯеЫ`;
+  let msg = `\uD83D\uDCCA *\u0B87\u0BA9\u0BCD\u0BB1\u0BC8\u0BAF \u0B9A\u0BC1\u0BB0\u0BC1\u0B95\u0BCD\u0B95\u0BAE\u0BCD - ${today}*\n\n`+
+    `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B8E\u0BA3\u0BCD\u0BA3\u0BBF\u0B95\u0BCD\u0B95\u0BC8/Deliveries: ${dToday.length}\n`+
+    `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0BB5\u0BBF\u0BB1\u0BCD\u0BAA\u0BA9\u0BC8/Total sales: ${money(totalSales)}\n`+
+    `\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BC8/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
+    `Aavin Fresh Milk Stall \uD83E\uDD5B`;
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
 }
@@ -1623,15 +1623,15 @@ function renderLedgerPreview(L){
   const body = document.getElementById('reportBody');
   const lines = L.rows.length ? L.rows.map(r=>{
     if(r.type==='topup'){
-      return `<div class="ledger-doc-row"><div><div class="ld-main">ЁЯТ░ Top-up${r.details?(' ┬╖ '+escapeHtml(r.details)):''}</div><div class="ld-sub">${r.date}</div></div><div class="ld-amt good">+${money(r.amount)}</div></div>`;
+      return `<div class="ledger-doc-row"><div><div class="ld-main">\uD83D\uDCB0 Top-up${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div><div class="ld-sub">${r.date}</div></div><div class="ld-amt good">+${money(r.amount)}</div></div>`;
     }
-    return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' ┬╖ '+r.time):''} ┬╖ ${r.qty} ├Ч ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
-  }).join('') : `<div class="empty-state"><div class="ic">ЁЯУЛ</div><div class="msg">No deliveries or top-ups in this period.</div></div>`;
+    return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' \u00B7 '+r.time):''} \u00B7 ${r.qty} \u00D7 ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
+  }).join('') : `<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">No deliveries or top-ups in this period.</div></div>`;
   body.innerHTML = `
     <div class="ledger-doc">
       <div class="ledger-doc-head">
         <div class="ld-name">${escapeHtml(L.customer.name)}</div>
-        <div class="ld-period">${escapeHtml(L.filter.label)}${L.productName?(' ┬╖ '+escapeHtml(L.productName)):''}</div>
+        <div class="ld-period">${escapeHtml(L.filter.label)}${L.productName?(' \u00B7 '+escapeHtml(L.productName)):''}</div>
       </div>
       <div class="day-summary-row"><span class="k">Opening Balance</span><span class="v">${money(L.ob)}</span></div>
       ${lines}
@@ -1665,19 +1665,19 @@ function ledgerFileTag(L){
 function buildLedgerMessage(L){
   const c = L.customer;
   const MAX_LINES = 40;
-  let msg = `ЁЯУТ *роХрогроХрпНроХрпБ роЕро▒ро┐роХрпНроХрпИ - Aavin Fresh Milk Stall*\n\n`+
-    `ро╡ро╛роЯро┐роХрпНроХрпИропро╛ро│ро░рпН/Customer: ${c.name}\n`+
-    `роХро╛ро▓роорпН/Period: ${L.filter.label}${L.productName?(' ┬╖ '+L.productName):''}\n\n`+
-    `роорпБроирпНродрпИроп роЗро░рпБрокрпНрокрпБ/Opening Balance: ${money(L.ob)}\n\n`;
+  let msg = `\uD83D\uDCD2 *\u0B95\u0BA3\u0B95\u0BCD\u0B95\u0BC1 \u0B85\u0BB1\u0BBF\u0B95\u0BCD\u0B95\u0BC8 - Aavin Fresh Milk Stall*\n\n`+
+    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${c.name}\n`+
+    `\u0B95\u0BBE\u0BB2\u0BAE\u0BCD/Period: ${L.filter.label}${L.productName?(' \u00B7 '+L.productName):''}\n\n`+
+    `\u0BAE\u0BC1\u0BA8\u0BCD\u0BA4\u0BC8\u0BAF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Opening Balance: ${money(L.ob)}\n\n`;
   L.rows.slice(0, MAX_LINES).forEach(r=>{
-    if(r.type==='topup') msg += `${r.date}  ЁЯТ░ Top-up  +${money(r.amount)}\n`;
-    else msg += `${r.date}  ${r.name}  ${r.qty} ├Ч ${money(r.rate)} = ${money(r.amount)}\n`;
+    if(r.type==='topup') msg += `${r.date}  \uD83D\uDCB0 Top-up  +${money(r.amount)}\n`;
+    else msg += `${r.date}  ${r.name}  ${r.qty} \u00D7 ${money(r.rate)} = ${money(r.amount)}\n`;
   });
   if(L.rows.length > MAX_LINES) msg += `...and ${L.rows.length-MAX_LINES} more lines (use Excel/PDF for the full list)\n`;
-  msg += `\nроорпКродрпНрод рокрпКро░рпБроЯрпНроХро│рпН/Total products: ${money(L.productTotal)}\n`;
-  if(L.otherProductsTotal>0) msg += `рооро▒рпНро▒ рокрпКро░рпБроЯрпНроХро│рпН/Other products: ${money(L.otherProductsTotal)}\n`;
-  msg += `роорпКродрпНрод роЯро╛рокрпН-роЕрокрпН/Total top-ups: +${money(L.topupTotal)}\n`+
-    `*роорпАродро┐ роЗро░рпБрокрпНрокрпБ/Remaining Balance: ${money(L.remaining)}*\n\nроиройрпНро▒ро┐! ЁЯЩП`;
+  msg += `\n\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Total products: ${money(L.productTotal)}\n`;
+  if(L.otherProductsTotal>0) msg += `\u0BAE\u0BB1\u0BCD\u0BB1 \u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Other products: ${money(L.otherProductsTotal)}\n`;
+  msg += `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B9F\u0BBE\u0BAA\u0BCD-\u0B85\u0BAA\u0BCD/Total top-ups: +${money(L.topupTotal)}\n`+
+    `*\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Remaining Balance: ${money(L.remaining)}*\n\n\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
   return msg;
 }
 function sendLedgerWhatsApp(L){
@@ -1724,9 +1724,9 @@ function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
   const rowsHtml = chunk.map((r,i)=>{
     const bg = i%2 ? '#F6F3EA' : '#fff';
     if(r.type==='topup'){
-      return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">ЁЯТ░ Top-up${r.details?(' - '+escapeHtml(r.details)):''}</td><td style="${cell} text-align:right;">-</td><td style="${cell} text-align:right; color:#2E7D4F; font-weight:700;">+${money(r.amount)}</td></tr>`;
+      return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">\uD83D\uDCB0 Top-up${r.details?(' - '+escapeHtml(r.details)):''}</td><td style="${cell} text-align:right;">-</td><td style="${cell} text-align:right; color:#2E7D4F; font-weight:700;">+${money(r.amount)}</td></tr>`;
     }
-    return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">${escapeHtml(r.name)}</td><td style="${cell} text-align:right;">${r.qty} ├Ч ${money(r.rate)}</td><td style="${cell} text-align:right; font-weight:700;">${money(r.amount)}</td></tr>`;
+    return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">${escapeHtml(r.name)}</td><td style="${cell} text-align:right;">${r.qty} \u00D7 ${money(r.rate)}</td><td style="${cell} text-align:right; font-weight:700;">${money(r.amount)}</td></tr>`;
   }).join('');
   const sumRow = (k,v,bold,color)=>`<tr><td colspan="3" style="padding:7px 10px; text-align:right; font-size:13px; ${bold?'font-weight:800;':''}">${k}</td><td style="padding:7px 10px; text-align:right; font-size:13px; ${bold?'font-weight:800;':'font-weight:700;'} ${color?('color:'+color+';'):''}">${v}</td></tr>`;
   const isFirst = pageIdx===0, isLast = pageIdx===totalPages-1;
@@ -1734,12 +1734,12 @@ function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
     <div style="font-size:17px; font-weight:700; color:#1E5F63;">Aavin Fresh Milk Stall - 1958</div>
     <div style="font-size:13px; color:#555; margin-bottom:2px;">Customer Ledger${totalPages>1?` (page ${pageIdx+1} of ${totalPages})`:''}</div>
     <div style="font-size:14px; font-weight:700; margin-top:6px;">${escapeHtml(L.customer.name)}</div>
-    <div style="font-size:12px; color:#555; margin-bottom:12px;">${escapeHtml(L.filter.label)}${L.productName?(' ┬╖ '+escapeHtml(L.productName)):''}</div>
+    <div style="font-size:12px; color:#555; margin-bottom:12px;">${escapeHtml(L.filter.label)}${L.productName?(' \u00B7 '+escapeHtml(L.productName)):''}</div>
     <table style="width:100%; border-collapse:collapse;">
       <thead><tr>
         <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:left; font-size:12.5px;">Date</th>
         <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:left; font-size:12.5px;">Particulars</th>
-        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:right; font-size:12.5px;">Qty ├Ч Rate</th>
+        <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:right; font-size:12.5px;">Qty \u00D7 Rate</th>
         <th style="background:#1E5F63; color:#fff; padding:9px 10px; text-align:right; font-size:12.5px;">Amount</th>
       </tr></thead>
       <tbody>
@@ -1796,8 +1796,8 @@ let billTemplateDirty = false;
 function getBillTemplate(){
   const s = db.settings || {};
   return {
-    header: (typeof s.billHeader === 'string') ? s.billHeader : 'AAVIN FRESH MILK STALL ┬╖ 1958\nDelivery Bill',
-    footer: (typeof s.billFooter === 'string') ? s.billFooter : 'роиройрпНро▒ро┐! Thank you!'
+    header: (typeof s.billHeader === 'string') ? s.billHeader : 'AAVIN FRESH MILK STALL \u00B7 1958\nDelivery Bill',
+    footer: (typeof s.billFooter === 'string') ? s.billFooter : '\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! Thank you!'
   };
 }
 function renderBillTemplateFields(){
@@ -1973,12 +1973,12 @@ function renderBulkSendPanel(){
   }
   if(bulk.index < 0){
     el.innerHTML = `<div class="desc" style="font-size:12px; color:#7C8B8E; margin-bottom:8px">${bulkEligibleCustomers().length} customers with phone numbers. You will go through them one by one.</div>
-      <button class="btn btn-primary btn-block" onclick="startBulkSend()">тЦ╢ Start</button>`;
+      <button class="btn btn-primary btn-block" onclick="startBulkSend()">\u25B6 Start</button>`;
     return;
   }
   if(bulk.index >= bulk.list.length){
     const sentCount = Object.keys(bulk.sent).length;
-    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="ic">тЬЕ</div><div class="msg">Finished - ${sentCount} of ${bulk.list.length} customers shared.</div></div>
+    el.innerHTML = `<div class="empty-state" style="padding:16px"><div class="ic">\u2705</div><div class="msg">Finished - ${sentCount} of ${bulk.list.length} customers shared.</div></div>
       <button class="btn btn-outline btn-block" onclick="stopBulkSend()">Close</button>`;
     return;
   }
@@ -1986,13 +1986,13 @@ function renderBulkSendPanel(){
   const done = !!bulk.sent[c.id];
   el.innerHTML = `
     <div class="bal-banner" style="flex-direction:column; gap:2px">
-      <div class="lbl">Customer ${bulk.index+1} of ${bulk.list.length}${done?' ┬╖ тЬУ shared':''}</div>
+      <div class="lbl">Customer ${bulk.index+1} of ${bulk.list.length}${done?' \u00B7 \u2713 shared':''}</div>
       <div class="val" style="font-size:16px">${escapeHtml(c.name)}</div>
       <div class="lbl">${escapeHtml(c.phone)}</div>
     </div>
-    <button class="btn btn-wa btn-block" onclick="bulkShareCurrent()">ЁЯУ▓ Send image</button>
+    <button class="btn btn-wa btn-block" onclick="bulkShareCurrent()">\uD83D\uDCF2 Send image</button>
     <div style="display:flex; gap:8px; margin-top:8px">
-      <button class="btn btn-primary btn-block" onclick="bulkNext()">Next Customer тЖТ</button>
+      <button class="btn btn-primary btn-block" onclick="bulkNext()">Next Customer \u2192</button>
       <button class="btn btn-outline btn-block" onclick="stopBulkSend()">Stop</button>
     </div>`;
 }
@@ -2024,7 +2024,7 @@ function stopBulkSend(){ bulk.index = -1; bulk.list = []; renderBulkSendPanel();
 
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
-    toast('Excel export needs an internet connection the first time тАФ try again once online');
+    toast('Excel export needs an internet connection the first time \u2014 try again once online');
     return;
   }
   try{
@@ -2050,7 +2050,7 @@ function exportExcel(){
     XLSX.writeFile(wb, `Aavin_Delivery_Report_${todayStr()}.xlsx`);
   }catch(err){
     console.error(err);
-    toast('Excel export failed тАФ use "Save as File" (CSV) instead');
+    toast('Excel export failed \u2014 use "Save as File" (CSV) instead');
   }
 }
 function exportWhatsAppBackup(){
@@ -2117,7 +2117,7 @@ function setSyncStatus(connected){
   const headerLabel = document.getElementById('headerSyncLabel');
   if(connected){
     dot.className='sync-dot sync-ok'; text.textContent='Synced with Google Drive';
-    if(desc) desc.textContent='Connected тАФ syncing in background';
+    if(desc) desc.textContent='Connected \u2014 syncing in background';
     if(btn) btn.textContent='Connected';
     if(headerBtn) headerBtn.classList.add('connected');
     if(headerLabel) headerLabel.textContent = 'Synced';
