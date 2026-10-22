@@ -359,42 +359,52 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <section class="tab-panel active" id="tab-delivery">
     <div class="section-title">&#2951;&#2985;&#3021;&#2993;&#3016;&#2991; &#2975;&#3014;&#2994;&#3007;&#2997;&#2992;&#3007; <span class="count" id="todayCount">0</span></div>
     <div class="card" id="deliveryFormCard">
-      <div class="edit-banner" id="delFormMode" style="display:none">&#9998; Editing entry &#8212; save to update, or cancel below</div>
+      <div class="field">
+        <label>Mode</label>
+        <select id="delMode" onchange="onDelModeChange()">
+          <option value="new">New delivery</option>
+          <option value="edit">Edit a delivery</option>
+          <option value="delete">Delete a delivery</option>
+        </select>
+      </div>
       <div class="field">
         <label>Customer / &#2997;&#3006;&#2975;&#3007;&#2965;&#3021;&#2965;&#3016;&#2991;&#3006;&#2995;&#2992;&#3021;</label>
         <select id="delCustomer" onchange="onDeliveryCustomerChange()"><option value="">-- Select --</option></select>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Date</label><input type="date" id="delDate" onchange="updateDeliveryTotals()"></div>
+        <div class="field"><label>Time</label><input type="time" id="delTime"></div>
+      </div>
+      <div class="field" id="delEntryWrap" style="display:none">
+        <label id="delEntryLabel">Delivery to edit</label>
+        <select id="delEntry" onchange="onDelEntryChange()"><option value="">-- Select the customer first --</option></select>
       </div>
       <div class="bal-banner" id="delBalBanner" style="display:none">
         <div><div class="lbl">Balance in hand</div><div class="val" id="delBalBefore">&#8377;0</div></div>
         <div><div class="lbl">After this delivery</div><div class="val" id="delBalAfter">&#8377;0</div></div>
       </div>
-      <div class="field">
-        <label>Products / &#2986;&#3018;&#2992;&#3009;&#2975;&#3021;&#2965;&#2995;&#3021;</label>
-        <div class="search-bar"><span>&#128269;</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
-        <div class="prod-grid" id="delProdGrid"></div>
-      </div>
-      <div class="row2">
+      <div id="delProductsWrap">
         <div class="field">
-          <label>Date</label>
-          <input type="date" id="delDate">
-        </div>
-        <div class="field">
-          <label>Time</label>
-          <input type="time" id="delTime">
+          <label>Products / &#2986;&#3018;&#2992;&#3009;&#2975;&#3021;&#2965;&#2995;&#3021;</label>
+          <div class="search-bar"><span>&#128269;</span><input id="delProdSearch" placeholder="Search product..." oninput="renderDelProdGrid()"></div>
+          <div class="prod-grid" id="delProdGrid"></div>
         </div>
       </div>
-      <div class="total-strip">
+      <div id="delDeleteSummary" style="display:none"></div>
+      <div class="total-strip" id="delTotalStrip">
         <div><div class="t-label">Total Amount</div><div class="t-val" id="delTotal">&#8377;0</div></div>
         <div style="text-align:right"><div class="t-label">Remaining bal.</div><div class="t-val" id="delTotalBal">&#8377;0</div></div>
       </div>
-      <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveDelivery(false)">&#128190; Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveDelivery(true)">&#128247; Save &amp; Send Bill</button>
+      <div class="field" id="delSendWrap">
+        <label>Send</label>
+        <select id="delSend" onchange="onDelSendChange()">
+          <option value="whatsapp">WhatsApp message</option>
+          <option value="image">Bill image (share sheet)</option>
+          <option value="none">Save only</option>
+        </select>
       </div>
-      <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="delCancelEditBtn" onclick="cancelDeliveryEdit()">Cancel edit</button>
+      <button class="btn btn-primary btn-block" id="delActionBtn" onclick="submitDelivery()">&#128190; Save Delivery</button>
     </div>
-    <div class="section-title">Recent Entries</div>
-    <div class="card"><div id="deliveryList"></div></div>
   </section>
 
   <!-- PRODUCTS TAB -->
@@ -543,7 +553,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       </div>
     </div>
 
-    <div class="section-title">Bill Image Template</div>
+    <div class="section-title">Bill Header &amp; Footer</div>
     <div class="card">
       <div class="field">
         <label>Header (top of the bill image)</label>
@@ -553,7 +563,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <label>Footer (bottom of the bill image)</label>
         <textarea id="billFooterInput" oninput="billTemplateDirty=true" rows="2" placeholder="Thank-you note, offer, UPI details..."></textarea>
       </div>
-      <div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-bottom:10px">The middle part (date, party, products, total, balance) is fixed as a bill. Only the header and footer change.</div>
+      <div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-bottom:10px">Used on the WhatsApp message and on the bill image. The middle part (date, party, products, total, balance) is fixed as a bill.</div>
       <div style="display:flex; gap:8px">
         <button class="btn btn-primary btn-block" onclick="saveBillTemplate()">&#128190; Save Template</button>
         <button class="btn btn-outline btn-block" onclick="previewBillTemplate()">&#128065; Preview</button>
@@ -673,6 +683,8 @@ let db = loadDB();
 let selectedProdIcon = ICONS[0];
 let deliveryCart = {}; // productId -> qty
 let editingDeliveryId = null;
+let delPriceOverride = {};   // productId -> price a delivery being edited was originally sold at
+let delItemNames = {};       // productId -> name (kept if the product was deleted later)
 let pendingProductContext = null; // 'delivery' | 'stmt' - set when quick-adding a product from a search box
 let editingSubscriptionId = null;
 
@@ -681,12 +693,13 @@ function loadDB(){
     const raw = localStorage.getItem(DB_KEY);
     if(raw) return JSON.parse(raw);
   }catch(e){}
-  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], settings: {}, meta:{ deviceRole:'' } };
+  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], settings: {}, deleted: {}, meta:{ deviceRole:'' } };
 }
 function saveDB(){
   localStorage.setItem(DB_KEY, JSON.stringify(db));
   scheduleAutoSync();
 }
+function markDeleted(id){ db.deleted = db.deleted || {}; db.deleted[id] = Date.now(); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function money(n){ n = Number(n)||0; return '\u20B9' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
 function todayStr(){ const d = new Date(); return d.toISOString().slice(0,10); }
@@ -829,6 +842,7 @@ function deleteProduct(){
   if(!id) return;
   if(!confirm('Delete this product?')) return;
   db.products = db.products.filter(x=>x.id!==id);
+  markDeleted(id);
   saveDB();
   closeOverlay('productOverlay');
   renderProducts();
@@ -896,6 +910,7 @@ function deleteCustomer(){
   if(!id) return;
   if(!confirm('Delete this customer? Their history stays but will show as unlinked.')) return;
   db.customers = db.customers.filter(x=>x.id!==id);
+  markDeleted(id);
   saveDB();
   closeOverlay('customerOverlay');
   renderCustomers();
@@ -933,18 +948,130 @@ function refreshCustomerDropdowns(){
 /* ---------------------------------------------------------------
    DELIVERY ENTRY
 --------------------------------------------------------------- */
+function getDelProduct(pid){
+  const p = db.products.find(x=>x.id===pid);
+  if(p){
+    // an existing delivery keeps the price it was sold at, even if the product price changed later
+    const price = (delPriceOverride[pid] !== undefined) ? delPriceOverride[pid] : p.price;
+    return { id:p.id, name:p.name, price, icon:p.icon, photo:p.photo };
+  }
+  if(delItemNames[pid] !== undefined){   // product deleted since - keep the line as it was sold
+    return { id:pid, name:delItemNames[pid], price:(delPriceOverride[pid]||0), icon:'\uD83E\uDD5B', photo:'' };
+  }
+  return null;
+}
+function delMode(){ return document.getElementById('delMode').value; }
+function getDelDate(){ return document.getElementById('delDate').value || todayStr(); }
+function resetDelCart(){
+  deliveryCart = {}; delPriceOverride = {}; delItemNames = {}; editingDeliveryId = null;
+}
 function renderDeliveryTab(){
   document.getElementById('delDate').value = document.getElementById('delDate').value || todayStr();
   document.getElementById('delTime').value = document.getElementById('delTime').value || nowTimeStr();
+  refreshDelEntryOptions();
   renderDelProdGrid();
   updateDeliveryTotals();
-  renderDeliveryList();
+  renderDeleteSummary();
   document.getElementById('todayCount').textContent = db.deliveries.filter(d=>d.date===todayStr()).length;
+}
+function loadDelSendChoice(){
+  try{
+    const v = localStorage.getItem('aavin_del_send');
+    const sel = document.getElementById('delSend');
+    if(v && Array.prototype.some.call(sel.options, o=>o.value===v)) sel.value = v;
+  }catch(e){}
+}
+function onDelSendChange(){
+  try{ localStorage.setItem('aavin_del_send', document.getElementById('delSend').value); }catch(e){}
+}
+function onDelModeChange(){
+  const mode = delMode();
+  resetDelCart();
+  document.getElementById('delEntry').value = '';
+  document.getElementById('delProdSearch').value = '';
+  if(mode==='new'){
+    document.getElementById('delDate').value = todayStr();
+    document.getElementById('delTime').value = nowTimeStr();
+  }
+  document.getElementById('delEntryLabel').textContent = (mode==='delete') ? 'Delivery to delete' : 'Delivery to edit';
+  document.getElementById('delProductsWrap').style.display = (mode==='delete') ? 'none' : '';
+  document.getElementById('delSendWrap').style.display = (mode==='delete') ? 'none' : '';
+  document.getElementById('delTotalStrip').style.display = (mode==='delete') ? 'none' : '';
+  const btn = document.getElementById('delActionBtn');
+  btn.textContent = mode==='new' ? '\uD83D\uDCBE Save Delivery' : (mode==='edit' ? '\uD83D\uDCBE Save Changes' : '\uD83D\uDDD1 Delete Delivery');
+  btn.className = 'btn btn-block ' + (mode==='delete' ? 'btn-danger' : 'btn-primary');
+  refreshDelEntryOptions();
+  renderDelProdGrid();
+  updateDeliveryTotals();
+  renderDeleteSummary();
+}
+function refreshDelEntryOptions(){
+  const mode = delMode();
+  document.getElementById('delEntryWrap').style.display = (mode==='new') ? 'none' : 'block';
+  if(mode==='new') return;
+  const sel = document.getElementById('delEntry');
+  const custId = document.getElementById('delCustomer').value;
+  const prev = sel.value;
+  if(!custId){
+    sel.innerHTML = '<option value="">-- Select the customer first --</option>';
+    return;
+  }
+  const list = db.deliveries.filter(d=>d.customerId===custId).slice().sort((a,b)=>{
+    const ka = a.date + ' ' + (a.time||''), kb = b.date + ' ' + (b.time||'');
+    return kb.localeCompare(ka) || (b.ts||0) - (a.ts||0);
+  });
+  sel.innerHTML = '<option value="">-- Select delivery (' + list.length + ') --</option>' + list.map(d=>{
+    const first = d.items[0] ? d.items[0].name : '';
+    const more = d.items.length > 1 ? (' +' + (d.items.length-1)) : '';
+    return `<option value="${d.id}">${d.date} ${d.time||''} \u00B7 ${money(d.total)} \u00B7 ${escapeHtml(first)}${more}</option>`;
+  }).join('');
+  if(prev && list.some(d=>d.id===prev)) sel.value = prev;
+  else if(prev){
+    // the delivery being worked on was changed or removed (for example on another device)
+    resetDelCart();
+    toast('That delivery changed on another device - select it again');
+  }
+}
+function onDeliveryCustomerChange(){
+  if(delMode()!=='new'){
+    resetDelCart();
+    document.getElementById('delEntry').value = '';
+    refreshDelEntryOptions();
+    renderDelProdGrid();
+    renderDeleteSummary();
+  }
+  updateDeliveryTotals();
+}
+function onDelEntryChange(){
+  const id = document.getElementById('delEntry').value;
+  resetDelCart();
+  editingDeliveryId = id || null;
+  if(id){
+    const e = db.deliveries.find(x=>x.id===id);
+    if(e){
+      document.getElementById('delDate').value = e.date;
+      document.getElementById('delTime').value = e.time || '';
+      e.items.forEach(it=>{
+        deliveryCart[it.productId] = it.qty;
+        delPriceOverride[it.productId] = it.price;
+        delItemNames[it.productId] = it.name;
+      });
+    }
+  }
+  renderDelProdGrid();
+  updateDeliveryTotals();
+  renderDeleteSummary();
 }
 function renderDelProdGrid(){
   const grid = document.getElementById('delProdGrid');
+  if(delMode()==='edit' && !editingDeliveryId){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="ic">\u270F\uFE0F</div><div class="msg">Pick the customer, then the delivery to edit.</div></div>`;
+    return;
+  }
   const q = (document.getElementById('delProdSearch').value||'').trim().toLowerCase();
-  const list = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (deliveryCart[p.id]||0)>0);
+  const real = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (deliveryCart[p.id]||0)>0).map(p=>getDelProduct(p.id));
+  const orphans = Object.keys(deliveryCart).filter(pid=>!db.products.some(p=>p.id===pid)).map(pid=>getDelProduct(pid)).filter(Boolean);
+  const list = real.concat(orphans);
   grid.innerHTML = list.map(p=>{
     const qty = deliveryCart[p.id]||0;
     return `<div class="prod-tile ${qty>0?'selected':''}">
@@ -967,146 +1094,137 @@ function changeQty(id, delta){
   renderDelProdGrid();
   updateDeliveryTotals();
 }
-function onDeliveryCustomerChange(){ updateDeliveryTotals(); }
-function updateDeliveryTotals(){
-  const total = Object.entries(deliveryCart).reduce((sum,[pid,qty])=>{
-    const p = db.products.find(x=>x.id===pid);
-    return sum + (p? p.price*qty : 0);
+function delCartTotal(){
+  return Object.entries(deliveryCart).reduce((sum,[pid,qty])=>{
+    const p = getDelProduct(pid);
+    return sum + (p ? p.price*qty : 0);
   }, 0);
+}
+// The balance a customer had just before a delivery dated `dateStr`: today's balance,
+// minus the effect of the delivery being edited (if any), with every delivery / top-up
+// dated AFTER dateStr undone. Same-day entries count as already happened.
+function balanceBeforeDelivery(customerId, dateStr, excludeId){
+  const c = db.customers.find(x=>x.id===customerId);
+  if(!c) return 0;
+  let bal = c.balance||0;
+  if(excludeId){
+    const own = db.deliveries.find(x=>x.id===excludeId);
+    if(own && own.customerId===customerId) bal += own.total;
+  }
+  db.deliveries.forEach(d=>{ if(d.customerId===customerId && d.id!==excludeId && d.date>dateStr) bal += d.total; });
+  db.subscriptions.forEach(s=>{ if(s.customerId===customerId && s.type!=='charge' && s.date>dateStr) bal -= s.amount; });
+  return bal;
+}
+function updateDeliveryTotals(){
+  const mode = delMode();
+  const total = delCartTotal();
   document.getElementById('delTotal').textContent = money(total);
   const custId = document.getElementById('delCustomer').value;
   const banner = document.getElementById('delBalBanner');
-  if(custId){
-    const c = db.customers.find(x=>x.id===custId);
-    let before = c? (c.balance||0) : 0;
-    // While editing, the customer's live balance still has the ORIGINAL
-    // delivery deducted. Save reverses that first, so the preview must too -
-    // otherwise the old amount looks like it's being charged twice.
-    if(editingDeliveryId){
-      const orig = db.deliveries.find(x=>x.id===editingDeliveryId);
-      if(orig && orig.customerId===custId) before += orig.total;
-    }
+  const ready = custId && mode!=='delete' && !(mode==='edit' && !editingDeliveryId);
+  if(ready){
+    const before = balanceBeforeDelivery(custId, getDelDate(), editingDeliveryId);
     const after = before - total;
-    banner.style.display='flex';
+    banner.style.display = 'flex';
     document.getElementById('delBalBefore').textContent = money(before);
     document.getElementById('delBalAfter').textContent = money(after);
     document.getElementById('delTotalBal').textContent = money(after);
   } else {
-    banner.style.display='none';
+    banner.style.display = 'none';
     document.getElementById('delTotalBal').textContent = money(0-total);
   }
 }
-function saveDelivery(shareWA){
+function renderDeleteSummary(){
+  const box = document.getElementById('delDeleteSummary');
+  if(delMode()!=='delete'){ box.style.display = 'none'; return; }
+  box.style.display = 'block';
+  const e = editingDeliveryId ? db.deliveries.find(x=>x.id===editingDeliveryId) : null;
+  if(!e){
+    box.innerHTML = `<div class="empty-state" style="padding:16px"><div class="ic">\uD83D\uDDD1</div><div class="msg">Pick the customer, then the delivery to delete.</div></div>`;
+    return;
+  }
+  const c = db.customers.find(x=>x.id===e.customerId);
+  const lines = e.items.map(it=>`<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(it.name)}</div><div class="ld-sub">${it.qty} \u00D7 ${money(it.price)}</div></div><div class="ld-amt">${money(it.qty*it.price)}</div></div>`).join('');
+  box.innerHTML = `<div class="ledger-doc" style="margin-bottom:12px">
+    <div class="ledger-doc-head"><div class="ld-name">${escapeHtml(e.customerName)}</div><div class="ld-period">${e.date}${e.time?(' \u00B7 '+e.time):''}</div></div>
+    ${lines}
+    <div class="ledger-doc-foot">
+      <div class="day-summary-row"><span class="k">Delivery total</span><span class="v">${money(e.total)}</span></div>
+      ${c?`<div class="day-summary-row"><span class="k">Balance now</span><span class="v">${money(c.balance||0)}</span></div>
+      <div class="day-summary-row ld-final"><span class="k">Balance after delete</span><span class="v">${money((c.balance||0)+e.total)}</span></div>`:''}
+    </div>
+  </div>`;
+}
+function submitDelivery(){
+  const mode = delMode();
+  if(mode==='delete'){ deleteSelectedDelivery(); return; }
   const custId = document.getElementById('delCustomer').value;
   if(!custId){ toast('Select a customer'); return; }
+  if(mode==='edit' && !editingDeliveryId){ toast('Select the delivery to edit'); return; }
   const items = Object.entries(deliveryCart).map(([pid,qty])=>{
-    const p = db.products.find(x=>x.id===pid);
-    return { productId: pid, name: p.name, price: p.price, qty };
-  });
+    const p = getDelProduct(pid);
+    return p ? { productId: pid, name: p.name, price: p.price, qty } : null;
+  }).filter(Boolean);
   if(!items.length){ toast('Select at least one product'); return; }
-  const date = document.getElementById('delDate').value || todayStr();
+  const date = getDelDate();
   const time = document.getElementById('delTime').value || nowTimeStr();
-
-  if(editingDeliveryId){
-    const old = db.deliveries.find(x=>x.id===editingDeliveryId);
-    if(old){
-      // reverse old effect on whichever customer it was applied to
-      const oldCust = db.customers.find(x=>x.id===old.customerId);
-      if(oldCust){ oldCust.balance = (oldCust.balance||0) + old.total; oldCust.updatedAt = Date.now(); }
-      // apply new effect on the (possibly different) selected customer
-      const c = db.customers.find(x=>x.id===custId);
-      const total = items.reduce((s,it)=>s+it.price*it.qty,0);
-      const balBefore = c.balance||0;
-      const balAfter = balBefore - total;
-      Object.assign(old, { date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() });
-      c.balance = balAfter; c.updatedAt = Date.now();
-      cancelDeliveryEdit();
-      saveDB();
-      renderDeliveryTab();
-      renderCustomers();
-      toast('Delivery entry updated');
-      if(shareWA) shareDeliveryBillImage(old);
-      return;
-    }
-  }
-
+  const sendMode = document.getElementById('delSend').value;
   const c = db.customers.find(x=>x.id===custId);
+  if(!c){ toast('Customer not found'); return; }
   const total = items.reduce((s,it)=>s+it.price*it.qty,0);
-  const balBefore = c.balance||0;
-  const balAfter = balBefore - total;
-  const entry = { id: uid(), date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() };
-  db.deliveries.unshift(entry);
-  c.balance = balAfter; c.updatedAt = Date.now();
+  let entry, edited = false;
+
+  if(mode==='edit'){
+    const old = db.deliveries.find(x=>x.id===editingDeliveryId);
+    if(!old){ toast('That delivery no longer exists'); return; }
+    // "balance in hand" as it was on the delivery date - worked out BEFORE the live balance changes
+    const balBefore = balanceBeforeDelivery(custId, date, old.id);
+    const balAfter = balBefore - total;
+    c.balance = (c.balance||0) + old.total - total;   // live balance moves only by the difference
+    c.updatedAt = Date.now();
+    Object.assign(old, { date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() });
+    entry = old; edited = true;
+  } else {
+    const balBefore = balanceBeforeDelivery(custId, date, null);
+    const balAfter = balBefore - total;
+    entry = { id: uid(), date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() };
+    db.deliveries.unshift(entry);
+    c.balance = (c.balance||0) - total;
+    c.updatedAt = Date.now();
+  }
   saveDB();
-  deliveryCart = {};
+
+  resetDelCart();
+  document.getElementById('delEntry').value = '';
+  document.getElementById('delProdSearch').value = '';
+  if(mode==='new' && date===todayStr()) document.getElementById('delTime').value = nowTimeStr();
   renderDeliveryTab();
   renderCustomers();
-  toast('Delivery saved');
-  if(shareWA) shareDeliveryBillImage(entry);
+  toast(edited ? 'Delivery updated' : 'Delivery saved');
+
+  if(sendMode==='whatsapp'){
+    if(!c.phone) toast('No phone saved for ' + c.name + ' - choose the contact in WhatsApp');
+    openWhatsApp(buildDeliveryMessage(entry, edited), c.phone || '');
+  } else if(sendMode==='image'){
+    shareDeliveryBillImage(entry);
+  }
 }
-function renderDeliveryList(){
-  const el = document.getElementById('deliveryList');
-  const list = db.deliveries.slice(0,15);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83E\uDDFE</div><div class="msg">No delivery entries yet.</div></div>`; return; }
-  el.innerHTML = list.map(d=>{
-    const itemsStr = d.items.map(i=>`${i.name} x${i.qty}`).join(', ');
-    return `<div class="list-row">
-      <div class="avatar">${(d.customerName||'?').charAt(0).toUpperCase()}</div>
-      <div class="list-main">
-        <div class="name">${escapeHtml(d.customerName)}</div>
-        <div class="meta">${d.date} ${d.time} \u00B7 ${escapeHtml(itemsStr)}</div>
-      </div>
-      <div style="text-align:right">
-        <div class="balance-tag balance-zero">${money(d.total)}</div>
-        <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openDeliveryEdit('${d.id}')">\u270E</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteDelivery('${d.id}')">\uD83D\uDDD1</button>
-          <button class="btn btn-wa btn-sm" onclick="shareEntryAgain('${d.id}')">\uD83D\uDCF2</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-function shareEntryAgain(id){
-  const entry = db.deliveries.find(x=>x.id===id);
-  if(!entry) return;
-  shareDeliveryBillImage(entry);
-}
-function openDeliveryEdit(id){
-  const entry = db.deliveries.find(x=>x.id===id);
-  if(!entry) return;
-  editingDeliveryId = id;
-  document.getElementById('delCustomer').value = entry.customerId;
-  document.getElementById('delDate').value = entry.date;
-  document.getElementById('delTime').value = entry.time;
-  deliveryCart = {};
-  entry.items.forEach(it=>{ deliveryCart[it.productId] = it.qty; });
-  renderDelProdGrid();
-  updateDeliveryTotals();
-  document.getElementById('delFormMode').textContent = 'Editing entry \u2014 save to update, or cancel below';
-  document.getElementById('delFormMode').style.display = 'block';
-  document.getElementById('delCancelEditBtn').style.display = 'block';
-  document.getElementById('deliveryFormCard').scrollIntoView({behavior:'smooth'});
-}
-function cancelDeliveryEdit(){
-  editingDeliveryId = null;
-  deliveryCart = {};
-  document.getElementById('delFormMode').style.display = 'none';
-  document.getElementById('delCancelEditBtn').style.display = 'none';
-  renderDelProdGrid();
-  updateDeliveryTotals();
-}
-function deleteDelivery(id){
-  const entry = db.deliveries.find(x=>x.id===id);
-  if(!entry) return;
-  if(!confirm('Delete this delivery entry? The amount will be added back to the customer\'s balance.')) return;
+function deleteSelectedDelivery(){
+  if(!editingDeliveryId){ toast('Select the delivery to delete'); return; }
+  const entry = db.deliveries.find(x=>x.id===editingDeliveryId);
+  if(!entry){ toast('That delivery no longer exists'); return; }
   const c = db.customers.find(x=>x.id===entry.customerId);
+  const who = c ? c.name : entry.customerName;
+  if(!confirm('Delete the ' + entry.date + ' delivery of ' + money(entry.total) + ' for ' + who + '? The amount goes back to their balance.')) return;
   if(c){ c.balance = (c.balance||0) + entry.total; c.updatedAt = Date.now(); }
-  db.deliveries = db.deliveries.filter(x=>x.id!==id);
+  db.deliveries = db.deliveries.filter(x=>x.id!==entry.id);
+  markDeleted(entry.id);
   saveDB();
+  resetDelCart();
+  document.getElementById('delEntry').value = '';
   renderDeliveryTab();
   renderCustomers();
-  toast('Delivery entry deleted');
+  toast('Delivery deleted');
 }
 
 /* ---------------------------------------------------------------
@@ -1233,6 +1351,7 @@ function deleteSubscription(id){
     if(c){ c.balance = (c.balance||0) - entry.amount; c.updatedAt = Date.now(); }
   }
   db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
+  markDeleted(id);
   saveDB();
   renderSubscriptionTab();
   renderCustomers();
@@ -1262,15 +1381,17 @@ function renderSubscriptionList(){
    WHATSAPP MESSAGING
 --------------------------------------------------------------- */
 function buildDeliveryMessage(d, modified){
-  const itemsLines = d.items.map(i=>`  \u2022 ${i.name} x${i.qty} = ${money(i.price*i.qty)}`).join('\n');
-  return `\uD83D\uDCE6 *${modified? '\u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F \u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0BB0\u0B9A\u0BC0\u0BA4\u0BC1 (Updated)':'\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0BB0\u0B9A\u0BC0\u0BA4\u0BC1'} - Aavin Fresh Milk Stall*\n\n`+
-    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${d.date} ${d.time}\n`+
-    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${d.customerName}\n\n`+
-    `\u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Items:\n${itemsLines}\n\n`+
-    `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD/Total: ${money(d.total)}\n`+
-    `\u0B95\u0BC8\u0BAF\u0BBF\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1 (\u0BAE\u0BC1\u0BA9\u0BCD\u0BAA\u0BC1)/Balance before: ${money(d.balBefore)}\n`+
-    `\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Balance after: ${money(d.balAfter)}\n\n`+
-    `\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
+  const t = getBillTemplate();
+  const itemLines = d.items.map(i=>`${i.name}\n   ${i.qty} x ${money(i.price)} = ${money(i.qty*i.price)}`).join('\n');
+  return (t.header ? t.header + '\n\n' : '') +
+    (modified ? '(Updated bill)\n' : '') +
+    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${d.date}${d.time?(' '+d.time):''}\n` +
+    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Party: ${d.customerName}\n` +
+    `\u0B95\u0BC8\u0BAF\u0BBF\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Amount in hand: ${money(d.balBefore)}\n\n` +
+    `${itemLines}\n\n` +
+    `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD/Total: ${money(d.total)}\n` +
+    `*\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Remaining Balance: ${money(d.balAfter)}*` +
+    (t.footer ? '\n\n' + t.footer : '');
 }
 function buildSubscriptionMessage(s, modified){
   const isCharge = s.type==='charge';
@@ -1353,7 +1474,7 @@ function onStmtRangeChange(){
   const from = document.getElementById('stmtFrom').value;
   const to = document.getElementById('stmtTo').value;
   if(!custId || !from || !to){ renderStmtProdGrid(); updateStmtTotals(); return; }
-  document.getElementById('stmtOB').value = computeOpeningBalance(custId, from, to);
+  document.getElementById('stmtOB').value = computeOpeningBalanceAsOf(custId, from);
   stmtCart = computeAutoProductPerDay(custId, from, to);
   renderStmtProdGrid();
   updateStmtTotals();
@@ -2159,7 +2280,9 @@ async function driveLoadAndMerge(silent){
 }
 function mergeDB(local, remote){
   if(!remote) return local;
-  const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, meta: local.meta||{} };
+  const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, deleted: {}, meta: local.meta||{} };
+  // Deleted ids from either device stay deleted everywhere (otherwise the other copy brings them back).
+  merged.deleted = Object.assign({}, remote.deleted||{}, local.deleted||{});
   {
     const ls = local.settings, rs = remote.settings;
     merged.settings = !rs ? (ls||{}) : (!ls ? rs : ((ls.updatedAt||0) >= (rs.updatedAt||0) ? ls : rs));
@@ -2204,6 +2327,9 @@ function mergeDB(local, remote){
       if(!existing || (x.ts||0) >= (existing.ts||0)) map[x.id] = x;
     });
     merged[key] = Object.values(map).sort((a,b)=>(b.ts||0)-(a.ts||0));
+  });
+  ['products','customers','subscriptions','deliveries','reminders'].forEach(key=>{
+    merged[key] = merged[key].filter(x=>!merged.deleted[x.id]);
   });
   return merged;
 }
@@ -2272,6 +2398,7 @@ function init(){
   if(!db.meta) db.meta = {deviceRole:''};
   if(!db.reminders) db.reminders = [];
   if(!db.settings) db.settings = {};
+  if(!db.deleted) db.deleted = {};
   document.getElementById('deviceLabel').textContent = db.meta.deviceRole || 'Set device';
   refreshCustomerDropdowns();
   renderProducts();
@@ -2279,6 +2406,7 @@ function init(){
   renderDeliveryTab();
   renderSubscriptionTab();
   renderSettingsTab();
+  loadDelSendChoice();
   initGoogle();
   setupPWA();
 }
