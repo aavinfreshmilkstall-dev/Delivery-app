@@ -265,6 +265,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   max-width:88%; text-align:center;
 }
 .toast.show{opacity:1;}
+.toast.error{background:var(--bad);}
 
 .icon-picker{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;}
 .visually-hidden-file{
@@ -288,38 +289,6 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 .report-row .rname{font-size:13.5px; font-weight:600;}
 .report-row .rmeta{font-size:11.5px; color:#7C8B8E; margin-top:1px;}
 .report-row .rval{font-size:14px; font-weight:700; color:var(--teal-dark);}
-
-.totals-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px;}
-.totals-tile{background:var(--teal-light); border-radius:12px; padding:10px 12px;}
-.totals-tile .tt-label{font-size:11px; color:var(--teal-dark); font-weight:600; opacity:0.85;}
-.totals-tile .tt-val{font-size:16px; font-weight:800; color:var(--teal-dark); margin-top:2px;}
-.totals-tile .tt-val.neg{color:var(--bad);}
-.totals-tile .tt-val.pos{color:var(--good);}
-
-.ledger-row{
-  border-bottom:1px solid var(--line); padding:10px 0; font-size:12.5px;
-}
-.ledger-row:last-child{border-bottom:none;}
-.ledger-top{display:flex; justify-content:space-between; font-weight:700; color:var(--teal-dark); margin-bottom:3px;}
-.ledger-mid{display:flex; justify-content:space-between; gap:6px; color:var(--ink); margin-bottom:3px;}
-.ledger-mid .amt{font-weight:700; color:var(--clay); white-space:nowrap;}
-.ledger-mid .amt.good{color:var(--good);}
-.ledger-bottom{display:flex; justify-content:space-between; font-size:11px; color:#7C8B8E;}
-
-.day-card{
-  background:var(--milk); border:1px solid var(--line); border-radius:12px;
-  padding:12px 14px; margin-bottom:10px; cursor:pointer;
-}
-.day-card-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;}
-.day-card-head strong{font-size:14px; color:var(--teal-dark);}
-.day-meta{font-size:11px; color:#7C8B8E; margin-top:1px;}
-.day-card-totals{text-align:right;}
-.day-card-totals .amt{font-size:15px; font-weight:800; color:var(--clay);}
-.day-collect{font-size:11px; color:var(--good); font-weight:600; margin-top:2px;}
-.day-products{border-top:1px dashed var(--line); padding-top:8px; margin-top:4px;}
-.day-product-row{display:flex; justify-content:space-between; gap:8px; font-size:12.5px; padding:3px 0;}
-.day-product-row .amt{font-weight:700; color:var(--teal-dark);}
-.day-tap-hint{font-size:10.5px; color:#AAB6B8; text-align:right; margin-top:6px;}
 
 .ledger-doc{background:var(--milk); border:1px solid var(--line); border-radius:12px; padding:12px 14px;}
 .ledger-doc-head{margin-bottom:8px; padding-bottom:8px; border-bottom:2px solid var(--teal-light);}
@@ -695,35 +664,68 @@ const DB_KEY = 'aavin_delivery_db_v1';
 const ICONS = ['\uD83E\uDD5B','\uD83E\uDDC8','\uD83E\uDDC0','\uD83C\uDF76','\uD83E\uDED9','\uD83C\uDF7C','\uD83E\uDDC3','\uD83E\uDD63','\uD83C\uDF75','\uD83E\uDED6','\uD83E\uDDC9','\uD83C\uDF66'];
 let db = loadDB();
 let selectedProdIcon = ICONS[0];
-let deliveryCart = {}; // productId -> qty
+let deliveryCart = {};
 let editingDeliveryId = null;
-let delPriceOverride = {};   // productId -> price a delivery being edited was originally sold at
-let delItemNames = {};       // productId -> name (kept if the product was deleted later)
-let pendingProductContext = null; // 'delivery' | 'stmt' - set when quick-adding a product from a search box
+let delPriceOverride = {};
+let delItemNames = {};
+let pendingProductContext = null;
 let editingSubscriptionId = null;
 
+function emptyDB(){
+  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], settings: {}, deleted: {}, meta:{ deviceRole:'', driveEverConnected:false } };
+}
+function isValidDBShape(x){
+  return x && typeof x === 'object'
+    && Array.isArray(x.products) && Array.isArray(x.customers)
+    && Array.isArray(x.deliveries) && Array.isArray(x.subscriptions);
+}
 function loadDB(){
   try{
     const raw = localStorage.getItem(DB_KEY);
-    if(raw) return JSON.parse(raw);
-  }catch(e){}
-  return { products: [], customers: [], subscriptions: [], deliveries: [], reminders: [], settings: {}, deleted: {}, meta:{ deviceRole:'' } };
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(isValidDBShape(parsed)) return parsed;
+      // Corrupt or partial write - preserve it before starting fresh
+      try{ localStorage.setItem(DB_KEY + '_corrupt_backup_' + Date.now(), raw); }catch(e){}
+      console.error('Local DB corrupt - backed up and starting fresh');
+    }
+  }catch(e){
+    console.error('loadDB parse failed', e);
+  }
+  return emptyDB();
 }
 function saveDB(){
-  localStorage.setItem(DB_KEY, JSON.stringify(db));
-  scheduleAutoSync();
+  try{
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+    scheduleAutoSync();
+    return true;
+  }catch(e){
+    console.error('Local save failed', e);
+    showToast('SAVE FAILED: storage full — download a backup NOW', true);
+    return false;
+  }
 }
 function markDeleted(id){ db.deleted = db.deleted || {}; db.deleted[id] = Date.now(); }
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function money(n){ n = Number(n)||0; return '\u20B9' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
-function todayStr(){ const d = new Date(); return d.toISOString().slice(0,10); }
-function nowTimeStr(){ const d = new Date(); return d.toTimeString().slice(0,5); }
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+function round2(n){ return Math.round((Number(n)||0) * 100) / 100; }
+// Business date is India Standard Time regardless of device timezone
+function istParts(){
+  const p = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
+  const o={}; p.forEach(x=>{if(x.type!=='literal') o[x.type]=x.value;}); return o;
 }
+function todayStr(){ const p=istParts(); return `${p.year}-${p.month}-${p.day}`; }
+function nowTimeStr(){ const p=istParts(); return `${p.hour}:${p.minute}`; }
+
+function showToast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', !!isError);
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), isError ? 4000 : 2200);
+}
+function toast(msg){ showToast(msg, false); }
 
 /* ---------------------------------------------------------------
    TAB NAVIGATION
@@ -751,11 +753,7 @@ function renderIconPicker(){
 function pickIcon(ic){ selectedProdIcon = ic; document.getElementById('prodPhotoPreview').innerHTML=''; document.getElementById('prodPhotoPreview').dataset.img=''; document.getElementById('prodPhotoInput').value=''; renderIconPicker(); }
 function triggerPhotoPicker(){
   const input = document.getElementById('prodPhotoInput');
-  try{
-    input.click();
-  }catch(err){
-    toast('Photo picker blocked \u2014 try opening this app in Chrome/Safari, not a preview window');
-  }
+  try{ input.click(); }catch(err){ toast('Photo picker blocked \u2014 open this app in Chrome/Safari directly'); }
 }
 function onProdPhotoChange(e){
   const file = e.target.files[0];
@@ -834,8 +832,6 @@ function saveProduct(){
   renderProducts();
   toast('Product saved');
 
-  // If this product was quick-added from the Delivery or Statement search
-  // box, drop it straight into that cart with qty 1 and refresh that grid.
   if(newId && pendingProductContext){
     if(pendingProductContext==='delivery'){
       deliveryCart[newId] = 1;
@@ -948,13 +944,11 @@ function renderCustomers(filter){
 }
 function refreshCustomerDropdowns(){
   const opts = '<option value="">-- Select --</option>' + db.customers.map(c=>`<option value="${c.id}">${escapeHtml(c.name)} ${c.phone?('('+c.phone+')'):''}</option>`).join('');
-  ['delCustomer','subCustomer','stmtCustomer','remCustomer'].forEach(id=>{
+  ['delCustomer','subCustomer','stmtCustomer'].forEach(id=>{
     const el = document.getElementById(id);
     if(!el) return;
     const prevValue = el.value;
     el.innerHTML = opts;
-    // Restore whatever was selected before the rebuild, so a background
-    // Drive sync doesn't silently clear a customer mid-entry.
     if(prevValue && db.customers.some(c=>c.id===prevValue)) el.value = prevValue;
   });
 }
@@ -965,11 +959,10 @@ function refreshCustomerDropdowns(){
 function getDelProduct(pid){
   const p = db.products.find(x=>x.id===pid);
   if(p){
-    // an existing delivery keeps the price it was sold at, even if the product price changed later
     const price = (delPriceOverride[pid] !== undefined) ? delPriceOverride[pid] : p.price;
     return { id:p.id, name:p.name, price, icon:p.icon, photo:p.photo };
   }
-  if(delItemNames[pid] !== undefined){   // product deleted since - keep the line as it was sold
+  if(delItemNames[pid] !== undefined){
     return { id:pid, name:delItemNames[pid], price:(delPriceOverride[pid]||0), icon:'\uD83E\uDD5B', photo:'' };
   }
   return null;
@@ -1040,11 +1033,7 @@ function refreshDelEntryOptions(){
     return `<option value="${d.id}">${d.date} ${d.time||''} \u00B7 ${money(d.total)} \u00B7 ${escapeHtml(first)}${more}</option>`;
   }).join('');
   if(prev && list.some(d=>d.id===prev)) sel.value = prev;
-  else if(prev){
-    // the delivery being worked on was changed or removed (for example on another device)
-    resetDelCart();
-    toast('That delivery changed on another device - select it again');
-  }
+  else if(prev){ resetDelCart(); toast('That delivery changed on another device - select it again'); }
 }
 function onDeliveryCustomerChange(){
   if(delMode()!=='new'){
@@ -1114,9 +1103,6 @@ function delCartTotal(){
     return sum + (p ? p.price*qty : 0);
   }, 0);
 }
-// The balance a customer had just before a delivery dated `dateStr`: today's balance,
-// minus the effect of the delivery being edited (if any), with every delivery / top-up
-// dated AFTER dateStr undone. Same-day entries count as already happened.
 function balanceBeforeDelivery(customerId, dateStr, excludeId){
   const c = db.customers.find(x=>x.id===customerId);
   if(!c) return 0;
@@ -1191,10 +1177,9 @@ function submitDelivery(){
   if(mode==='edit'){
     const old = db.deliveries.find(x=>x.id===editingDeliveryId);
     if(!old){ toast('That delivery no longer exists'); return; }
-    // "balance in hand" as it was on the delivery date - worked out BEFORE the live balance changes
     const balBefore = balanceBeforeDelivery(custId, date, old.id);
     const balAfter = balBefore - total;
-    c.balance = (c.balance||0) + old.total - total;   // live balance moves only by the difference
+    c.balance = round2((c.balance||0) + old.total - total);
     c.updatedAt = Date.now();
     Object.assign(old, { date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() });
     entry = old; edited = true;
@@ -1203,7 +1188,7 @@ function submitDelivery(){
     const balAfter = balBefore - total;
     entry = { id: uid(), date, time, customerId: custId, customerName: c.name, items, total, balBefore, balAfter, ts: Date.now() };
     db.deliveries.unshift(entry);
-    c.balance = (c.balance||0) - total;
+    c.balance = round2((c.balance||0) - total);
     c.updatedAt = Date.now();
   }
   saveDB();
@@ -1230,7 +1215,7 @@ function deleteSelectedDelivery(){
   const c = db.customers.find(x=>x.id===entry.customerId);
   const who = c ? c.name : entry.customerName;
   if(!confirm('Delete the ' + entry.date + ' delivery of ' + money(entry.total) + ' for ' + who + '? The amount goes back to their balance.')) return;
-  if(c){ c.balance = (c.balance||0) + entry.total; c.updatedAt = Date.now(); }
+  if(c){ c.balance = round2((c.balance||0) + entry.total); c.updatedAt = Date.now(); }
   db.deliveries = db.deliveries.filter(x=>x.id!==entry.id);
   markDeleted(entry.id);
   saveDB();
@@ -1261,16 +1246,10 @@ function onSubTypeChange(){
   const type = document.getElementById('subType').value;
   if(type==='charge'){
     document.getElementById('subAmountLbl').textContent = 'Monthly charge (\u20B9)';
-    document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'Balance (unchanged)';
-    document.getElementById('subSaveOnlyBtn').textContent = '\uD83D\uDCBE Save Only';
-    document.getElementById('subSaveWABtn').textContent = '\uD83D\uDCF2 Save & WhatsApp';
   } else {
     document.getElementById('subAmountLbl').textContent = 'Amount (\u20B9)';
-    document.getElementById('subBalCurrentLbl').textContent = 'Current balance';
     document.getElementById('subBalAfterLbl').textContent = 'After top-up';
-    document.getElementById('subSaveOnlyBtn').textContent = '\uD83D\uDCBE Save Only';
-    document.getElementById('subSaveWABtn').textContent = '\uD83D\uDCF2 Save & WhatsApp';
   }
   updateSubPreview();
 }
@@ -1301,14 +1280,13 @@ function saveSubscription(shareWA){
   if(editingSubscriptionId){
     const old = db.subscriptions.find(x=>x.id===editingSubscriptionId);
     if(old){
-      // reverse old balance effect if it was a top-up
       if(old.type!=='charge'){
         const oldCust = db.customers.find(x=>x.id===old.customerId);
-        if(oldCust){ oldCust.balance = (oldCust.balance||0) - old.amount; oldCust.updatedAt = Date.now(); }
+        if(oldCust){ oldCust.balance = round2((oldCust.balance||0) - old.amount); oldCust.updatedAt = Date.now(); }
       }
       const c = db.customers.find(x=>x.id===custId);
       const before = c.balance||0;
-      const after = type==='charge' ? before : before + amount;
+      const after = type==='charge' ? before : round2(before + amount);
       Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() });
       if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
       cancelSubscriptionEdit();
@@ -1323,7 +1301,7 @@ function saveSubscription(shareWA){
 
   const c = db.customers.find(x=>x.id===custId);
   const before = c.balance||0;
-  const after = type==='charge' ? before : before + amount;
+  const after = type==='charge' ? before : round2(before + amount);
   if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
   const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() };
   db.subscriptions.unshift(entry);
@@ -1362,7 +1340,7 @@ function deleteSubscription(id){
   if(!confirm('Delete this entry?'+(entry.type!=='charge'?' The amount will be removed from the balance.':''))) return;
   if(entry.type!=='charge'){
     const c = db.customers.find(x=>x.id===entry.customerId);
-    if(c){ c.balance = (c.balance||0) - entry.amount; c.updatedAt = Date.now(); }
+    if(c){ c.balance = round2((c.balance||0) - entry.amount); c.updatedAt = Date.now(); }
   }
   db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
   markDeleted(id);
@@ -1438,42 +1416,36 @@ function openSMS(message, phone){
   const url = `sms:${clean}?body=${encodeURIComponent(message)}`;
   window.open(url, '_blank');
 }
-let stmtCart = {}; // productId -> qty, for the statement builder
+let stmtCart = {}; // productId -> { perDay, name, price }
 
-function computeOpeningBalance(customerId, fromDate, toDate){
-  const c = db.customers.find(x=>x.id===customerId);
-  if(!c) return 0;
-  // Find the earliest delivery/subscription(non-charge) within the range and
-  // use its balBefore snapshot - that's the balance as it stood right before
-  // this period started. If nothing happened in range, OB = current balance.
-  const candidates = [];
-  db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate && d.date<=toDate)
-    .forEach(d=>candidates.push({ts:d.ts, balBefore:d.balBefore}));
-  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate && s.date<=toDate)
-    .forEach(s=>candidates.push({ts:s.ts, balBefore:s.balBefore}));
-  if(!candidates.length) return c.balance||0;
-  candidates.sort((a,b)=>(a.ts||0)-(b.ts||0));
-  return candidates[0].balBefore||0;
-}
 function stmtDaysCount(){
   const from = document.getElementById('stmtFrom').value;
   const to = document.getElementById('stmtTo').value;
   if(!from || !to) return 0;
   const d1 = new Date(from+'T00:00:00');
   const d2 = new Date(to+'T00:00:00');
-  const diff = Math.round((d2-d1)/86400000) + 1; // inclusive of both ends
+  const diff = Math.round((d2-d1)/86400000) + 1;
   return diff > 0 ? diff : 0;
 }
 function computeAutoProductPerDay(customerId, fromDate, toDate){
   const qtyMap = {};
+  const metaMap = {};
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate && d.date<=toDate)
     .forEach(d=>d.items.forEach(it=>{
       qtyMap[it.productId] = (qtyMap[it.productId]||0) + it.qty;
+      // Snapshot the name/price as it was sold - survives product deletion
+      if(!metaMap[it.productId]) metaMap[it.productId] = { name: it.name, price: it.price };
     }));
   const days = stmtDaysCount() || 1;
   const perDayMap = {};
-  Object.entries(qtyMap).forEach(([pid,totalQty])=>{
-    perDayMap[pid] = Math.round((totalQty/days)*100)/100; // 2 decimal places
+  Object.entries(qtyMap).forEach(([pid, totalQty])=>{
+    const meta = metaMap[pid] || {};
+    perDayMap[pid] = {
+      perDay: totalQty / days,           // exact fraction, never rounded
+      totalQty: totalQty,                 // exact total - this is what totals are computed from
+      name: meta.name || '',
+      price: meta.price || 0
+    };
   });
   return perDayMap;
 }
@@ -1498,19 +1470,51 @@ function renderStmtProdGrid(){
   const q = (document.getElementById('stmtProdSearch').value||'').trim().toLowerCase();
   const days = stmtDaysCount();
   document.getElementById('stmtDaysNote').textContent = days ? `\uD83D\uDCC5 ${days} day${days===1?'':'s'} in this period` : '';
-  const list = db.products.filter(p=> !q || p.name.toLowerCase().includes(q) || (stmtCart[p.id]||0)>0);
-  grid.innerHTML = list.map(p=>{
-    const perDay = stmtCart[p.id]||0;
-    const totalQty = perDay * days;
-    const amount = totalQty * p.price;
-    return `<div class="prod-tile ${perDay>0?'selected':''}">
-      <div class="img-wrap">${p.photo?`<img src="${p.photo}">`:p.icon}</div>
-      <div class="pname">${escapeHtml(p.name)}</div>
-      <div class="pprice">${money(p.price)}/pc</div>
+
+  // Build a combined product list: current catalog + any cart entries whose
+  // product was deleted (so historical statement lines still show correctly)
+  const rows = [];
+  db.products.forEach(p=>{
+    if(q && !p.name.toLowerCase().includes(q) && !(stmtCart[p.id])) return;
+    const cart = stmtCart[p.id];
+    rows.push({
+      id: p.id,
+      name: p.name,
+      icon: p.icon,
+      photo: p.photo,
+      price: cart ? cart.price : p.price,
+      perDay: cart ? cart.perDay : 0,
+      totalQty: cart ? cart.totalQty : 0,
+      deleted: false
+    });
+  });
+  Object.entries(stmtCart).forEach(([pid, cart])=>{
+    if(db.products.some(p=>p.id===pid)) return; // already added above
+    rows.push({
+      id: pid,
+      name: cart.name || '(deleted product)',
+      icon: '\uD83E\uDD5B',
+      photo: '',
+      price: cart.price,
+      perDay: cart.perDay,
+      totalQty: cart.totalQty,
+      deleted: true
+    });
+  });
+
+  grid.innerHTML = rows.map(r=>{
+    const totalQty = r.totalQty;
+    const amount = totalQty * r.price;
+    const perDayDisplay = days ? round2(r.perDay) : 0;
+    const nameSuffix = r.deleted ? ' <span style="font-size:10px;color:var(--bad)">(deleted)</span>' : '';
+    return `<div class="prod-tile ${r.perDay>0?'selected':''}">
+      <div class="img-wrap">${r.photo?`<img src="${r.photo}">`:r.icon}</div>
+      <div class="pname">${escapeHtml(r.name)}${nameSuffix}</div>
+      <div class="pprice">${money(r.price)}/pc</div>
       <div class="qty-row">
-        <button class="qty-btn" onclick="changeStmtQty('${p.id}',-1)">\u2212</button>
-        <input type="number" class="qty-input" id="stmtqty_${p.id}" value="${perDay}" step="0.5" min="0" onchange="setStmtQty('${p.id}', this.value)">
-        <button class="qty-btn" onclick="changeStmtQty('${p.id}',1)">+</button>
+        <button class="qty-btn" onclick="changeStmtQty('${r.id}',-1)">\u2212</button>
+        <input type="number" class="qty-input" id="stmtqty_${r.id}" value="${perDayDisplay}" step="0.5" min="0" onchange="setStmtQty('${r.id}', this.value)">
+        <button class="qty-btn" onclick="changeStmtQty('${r.id}',1)">+</button>
       </div>
       <div class="qty-calc">pcs/day \u00D7 ${days} days = ${totalQty}<br>${money(amount)}</div>
     </div>`;
@@ -1520,33 +1524,53 @@ function renderStmtProdGrid(){
   }
 }
 function changeStmtQty(id, delta){
-  const cur = stmtCart[id]||0;
-  const next = Math.max(0, Math.round((cur+delta)*100)/100);
-  if(next===0) delete stmtCart[id]; else stmtCart[id]=next;
-  renderStmtProdGrid();
-  updateStmtTotals();
+  const days = stmtDaysCount();
+  const cur = stmtCart[id];
+  const curPerDay = cur ? cur.perDay : 0;
+  const nextPerDay = Math.max(0, curPerDay + delta);
+  setStmtPerDay(id, nextPerDay);
 }
 function setStmtQty(id, value){
-  const next = Math.max(0, parseFloat(value)||0);
-  if(next===0) delete stmtCart[id]; else stmtCart[id]=next;
+  const nextPerDay = Math.max(0, parseFloat(value)||0);
+  setStmtPerDay(id, nextPerDay);
+}
+function setStmtPerDay(id, perDay){
+  const days = stmtDaysCount();
+  const existing = stmtCart[id];
+  if(perDay <= 0){ delete stmtCart[id]; }
+  else {
+    // Preserve exact total when possible: if perDay came from a whole number of packs,
+    // store it as exact. Otherwise store the exact fraction.
+    const p = db.products.find(x=>x.id===id);
+    stmtCart[id] = {
+      perDay: perDay,
+      totalQty: perDay * days,         // exact fraction preserved
+      name: existing ? existing.name : (p ? p.name : ''),
+      price: existing ? existing.price : (p ? p.price : 0)
+    };
+  }
   renderStmtProdGrid();
   updateStmtTotals();
 }
 function getStmtItems(){
   const days = stmtDaysCount();
-  return Object.entries(stmtCart).map(([pid,perDay])=>{
-    const p = db.products.find(x=>x.id===pid);
-    if(!p) return null;
-    const qty = perDay * days;
-    return { name: p.name, perDay, days, qty, amount: qty*p.price };
-  }).filter(Boolean);
+  return Object.entries(stmtCart).map(([pid, cart])=>{
+    const qty = cart.totalQty;
+    return {
+      name: cart.name,
+      perDay: cart.perDay,
+      days,
+      qty,
+      amount: round2(qty * cart.price)
+    };
+  });
 }
 function updateStmtTotals(){
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
   const items = getStmtItems();
-  const productsTotal = items.reduce((s,it)=>s+it.amount,0);
-  const total = ob - productsTotal - deliveryCharge;
+  const productsTotal = round2(items.reduce((s,it)=>s+it.amount,0));
+  const total = round2(ob - productsTotal - deliveryCharge);
   document.getElementById('stmtProdTotal').textContent = money(productsTotal);
   document.getElementById('stmtTotal').textContent = money(total);
   autoFillStmtMessage();
@@ -1561,14 +1585,14 @@ function autoFillStmtMessage(){
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
   const items = getStmtItems();
-  const productsTotal = items.reduce((s,it)=>s+it.amount,0);
-  const total = ob - productsTotal - deliveryCharge;
+  const productsTotal = round2(items.reduce((s,it)=>s+it.amount,0));
+  const total = round2(ob - productsTotal - deliveryCharge);
   document.getElementById('stmtMessage').value = buildStatementMessage(c, from, to, ob, items, deliveryCharge, total);
 }
 function buildStatementMessage(c, from, to, ob, items, deliveryCharge, total){
   const periodLine = (from && to) ? `\u0B95\u0BBE\u0BB2\u0BAE\u0BCD/Period: ${from} - ${to}\n` : '';
   const itemLines = items.length
-    ? items.map(it=>`  \u2022 ${it.name}: ${it.perDay}/day \u00D7 ${it.days} days = ${it.qty} pcs \u2192 ${money(it.amount)}`).join('\n') + '\n'
+    ? items.map(it=>`  \u2022 ${it.name}: ${round2(it.perDay)}/day \u00D7 ${it.days} days = ${it.qty} pcs \u2192 ${money(it.amount)}`).join('\n') + '\n'
     : '';
   const dueOrCredit = total < 0
     ? `\u0BA8\u0BBF\u0BB2\u0BC1\u0BB5\u0BC8\u0BA4\u0BCD \u0BA4\u0BCA\u0B95\u0BC8/Amount Due: ${money(Math.abs(total))}`
@@ -1596,8 +1620,8 @@ function sendStatement(channel){
   const ob = parseFloat(document.getElementById('stmtOB').value)||0;
   const deliveryCharge = parseFloat(document.getElementById('stmtDeliveryCharge').value)||0;
   const items = getStmtItems();
-  const productsTotal = items.reduce((s,it)=>s+it.amount,0);
-  const total = ob - productsTotal - deliveryCharge;
+  const productsTotal = round2(items.reduce((s,it)=>s+it.amount,0));
+  const total = round2(ob - productsTotal - deliveryCharge);
 
   const record = {
     id: uid(), ts: Date.now(), date: todayStr(),
@@ -1646,12 +1670,15 @@ function shareDaySummary(){
   const dToday = db.deliveries.filter(d=>d.date===today);
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
-  const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
+  // FIX: only count real top-ups, not monthly charge entries
+  const totalTopup = sToday.filter(x=>x.type!=='charge').reduce((s,x)=>s+x.amount,0);
+  const chargeCount = sToday.filter(x=>x.type==='charge').length;
   let msg = `\uD83D\uDCCA *\u0B87\u0BA9\u0BCD\u0BB1\u0BC8\u0BAF \u0B9A\u0BC1\u0BB0\u0BC1\u0B95\u0BCD\u0B95\u0BAE\u0BCD - ${today}*\n\n`+
     `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B8E\u0BA3\u0BCD\u0BA3\u0BBF\u0B95\u0BCD\u0B95\u0BC8/Deliveries: ${dToday.length}\n`+
     `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0BB5\u0BBF\u0BB1\u0BCD\u0BAA\u0BA9\u0BC8/Total sales: ${money(totalSales)}\n`+
-    `\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BC8/Top-ups: ${money(totalTopup)} (${sToday.length})\n\n`+
-    `Aavin Fresh Milk Stall \uD83E\uDD5B`;
+    `\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BC8/Top-ups: ${money(totalTopup)} (${sToday.filter(x=>x.type!=='charge').length})\n`+
+    (chargeCount ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Monthly charges: ${chargeCount}\n` : '')+
+    `\nAavin Fresh Milk Stall \uD83E\uDD5B`;
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
 }
@@ -1673,7 +1700,8 @@ function renderSettingsTab(){
   const dToday = db.deliveries.filter(d=>d.date===today);
   const sToday = db.subscriptions.filter(s=>s.date===today);
   const totalSales = dToday.reduce((s,d)=>s+d.total,0);
-  const totalTopup = sToday.reduce((s,x)=>s+x.amount,0);
+  // FIX: only count real top-ups, not monthly charge entries
+  const totalTopup = sToday.filter(x=>x.type!=='charge').reduce((s,x)=>s+x.amount,0);
   document.getElementById('daySummary').innerHTML = `
     <div class="day-summary-row"><span class="k">Deliveries today</span><span class="v">${dToday.length}</span></div>
     <div class="day-summary-row"><span class="k">Total sales</span><span class="v">${money(totalSales)}</span></div>
@@ -1686,7 +1714,6 @@ function renderSettingsTab(){
 
 /* ---------------------------------------------------------------
    CUSTOMER LEDGER REPORT
-   One customer at a time. Opening Balance - products + top-ups = Remaining
 --------------------------------------------------------------- */
 function populateReportFilterDropdowns(){
   const partySel = document.getElementById('repParty');
@@ -1718,15 +1745,13 @@ function getReportDateFilter(){
   if(from > to) return { error: 'From date is after To date' };
   return { from, to, label: `${from} to ${to}` };
 }
-// Balance as it stood the day BEFORE fromDate: take today's balance and undo
-// every delivery / top-up dated on or after fromDate.
 function computeOpeningBalanceAsOf(customerId, fromDate){
   const c = db.customers.find(x=>x.id===customerId);
   if(!c) return 0;
   let bal = c.balance||0;
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate).forEach(d=>{ bal += d.total; });
   db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal -= s.amount; });
-  return bal;
+  return round2(bal);
 }
 function computeCustomerLedger(customerId, filter, productId){
   const c = db.customers.find(x=>x.id===customerId);
@@ -1750,9 +1775,9 @@ function computeCustomerLedger(customerId, filter, productId){
   rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
   const productTotal = rows.filter(r=>r.type==='product').reduce((s,r)=>s+r.amount,0);
   const topupTotal = rows.filter(r=>r.type==='topup').reduce((s,r)=>s+r.amount,0);
-  const remaining = ob - productTotal - otherProductsTotal + topupTotal;
+  const remaining = round2(ob - productTotal - otherProductsTotal + topupTotal);
   const prod = productId ? db.products.find(p=>p.id===productId) : null;
-  return { customer:c, filter, productId, productName: prod?prod.name:'', ob, rows, productTotal, otherProductsTotal, topupTotal, remaining };
+  return { customer:c, filter, productId, productName: prod?prod.name:'', ob, rows, productTotal: round2(productTotal), otherProductsTotal: round2(otherProductsTotal), topupTotal: round2(topupTotal), remaining };
 }
 function renderLedgerPreview(L){
   const body = document.getElementById('reportBody');
@@ -1822,7 +1847,7 @@ function sendLedgerWhatsApp(L){
 }
 function downloadLedgerExcel(L){
   if(typeof XLSX === 'undefined'){
-    toast('Excel export needs an internet connection the first time - try again once online');
+    toast('Excel export needs internet the first time - try again once online');
     return;
   }
   try{
@@ -1889,7 +1914,7 @@ function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
 }
 async function downloadLedgerPDF(L){
   if(typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined'){
-    toast('PDF export needs an internet connection the first time - try again once online');
+    toast('PDF export needs internet the first time - try again once online');
     return;
   }
   toast('Preparing PDF...');
@@ -1908,11 +1933,8 @@ async function downloadLedgerPDF(L){
       wrap.innerHTML = buildLedgerPageHtml(L, chunks[p], p, chunks.length);
       document.body.appendChild(wrap);
       let canvas;
-      try{
-        canvas = await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' });
-      } finally {
-        document.body.removeChild(wrap);
-      }
+      try{ canvas = await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' }); }
+      finally { document.body.removeChild(wrap); }
       const ratio = Math.min(pageW/canvas.width, pageH/canvas.height);
       if(p>0) doc.addPage();
       doc.addImage(canvas.toDataURL('image/png'), 'PNG', 20, 20, canvas.width*ratio, canvas.height*ratio);
@@ -1924,8 +1946,9 @@ async function downloadLedgerPDF(L){
     toast('PDF export failed - try Excel instead');
   }
 }
+
 /* ---------------------------------------------------------------
-   BILL IMAGE (JPEG) - header/footer editable, body is a fixed bill
+   BILL IMAGE
 --------------------------------------------------------------- */
 let billTemplateDirty = false;
 function getBillTemplate(){
@@ -1937,7 +1960,7 @@ function getBillTemplate(){
 }
 function renderBillTemplateFields(){
   const h = document.getElementById('billHeaderInput'), f = document.getElementById('billFooterInput');
-  if(!h || !f || billTemplateDirty) return;   // never overwrite text the user is still editing
+  if(!h || !f || billTemplateDirty) return;
   const t = getBillTemplate();
   h.value = t.header;
   f.value = t.footer;
@@ -1988,11 +2011,8 @@ async function renderBillCanvas(entry, tpl){
   wrap.style.cssText = 'position:fixed; left:-9999px; top:0; width:600px; background:#fff; padding:28px; font-family:Poppins,\'Noto Sans Tamil\',sans-serif; color:#1F2E33;';
   wrap.innerHTML = buildBillHtml(entry, c, tpl);
   document.body.appendChild(wrap);
-  try{
-    return await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' });
-  } finally {
-    document.body.removeChild(wrap);
-  }
+  try{ return await html2canvas(wrap, { scale:2, backgroundColor:'#ffffff' }); }
+  finally{ document.body.removeChild(wrap); }
 }
 function canvasToJpegBlob(canvas){
   return new Promise((resolve,reject)=>{
@@ -2010,8 +2030,6 @@ function downloadBlob(blob, filename){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url), 3000);
 }
-// Opens Android's share sheet with the image attached (pick WhatsApp there).
-// Returns 'shared' | 'cancelled' | 'needs-tap' | 'unsupported'
 async function shareImageBlob(blob, filename, title){
   const file = new File([blob], filename, { type: blob.type || 'image/jpeg' });
   if(navigator.canShare && navigator.canShare({ files:[file] })){
@@ -2044,7 +2062,7 @@ async function shareBillPreview(){
 }
 async function shareDeliveryBillImage(entry){
   if(typeof window.html2canvas === 'undefined'){
-    toast('Bill image needs an internet connection the first time - try again once online');
+    toast('Bill image needs internet the first time - try again once online');
     return;
   }
   try{
@@ -2053,7 +2071,7 @@ async function shareDeliveryBillImage(entry){
     const blob = await canvasToJpegBlob(canvas);
     const name = billFileName(entry);
     const r = await shareImageBlob(blob, name, 'Delivery Bill');
-    if(r==='needs-tap') showBillPreview(blob, name);          // share sheet needs a fresh tap - show preview with Share button
+    if(r==='needs-tap') showBillPreview(blob, name);
     else if(r==='unsupported'){ downloadBlob(blob, name); toast('Bill image saved - share it from your gallery'); }
   }catch(err){
     console.error(err);
@@ -2061,7 +2079,7 @@ async function shareDeliveryBillImage(entry){
   }
 }
 async function previewBillTemplate(){
-  if(typeof window.html2canvas === 'undefined'){ toast('Preview needs an internet connection the first time'); return; }
+  if(typeof window.html2canvas === 'undefined'){ toast('Preview needs internet the first time'); return; }
   const entry = db.deliveries[0];
   if(!entry){ toast('Save at least one delivery first, then preview'); return; }
   try{
@@ -2079,7 +2097,7 @@ async function previewBillTemplate(){
 }
 
 /* ---------------------------------------------------------------
-   SEND ONE IMAGE TO ALL CUSTOMERS (one at a time, Next Customer)
+   SEND ONE IMAGE TO ALL CUSTOMERS
 --------------------------------------------------------------- */
 let bulk = { file:null, list:[], index:-1, sent:{} };
 function bulkEligibleCustomers(){
@@ -2132,7 +2150,7 @@ function renderBulkSendPanel(){
     </div>`;
 }
 function startBulkSend(){
-  bulk.list = bulkEligibleCustomers();   // snapshot so the order doesn't shift mid-way
+  bulk.list = bulkEligibleCustomers();
   bulk.index = bulk.list.length ? 0 : -1;
   bulk.sent = {};
   if(!bulk.list.length){ toast('No customers have phone numbers saved'); }
@@ -2159,14 +2177,14 @@ function stopBulkSend(){ bulk.index = -1; bulk.list = []; renderBulkSendPanel();
 
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
-    toast('Excel export needs an internet connection the first time \u2014 try again once online');
+    toast('Excel export needs internet the first time - try again once online');
     return;
   }
   try{
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.customers.map(c=>({Name:c.name,Phone:c.phone,Address:c.address,Balance:c.balance}))), 'Customers');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.deliveries.map(d=>({Date:d.date,Time:d.time,Customer:d.customerName,Items:d.items.map(i=>i.name+' x'+i.qty).join(', '),Total:d.total,BalanceBefore:d.balBefore,BalanceAfter:d.balAfter}))), 'Deliveries');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.subscriptions.map(s=>({Date:s.date,Customer:s.customerName,Amount:s.amount,Details:s.details,BalanceAfter:s.balAfter}))), 'Subscriptions');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.subscriptions.map(s=>({Date:s.date,Customer:s.customerName,Type:s.type||'topup',Amount:s.amount,Details:s.details,BalanceAfter:s.balAfter}))), 'Subscriptions');
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(db.products.map(p=>({Name:p.name,Price:p.price,Unit:p.unit}))), 'Products');
     const prodMap = {};
     db.deliveries.forEach(d=>d.items.forEach(it=>{
@@ -2185,7 +2203,7 @@ function exportExcel(){
     XLSX.writeFile(wb, `Aavin_Delivery_Report_${todayStr()}.xlsx`);
   }catch(err){
     console.error(err);
-    toast('Excel export failed \u2014 use "Save as File" (CSV) instead');
+    toast('Excel export failed - try again online');
   }
 }
 function exportWhatsAppBackup(){
@@ -2201,13 +2219,21 @@ function exportWhatsAppBackup(){
 /* ---------------------------------------------------------------
    OVERLAYS
 --------------------------------------------------------------- */
-function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+function closeOverlay(id){
+  document.getElementById(id).classList.remove('open');
+  // Revoke any object URL from the bill preview to prevent memory leak
+  if(id === 'billPreviewOverlay'){
+    const img = document.getElementById('billPreviewImg');
+    if(img && img.dataset.url){ URL.revokeObjectURL(img.dataset.url); delete img.dataset.url; img.src=''; }
+    window._pendingBill = null;
+  }
+}
 document.querySelectorAll('.overlay').forEach(o=>{
-  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+  o.addEventListener('click', e=>{ if(e.target===o) closeOverlay(o.id); });
 });
 
 /* ---------------------------------------------------------------
-   GOOGLE DRIVE SYNC (appDataFolder)
+   GOOGLE DRIVE SYNC
 --------------------------------------------------------------- */
 const GOOGLE_CLIENT_ID = '598818197447-p4aiepu8sgear24hmhv0n6hbgsdarcac.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
@@ -2216,7 +2242,6 @@ let tokenClient = null;
 let accessToken = null;
 let driveFileId = null;
 let autoSyncTimer = null;
-
 let tokenExpiresAt = 0, tokenRefreshTimer = null, syncPaused = false, lastSyncAt = 0;
 
 function initGoogle(){
@@ -2230,21 +2255,23 @@ function initGoogle(){
         const secs = Number(resp.expires_in) || 3600;
         tokenExpiresAt = Date.now() + secs*1000;
         syncPaused = false;
+        // Remember that this device has connected before - gates future silent reconnects
+        if(!db.meta.driveEverConnected){ db.meta.driveEverConnected = true; saveDB(); }
         scheduleTokenRefresh(secs);
         setSyncStatus(true);
         driveLoadAndMerge();
         startPeriodicPull();
       }
     },
-    error_callback: ()=>{ /* silent attempt failed or was dismissed - the Reconnect button stays available */ }
+    error_callback: ()=>{ /* user can still tap Connect */ }
   });
-  // Best-effort silent reconnect when the app opens.
-  setTimeout(()=>{
-    try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
-  }, 600);
+  // Silent reconnect ONLY if this device has connected before
+  if(db.meta.driveEverConnected){
+    setTimeout(()=>{
+      try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
+    }, 600);
+  }
 }
-// A Google login lasts about an hour. Ask for a fresh one a few minutes before it ends,
-// so a tablet left open all day keeps syncing.
 function scheduleTokenRefresh(secs){
   clearTimeout(tokenRefreshTimer);
   const ms = Math.max(30, secs - 240) * 1000;
@@ -2252,14 +2279,12 @@ function scheduleTokenRefresh(secs){
     try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
   }, ms);
 }
-// Called when Google says the login has run out. Entries stay safe on this device and
-// go up to Drive as soon as you reconnect.
 function markSyncPaused(){
   const wasPaused = syncPaused;
   accessToken = null;
   syncPaused = true;
   setSyncStatus(false);
-  if(!wasPaused) toast('Google Drive login ended - tap Reconnect at the top. Your entries are safe on this device.');
+  if(!wasPaused) toast('Google Drive login ended - tap Reconnect at the top');
 }
 function connectDrive(){
   if(!tokenClient){ toast('Google sign-in still loading, try again'); return; }
@@ -2306,7 +2331,6 @@ async function driveFetch(url, options){
 }
 async function driveFindFile(){
   const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`);
-  // Any error here must stop the sync - treating it as "no file yet" would create a second copy of the data file.
   if(!res.ok) throw new Error('Drive list failed: ' + res.status);
   const data = await res.json();
   if(data.files && data.files.length){ driveFileId = data.files[0].id; return driveFileId; }
@@ -2335,11 +2359,8 @@ async function driveLoadAndMerge(silent){
   }catch(e){ console.error(e); if(!silent && !syncPaused) toast('Sync failed - check connection'); }
 }
 /* ---------------------------------------------------------------
-   BALANCES: calculated from the entries, so devices cannot overwrite each other's numbers.
-   balance = opening + top-ups - deliveries.  (Accounts get an "opening" once they are
-   checked in More > Balance Check; new customers get one straight away.)
+   BALANCES: calculated from entries
 --------------------------------------------------------------- */
-function round2(n){ return Math.round((Number(n)||0) * 100) / 100; }
 function reconcileCustomerBalances(d){
   const tops = {}, dels = {};
   (d.subscriptions||[]).forEach(s=>{ if(s.type!=='charge') tops[s.customerId] = (tops[s.customerId]||0) + s.amount; });
@@ -2356,7 +2377,6 @@ function balanceStats(cid){
   db.deliveries.forEach(x=>{ if(x.customerId===cid) d += x.total; });
   return { topups: round2(t), deliveries: round2(d), net: round2(t - d) };
 }
-// What the account started from: the balance recorded on its earliest entry.
 function firstEntryOpening(cid){
   let first = null;
   db.deliveries.forEach(x=>{ if(x.customerId===cid && (first===null || (x.ts||0) < (first.ts||0))) first = x; });
@@ -2369,18 +2389,17 @@ function balanceCheckData(){
     const stored = round2(c.balance||0);
     if(typeof c.opening === 'number') return { c, st, stored, state:'auto' };
     const sug = firstEntryOpening(c.id);
-    const cand = (sug===null) ? 0 : sug;          // opening balance we propose for this account
+    const cand = (sug===null) ? 0 : sug;
     const want = round2(cand + st.net);
     const diff = round2(stored - want);
     return { c, st, stored, cand, want, diff, state: Math.abs(diff) < 0.005 ? 'match' : 'differs' };
   });
 }
 function balanceHint(cid, diff){
-  // diff = shown balance - what it should be
   if(diff > 0){
     const d = db.deliveries.find(x=>x.customerId===cid && Math.abs(x.total - diff) < 0.005);
     if(d) return 'same as the delivery of ' + money(d.total) + ' on ' + d.date + ' (not subtracted)';
-  } else {
+  } else if(diff < 0){
     const s = db.subscriptions.find(x=>x.customerId===cid && x.type!=='charge' && Math.abs(x.amount + diff) < 0.005);
     if(s) return 'same as the top-up of ' + money(s.amount) + ' on ' + s.date + ' (not added)';
   }
@@ -2471,17 +2490,13 @@ function bcFixAll(){
 function mergeDB(local, remote){
   if(!remote) return local;
   const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, deleted: {}, meta: local.meta||{} };
-  // Deleted ids from either device stay deleted everywhere (otherwise the other copy brings them back).
+
+  // Merge deleted tombstones bidirectionally. Any id deleted on either side stays deleted everywhere.
   merged.deleted = Object.assign({}, remote.deleted||{}, local.deleted||{});
   {
     const ls = local.settings, rs = remote.settings;
     merged.settings = !rs ? (ls||{}) : (!ls ? rs : ((ls.updatedAt||0) >= (rs.updatedAt||0) ? ls : rs));
   }
-
-  // Products: last-write-wins by updatedAt, but on a tie (common for records
-  // saved before this field existed) prefer whichever copy actually has a
-  // photo - otherwise an older device that never got the photo can keep
-  // re-overwriting the version that has it.
   {
     const map = {};
     (remote.products||[]).forEach(x=>map[x.id]=x);
@@ -2495,20 +2510,15 @@ function mergeDB(local, remote){
     });
     merged.products = Object.values(map);
   }
-
   {
     const map = {};
     (remote.customers||[]).forEach(x=>map[x.id]=x);
     (local.customers||[]).forEach(x=>{
       const existing = map[x.id];
-      // Last-write-wins by updatedAt timestamp, not "local always wins" -
-      // otherwise a device that hasn't touched a record in a while can
-      // overwrite a genuinely newer edit made elsewhere.
       if(!existing || (x.updatedAt||0) >= (existing.updatedAt||0)) map[x.id] = x;
     });
     merged.customers = Object.values(map);
   }
-
   ['subscriptions','deliveries','reminders'].forEach(key=>{
     const map = {};
     (remote[key]||[]).forEach(x=>map[x.id]=x);
@@ -2521,6 +2531,11 @@ function mergeDB(local, remote){
   ['products','customers','subscriptions','deliveries','reminders'].forEach(key=>{
     merged[key] = merged[key].filter(x=>!merged.deleted[x.id]);
   });
+  // Remember the local meta.driveEverConnected flag
+  merged.meta = Object.assign({}, local.meta||{}, remote.meta||{});
+  if(local.meta && local.meta.driveEverConnected) merged.meta.driveEverConnected = true;
+  if(remote.meta && remote.meta.driveEverConnected) merged.meta.driveEverConnected = true;
+
   reconcileCustomerBalances(merged);
   return merged;
 }
@@ -2544,7 +2559,7 @@ async function driveSave(){
     if(data.id){
       driveFileId = data.id;
       lastSyncAt = Date.now();
-      if(accessToken) setSyncStatus(true);   // refreshes the "Synced hh:mm" time
+      if(accessToken) setSyncStatus(true);
     }
   }catch(e){ console.error(e); }
 }
@@ -2564,12 +2579,12 @@ function startPeriodicPull(){
     if(accessToken && !document.hidden){
       if(Date.now() > tokenExpiresAt) markSyncPaused(); else driveLoadAndMerge(true);
     }
-  }, 40000); // pull every 40s while app is open and connected
+  }, 40000);
 }
 document.addEventListener('visibilitychange', ()=>{
   if(document.hidden) return;
   if(accessToken && Date.now() > tokenExpiresAt - 30000){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} return; }
-  if(accessToken) driveLoadAndMerge(true);   // pull the moment you come back to the app
+  if(accessToken) driveLoadAndMerge(true);
   else if(syncPaused && tokenClient){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} }
 });
 function refreshAllViews(){
@@ -2582,11 +2597,9 @@ function refreshAllViews(){
 }
 
 /* ---------------------------------------------------------------
-   PWA: SERVICE WORKER (manifest + icons are static files - see
-   manifest.json, icon-192.png, icon-512.png uploaded alongside this file)
+   PWA
 --------------------------------------------------------------- */
 function setupPWA(){
-  // Service worker only registers over https/localhost - fails harmlessly on file://
   if('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')){
     navigator.serviceWorker.register('./sw.js').catch((e)=>{ console.error('SW registration failed', e); });
   }
@@ -2596,7 +2609,7 @@ function setupPWA(){
    INIT
 --------------------------------------------------------------- */
 function init(){
-  if(!db.meta) db.meta = {deviceRole:''};
+  if(!db.meta) db.meta = {deviceRole:'', driveEverConnected:false};
   if(!db.reminders) db.reminders = [];
   if(!db.settings) db.settings = {};
   if(!db.deleted) db.deleted = {};
