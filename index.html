@@ -83,6 +83,13 @@ header.topbar .sub{
   border:none; font-family:inherit;
 }
 .sync-pill.connected{ background:rgba(95,227,154,0.25); border:1px solid rgba(95,227,154,0.5); }
+.sync-pill.paused{ background:rgba(240,168,90,0.4); border:1px solid rgba(240,168,90,0.9); }
+.bc-row{padding:10px 0; border-bottom:1px solid var(--line);}
+.bc-name{font-weight:700; font-size:14px; color:var(--teal-dark);}
+.bc-line{font-size:12.5px; margin-top:3px;}
+.bc-hint{font-size:11.5px; color:var(--bad); margin-top:2px;}
+.bc-btns{display:flex; gap:8px; margin-top:8px;}
+.bc-input{width:80px; padding:5px 6px; border:1.5px solid var(--line); border-radius:8px; font-size:13px; font-family:inherit;}
 .device-pill{
   background:rgba(255,255,255,0.15);
   border:1px solid rgba(255,255,255,0.3);
@@ -578,6 +585,13 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       <div id="bulkSendPanel" style="margin-top:12px"></div>
     </div>
 
+    <div class="section-title">Balance Check</div>
+    <div class="card">
+      <div class="desc" style="font-size:12px; color:#7C8B8E; margin-bottom:10px">Checks every customer: balance = top-ups - deliveries (plus any opening balance).</div>
+      <button class="btn btn-primary btn-block" onclick="runBalanceCheck()">Check all accounts</button>
+      <div id="balanceCheckBody" style="margin-top:12px"></div>
+    </div>
+
     <div class="section-title">Google Drive Sync</div>
     <div class="card">
       <div class="settings-row">
@@ -897,7 +911,7 @@ function saveCustomer(){
     Object.assign(c, {name, phone, address, updatedAt: Date.now()});
   } else {
     const balance = parseFloat(document.getElementById('custOpenBal').value)||0;
-    db.customers.push({id: uid(), name, phone, address, balance, updatedAt: Date.now()});
+    db.customers.push({id: uid(), name, phone, address, balance, opening: balance, updatedAt: Date.now()});
   }
   saveDB();
   closeOverlay('customerOverlay');
@@ -2203,6 +2217,8 @@ let accessToken = null;
 let driveFileId = null;
 let autoSyncTimer = null;
 
+let tokenExpiresAt = 0, tokenRefreshTimer = null, syncPaused = false, lastSyncAt = 0;
+
 function initGoogle(){
   if(!window.google || !google.accounts) { setTimeout(initGoogle, 500); return; }
   tokenClient = google.accounts.oauth2.initTokenClient({
@@ -2211,23 +2227,47 @@ function initGoogle(){
     callback: (resp)=>{
       if(resp.access_token){
         accessToken = resp.access_token;
+        const secs = Number(resp.expires_in) || 3600;
+        tokenExpiresAt = Date.now() + secs*1000;
+        syncPaused = false;
+        scheduleTokenRefresh(secs);
         setSyncStatus(true);
         driveLoadAndMerge();
         startPeriodicPull();
       }
     },
-    error_callback: ()=>{ /* silent attempt failed or was dismissed - user can still tap Connect */ }
+    error_callback: ()=>{ /* silent attempt failed or was dismissed - the Reconnect button stays available */ }
   });
-  // Best-effort silent reconnect: works only if the browser/Google session still
-  // remembers a prior grant. If not, this quietly does nothing and the
-  // Connect Drive button stays available for a manual tap.
+  // Best-effort silent reconnect when the app opens.
   setTimeout(()=>{
     try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
   }, 600);
 }
+// A Google login lasts about an hour. Ask for a fresh one a few minutes before it ends,
+// so a tablet left open all day keeps syncing.
+function scheduleTokenRefresh(secs){
+  clearTimeout(tokenRefreshTimer);
+  const ms = Math.max(30, secs - 240) * 1000;
+  tokenRefreshTimer = setTimeout(()=>{
+    try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
+  }, ms);
+}
+// Called when Google says the login has run out. Entries stay safe on this device and
+// go up to Drive as soon as you reconnect.
+function markSyncPaused(){
+  const wasPaused = syncPaused;
+  accessToken = null;
+  syncPaused = true;
+  setSyncStatus(false);
+  if(!wasPaused) toast('Google Drive login ended - tap Reconnect at the top. Your entries are safe on this device.');
+}
 function connectDrive(){
   if(!tokenClient){ toast('Google sign-in still loading, try again'); return; }
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+  tokenClient.requestAccessToken({ prompt: '' });
+}
+function fmtClock(ts){
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 function setSyncStatus(connected){
   const dot = document.getElementById('syncDot');
@@ -2237,32 +2277,48 @@ function setSyncStatus(connected){
   const headerBtn = document.getElementById('headerSyncBtn');
   const headerLabel = document.getElementById('headerSyncLabel');
   if(connected){
-    dot.className='sync-dot sync-ok'; text.textContent='Synced with Google Drive';
-    if(desc) desc.textContent='Connected \u2014 syncing in background';
+    dot.className='sync-dot sync-ok';
+    text.textContent = lastSyncAt ? ('Synced with Google Drive \u00B7 ' + fmtClock(lastSyncAt)) : 'Synced with Google Drive';
+    if(desc) desc.textContent='Connected - syncing in background';
     if(btn) btn.textContent='Connected';
-    if(headerBtn) headerBtn.classList.add('connected');
+    if(headerBtn){ headerBtn.classList.add('connected'); headerBtn.classList.remove('paused'); }
     if(headerLabel) headerLabel.textContent = 'Synced';
+  } else if(syncPaused){
+    dot.className='sync-dot sync-off'; text.textContent='Sync paused - tap Reconnect';
+    if(desc) desc.textContent='Login ended - tap Reconnect';
+    if(btn) btn.textContent='Reconnect';
+    if(headerBtn){ headerBtn.classList.remove('connected'); headerBtn.classList.add('paused'); }
+    if(headerLabel) headerLabel.textContent = 'Reconnect';
   } else {
     dot.className='sync-dot sync-off'; text.textContent='Not signed in to Drive';
     if(desc) desc.textContent='Not connected';
     if(btn) btn.textContent='Connect';
-    if(headerBtn) headerBtn.classList.remove('connected');
+    if(headerBtn){ headerBtn.classList.remove('connected'); headerBtn.classList.remove('paused'); }
     if(headerLabel) headerLabel.textContent = 'Connect Drive';
   }
 }
+async function driveFetch(url, options){
+  options = options || {};
+  options.headers = Object.assign({}, options.headers, { Authorization: 'Bearer ' + accessToken });
+  const res = await fetch(url, options);
+  if(res.status === 401){ markSyncPaused(); throw new Error('Drive login ended'); }
+  return res;
+}
 async function driveFindFile(){
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`, {
-    headers:{ Authorization: 'Bearer '+accessToken }
-  });
+  const res = await driveFetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name='${DRIVE_FILE_NAME}'&fields=files(id,name)`);
+  // Any error here must stop the sync - treating it as "no file yet" would create a second copy of the data file.
+  if(!res.ok) throw new Error('Drive list failed: ' + res.status);
   const data = await res.json();
   if(data.files && data.files.length){ driveFileId = data.files[0].id; return driveFileId; }
   return null;
 }
 async function driveLoadAndMerge(silent){
+  if(!accessToken) return;
   try{
     const id = await driveFindFile();
     if(id){
-      const res = await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`, { headers:{ Authorization:'Bearer '+accessToken } });
+      const res = await driveFetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`);
+      if(!res.ok) throw new Error('Drive read failed: ' + res.status);
       const remote = await res.json();
       const before = JSON.stringify(db);
       db = mergeDB(db, remote);
@@ -2276,8 +2332,142 @@ async function driveLoadAndMerge(silent){
     } else {
       await driveSave();
     }
-  }catch(e){ console.error(e); if(!silent) toast('Sync failed - check connection'); }
+  }catch(e){ console.error(e); if(!silent && !syncPaused) toast('Sync failed - check connection'); }
 }
+/* ---------------------------------------------------------------
+   BALANCES: calculated from the entries, so devices cannot overwrite each other's numbers.
+   balance = opening + top-ups - deliveries.  (Accounts get an "opening" once they are
+   checked in More > Balance Check; new customers get one straight away.)
+--------------------------------------------------------------- */
+function round2(n){ return Math.round((Number(n)||0) * 100) / 100; }
+function reconcileCustomerBalances(d){
+  const tops = {}, dels = {};
+  (d.subscriptions||[]).forEach(s=>{ if(s.type!=='charge') tops[s.customerId] = (tops[s.customerId]||0) + s.amount; });
+  (d.deliveries||[]).forEach(x=>{ dels[x.customerId] = (dels[x.customerId]||0) + x.total; });
+  (d.customers||[]).forEach(c=>{
+    if(typeof c.opening !== 'number') return;
+    const want = round2(c.opening + (tops[c.id]||0) - (dels[c.id]||0));
+    if(Math.abs((c.balance||0) - want) > 0.004) c.balance = want;
+  });
+}
+function balanceStats(cid){
+  let t = 0, d = 0;
+  db.subscriptions.forEach(s=>{ if(s.customerId===cid && s.type!=='charge') t += s.amount; });
+  db.deliveries.forEach(x=>{ if(x.customerId===cid) d += x.total; });
+  return { topups: round2(t), deliveries: round2(d), net: round2(t - d) };
+}
+// What the account started from: the balance recorded on its earliest entry.
+function firstEntryOpening(cid){
+  let first = null;
+  db.deliveries.forEach(x=>{ if(x.customerId===cid && (first===null || (x.ts||0) < (first.ts||0))) first = x; });
+  db.subscriptions.forEach(s=>{ if(s.customerId===cid && s.type!=='charge' && (first===null || (s.ts||0) < (first.ts||0))) first = s; });
+  return first ? round2(first.balBefore||0) : null;
+}
+function balanceCheckData(){
+  return db.customers.map(c=>{
+    const st = balanceStats(c.id);
+    const stored = round2(c.balance||0);
+    if(typeof c.opening === 'number') return { c, st, stored, state:'auto' };
+    const sug = firstEntryOpening(c.id);
+    const cand = (sug===null) ? 0 : sug;          // opening balance we propose for this account
+    const want = round2(cand + st.net);
+    const diff = round2(stored - want);
+    return { c, st, stored, cand, want, diff, state: Math.abs(diff) < 0.005 ? 'match' : 'differs' };
+  });
+}
+function balanceHint(cid, diff){
+  // diff = shown balance - what it should be
+  if(diff > 0){
+    const d = db.deliveries.find(x=>x.customerId===cid && Math.abs(x.total - diff) < 0.005);
+    if(d) return 'same as the delivery of ' + money(d.total) + ' on ' + d.date + ' (not subtracted)';
+  } else {
+    const s = db.subscriptions.find(x=>x.customerId===cid && x.type!=='charge' && Math.abs(x.amount + diff) < 0.005);
+    if(s) return 'same as the top-up of ' + money(s.amount) + ' on ' + s.date + ' (not added)';
+  }
+  return '';
+}
+function runBalanceCheck(){ renderBalanceCheck(); }
+function bcOpeningFor(r){
+  const inp = document.getElementById('bcOpen_' + r.c.id);
+  const v = inp ? parseFloat(inp.value) : NaN;
+  return isNaN(v) ? r.cand : round2(v);
+}
+function bcOpenChanged(id){
+  const inp = document.getElementById('bcOpen_' + id), out = document.getElementById('bcWant_' + id);
+  if(!inp || !out) return;
+  out.textContent = money(round2((parseFloat(inp.value)||0) + balanceStats(id).net));
+}
+function renderBalanceCheck(){
+  const box = document.getElementById('balanceCheckBody');
+  const rows = balanceCheckData();
+  if(!rows.length){ box.innerHTML = '<div class="desc" style="font-size:12px; color:#7C8B8E">No customers yet.</div>'; return; }
+  const auto = rows.filter(r=>r.state==='auto').length;
+  const match = rows.filter(r=>r.state==='match').length;
+  const differs = rows.filter(r=>r.state==='differs').sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+  let html = `<div class="day-summary-row"><span class="k">Customers</span><span class="v">${rows.length}</span></div>
+    <div class="day-summary-row"><span class="k">Calculated automatically</span><span class="v">${auto}</span></div>
+    <div class="day-summary-row"><span class="k">Balance is correct, not yet switched</span><span class="v">${match}</span></div>
+    <div class="day-summary-row"><span class="k">Balance is wrong</span><span class="v" style="color:${differs.length?'var(--bad)':'var(--good)'}">${differs.length}</span></div>`;
+  if(match) html += `<button class="btn btn-outline btn-block" style="margin-top:10px" onclick="bcAcceptMatching()">Switch ${match} correct account${match===1?'':'s'} to automatic</button>`;
+  if(differs.length){
+    html += `<button class="btn btn-primary btn-block" style="margin-top:8px" onclick="bcFixAll()">Fix all ${differs.length} wrong accounts</button>`;
+    html += differs.map(r=>{
+      const hint = balanceHint(r.c.id, r.diff);
+      return `<div class="bc-row">
+        <div class="bc-name">${escapeHtml(r.c.name)}</div>
+        <div class="bc-line">App shows <b>${money(r.stored)}</b></div>
+        <div class="bc-line">Top-ups ${money(r.st.topups)} - deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
+        <div class="bc-line">Opening balance <input type="number" class="bc-input" id="bcOpen_${r.c.id}" value="${r.cand}" oninput="bcOpenChanged('${r.c.id}')"> &rarr; should be <b id="bcWant_${r.c.id}">${money(r.want)}</b></div>
+        <div class="bc-hint">Difference ${money(r.diff)}${hint?(' - '+hint):''}</div>
+        <div class="bc-btns">
+          <button class="btn btn-primary btn-sm" onclick="bcFix('${r.c.id}')">Fix</button>
+          <button class="btn btn-outline btn-sm" onclick="bcKeep('${r.c.id}')">Keep ${money(r.stored)}</button>
+        </div>
+      </div>`;
+    }).join('');
+    html += `<div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-top:10px">Opening balance is what the customer started with (usually 0, taken from their first entry - change it if wrong). Fix = opening + top-ups - deliveries. Keep = the balance shown is right, so the difference becomes the opening balance.</div>`;
+  } else if(!match){
+    html += `<div class="desc" style="font-size:12px; color:var(--good); margin-top:10px">All balances are calculated from the entries.</div>`;
+  }
+  box.innerHTML = html;
+}
+function bcAfterChange(){
+  saveDB();
+  renderBalanceCheck();
+  renderCustomers();
+  renderDeliveryTab();
+}
+function bcFix(id){
+  const r = balanceCheckData().find(x=>x.c.id===id); if(!r || r.state==='auto') return;
+  const opening = bcOpeningFor(r), want = round2(opening + r.st.net);
+  if(!confirm(r.c.name + ': change the balance from ' + money(r.c.balance||0) + ' to ' + money(want) + '  (opening ' + money(opening) + ' + top-ups - deliveries)?')) return;
+  r.c.opening = opening; r.c.balance = want; r.c.updatedAt = Date.now();
+  bcAfterChange(); toast(r.c.name + ' fixed');
+}
+function bcKeep(id){
+  const r = balanceCheckData().find(x=>x.c.id===id); if(!r || r.state==='auto') return;
+  const opening = round2(r.stored - r.st.net);
+  if(!confirm(r.c.name + ': keep ' + money(r.stored) + ' and treat ' + money(opening) + ' as the opening balance?')) return;
+  r.c.opening = opening; r.c.updatedAt = Date.now();
+  bcAfterChange(); toast(r.c.name + ' kept');
+}
+function bcAcceptMatching(){
+  const rows = balanceCheckData().filter(r=>r.state==='match');
+  if(!rows.length) return;
+  rows.forEach(r=>{ r.c.opening = r.cand; r.c.updatedAt = Date.now(); });
+  bcAfterChange(); toast(rows.length + ' accounts switched');
+}
+function bcFixAll(){
+  const rows = balanceCheckData().filter(r=>r.state==='differs');
+  if(!rows.length) return;
+  if(!confirm('Fix ' + rows.length + ' accounts using the opening balances shown for each? Check the list first.')) return;
+  rows.forEach(r=>{
+    const opening = bcOpeningFor(r);
+    r.c.opening = opening; r.c.balance = round2(opening + r.st.net); r.c.updatedAt = Date.now();
+  });
+  bcAfterChange(); toast(rows.length + ' accounts fixed');
+}
+
 function mergeDB(local, remote){
   if(!remote) return local;
   const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, deleted: {}, meta: local.meta||{} };
@@ -2331,6 +2521,7 @@ function mergeDB(local, remote){
   ['products','customers','subscriptions','deliveries','reminders'].forEach(key=>{
     merged[key] = merged[key].filter(x=>!merged.deleted[x.id]);
   });
+  reconcileCustomerBalances(merged);
   return merged;
 }
 async function driveSave(){
@@ -2343,13 +2534,18 @@ async function driveSave(){
     const url = id
       ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
       : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-    const res = await fetch(url, {
+    const res = await driveFetch(url, {
       method: id? 'PATCH':'POST',
-      headers:{ Authorization:'Bearer '+accessToken, 'Content-Type':`multipart/related; boundary=${boundary}` },
+      headers:{ 'Content-Type':`multipart/related; boundary=${boundary}` },
       body
     });
+    if(!res.ok) throw new Error('Drive save failed: ' + res.status);
     const data = await res.json();
-    if(data.id) driveFileId = data.id;
+    if(data.id){
+      driveFileId = data.id;
+      lastSyncAt = Date.now();
+      if(accessToken) setSyncStatus(true);   // refreshes the "Synced hh:mm" time
+    }
   }catch(e){ console.error(e); }
 }
 function scheduleAutoSync(){
@@ -2365,11 +2561,16 @@ let periodicPullTimer = null;
 function startPeriodicPull(){
   clearInterval(periodicPullTimer);
   periodicPullTimer = setInterval(()=>{
-    if(accessToken && !document.hidden) driveLoadAndMerge(true);
+    if(accessToken && !document.hidden){
+      if(Date.now() > tokenExpiresAt) markSyncPaused(); else driveLoadAndMerge(true);
+    }
   }, 40000); // pull every 40s while app is open and connected
 }
 document.addEventListener('visibilitychange', ()=>{
-  if(!document.hidden && accessToken) driveLoadAndMerge(true); // pull the moment you come back to the app
+  if(document.hidden) return;
+  if(accessToken && Date.now() > tokenExpiresAt - 30000){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} return; }
+  if(accessToken) driveLoadAndMerge(true);   // pull the moment you come back to the app
+  else if(syncPaused && tokenClient){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} }
 });
 function refreshAllViews(){
   refreshCustomerDropdowns();
