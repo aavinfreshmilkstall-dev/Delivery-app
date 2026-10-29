@@ -1263,7 +1263,7 @@ function updateSubPreview(){
     const cur = c? (c.balance||0):0;
     banner.style.display='flex';
     document.getElementById('subBalCurrent').textContent = money(cur);
-    document.getElementById('subBalAfter').textContent = type==='charge' ? money(cur) : money(cur+amount);
+    document.getElementById('subBalAfter').textContent = type==='charge' ? money(cur) : money(cur - amount);
   } else {
     banner.style.display='none';
   }
@@ -1282,11 +1282,11 @@ function saveSubscription(shareWA){
     if(old){
       if(old.type!=='charge'){
         const oldCust = db.customers.find(x=>x.id===old.customerId);
-        if(oldCust){ oldCust.balance = round2((oldCust.balance||0) - old.amount); oldCust.updatedAt = Date.now(); }
+        if(oldCust){ oldCust.balance = round2((oldCust.balance||0) + old.amount); oldCust.updatedAt = Date.now(); }
       }
       const c = db.customers.find(x=>x.id===custId);
       const before = c.balance||0;
-      const after = type==='charge' ? before : round2(before + amount);
+      const after = type==='charge' ? before : round2(before - amount);
       Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() });
       if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
       cancelSubscriptionEdit();
@@ -1301,7 +1301,7 @@ function saveSubscription(shareWA){
 
   const c = db.customers.find(x=>x.id===custId);
   const before = c.balance||0;
-  const after = type==='charge' ? before : round2(before + amount);
+  const after = type==='charge' ? before : round2(before - amount);
   if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
   const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() };
   db.subscriptions.unshift(entry);
@@ -1340,7 +1340,7 @@ function deleteSubscription(id){
   if(!confirm('Delete this entry?'+(entry.type!=='charge'?' The amount will be removed from the balance.':''))) return;
   if(entry.type!=='charge'){
     const c = db.customers.find(x=>x.id===entry.customerId);
-    if(c){ c.balance = round2((c.balance||0) - entry.amount); c.updatedAt = Date.now(); }
+    if(c){ c.balance = round2((c.balance||0) + entry.amount); c.updatedAt = Date.now(); }
   }
   db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
   markDeleted(id);
@@ -1359,7 +1359,7 @@ function renderSubscriptionList(){
       <div class="avatar">${(s.customerName||'?').charAt(0).toUpperCase()}</div>
       <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' \u00B7 Monthly charge':''}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</div></div>
       <div style="text-align:right">
-        <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'+'}${money(s.amount)}</div>
+        <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'-'}${money(s.amount)}</div>
         <div style="display:flex; gap:5px; margin-top:6px">
           <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">\u270E</button>
           <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">\uD83D\uDDD1</button>
@@ -1750,7 +1750,7 @@ function computeOpeningBalanceAsOf(customerId, fromDate){
   if(!c) return 0;
   let bal = c.balance||0;
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=fromDate).forEach(d=>{ bal += d.total; });
-  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal -= s.amount; });
+  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal += s.amount; });
   return round2(bal);
 }
 /* --- REPLACED: computeCustomerLedger ---------------------------------
@@ -1799,7 +1799,7 @@ function computeCustomerLedger(customerId, filter, productId){
   rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
   const productTotal = rows.filter(r=>r.type==='product').reduce((s,r)=>s+r.amount,0);
   const topupTotal   = rows.filter(r=>r.type==='topup').reduce((s,r)=>s+r.amount,0);
-  const remaining    = round2(ob - productTotal - otherProductsTotal + topupTotal);
+  const remaining    = round2(ob - productTotal - otherProductsTotal - topupTotal);
   const prod = productId ? db.products.find(p=>p.id===productId) : null;
 
   return {
@@ -1827,7 +1827,7 @@ function renderLedgerPreview(L){
           <div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up (collected)${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div>
           <div class="ld-sub">${r.date}</div>
         </div>
-        <div class="ld-amt good">+${money(r.amount)}</div>
+        <div class="ld-amt good">-${money(r.amount)}</div>
       </div>`;
     }
     return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' \u00B7 '+r.time):''} \u00B7 ${r.qty} \u00D7 ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
@@ -1844,7 +1844,7 @@ function renderLedgerPreview(L){
       <div class="ledger-doc-foot">
         <div class="day-summary-row"><span class="k">Total products delivered</span><span class="v">${money(L.productTotal)}</span></div>
         ${L.otherProductsTotal>0?`<div class="day-summary-row"><span class="k">Other products (hidden by filter)</span><span class="v">${money(L.otherProductsTotal)}</span></div>`:''}
-        <div class="day-summary-row"><span class="k">Total top-ups</span><span class="v">+${money(L.topupTotal)}</span></div>
+        <div class="day-summary-row"><span class="k">Total top-ups</span><span class="v">-${money(L.topupTotal)}</span></div>
         <div class="day-summary-row ld-final"><span class="k">Remaining Balance</span><span class="v ${L.remaining<0?'neg':'pos'}">${money(L.remaining)}</span></div>
       </div>
     </div>`;
@@ -1876,13 +1876,13 @@ function buildLedgerMessage(L){
     `\u0B95\u0BBE\u0BB2\u0BAE\u0BCD/Period: ${L.filter.label}${L.productName?(' \u00B7 '+L.productName):''}\n\n`+
     `\u0BAE\u0BC1\u0BA8\u0BCD\u0BA4\u0BC8\u0BAF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Opening Balance: ${money(L.ob)}\n\n`;
   L.rows.slice(0, MAX_LINES).forEach(r=>{
-    if(r.type==='topup') msg += `${r.date}  \uD83D\uDCB0 Top-up  +${money(r.amount)}\n`;
+    if(r.type==='topup') msg += `${r.date}  \uD83D\uDCB0 Top-up  -${money(r.amount)}\n`;
     else msg += `${r.date}  ${r.name}  ${r.qty} \u00D7 ${money(r.rate)} = ${money(r.amount)}\n`;
   });
   if(L.rows.length > MAX_LINES) msg += `...and ${L.rows.length-MAX_LINES} more lines (use Excel/PDF for the full list)\n`;
   msg += `\n\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Total products: ${money(L.productTotal)}\n`;
   if(L.otherProductsTotal>0) msg += `\u0BAE\u0BB1\u0BCD\u0BB1 \u0BAA\u0BCA\u0BB0\u0BC1\u0B9F\u0BCD\u0B95\u0BB3\u0BCD/Other products: ${money(L.otherProductsTotal)}\n`;
-  msg += `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B9F\u0BBE\u0BAA\u0BCD-\u0B85\u0BAA\u0BCD/Total top-ups: +${money(L.topupTotal)}\n`+
+  msg += `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B9F\u0BBE\u0BAA\u0BCD-\u0B85\u0BAA\u0BCD/Total top-ups: -${money(L.topupTotal)}\n`+
     `*\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Remaining Balance: ${money(L.remaining)}*\n\n\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
   return msg;
 }
@@ -1906,13 +1906,13 @@ function downloadLedgerExcel(L){
     aoa.push(['', 'Opening Balance', '', '', L.ob, '']);
     aoa.push(['Date','Particulars','Qty','Rate','Amount','Top-up']);
     L.rows.forEach(r=>{
-      if(r.type==='topup') aoa.push([r.date, 'Top-up' + (r.details?(' - '+r.details):''), '', '', '', r.amount]);
+      if(r.type==='topup') aoa.push([r.date, 'Top-up' + (r.details?(' - '+r.details):''), '', '', '', -r.amount]);
       else aoa.push([r.date, r.name, r.qty, r.rate, r.amount, '']);
     });
     aoa.push([]);
     aoa.push(['', 'Total products delivered', '', '', L.productTotal, '']);
     if(L.otherProductsTotal>0) aoa.push(['', 'Other products (hidden by filter)', '', '', L.otherProductsTotal, '']);
-    aoa.push(['', 'Total top-ups', '', '', '', L.topupTotal]);
+    aoa.push(['', 'Total top-ups', '', '', '', -L.topupTotal]);
     aoa.push(['', 'Remaining Balance', '', '', L.remaining, '']);
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(aoa);
@@ -1930,7 +1930,7 @@ function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
   const rowsHtml = chunk.map((r,i)=>{
     const bg = i%2 ? '#F6F3EA' : '#fff';
     if(r.type==='topup'){
-      return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">\uD83D\uDCB0 Top-up${r.details?(' - '+escapeHtml(r.details)):''}</td><td style="${cell} text-align:right;">-</td><td style="${cell} text-align:right; color:#2E7D4F; font-weight:700;">+${money(r.amount)}</td></tr>`;
+      return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">\uD83D\uDCB0 Top-up${r.details?(' - '+escapeHtml(r.details)):''}</td><td style="${cell} text-align:right;">-</td><td style="${cell} text-align:right; color:#2E7D4F; font-weight:700;">-${money(r.amount)}</td></tr>`;
     }
     return `<tr style="background:${bg}"><td style="${cell}">${r.date}</td><td style="${cell}">${escapeHtml(r.name)}</td><td style="${cell} text-align:right;">${r.qty} \u00D7 ${money(r.rate)}</td><td style="${cell} text-align:right; font-weight:700;">${money(r.amount)}</td></tr>`;
   }).join('');
@@ -1953,7 +1953,7 @@ function buildLedgerPageHtml(L, chunk, pageIdx, totalPages){
         ${rowsHtml}
         ${isLast ? sumRow('Total products delivered', money(L.productTotal)) : ''}
         ${isLast && L.otherProductsTotal>0 ? sumRow('Other products (hidden by filter)', money(L.otherProductsTotal)) : ''}
-        ${isLast ? sumRow('Total top-ups', '+'+money(L.topupTotal), false, '#2E7D4F') : ''}
+        ${isLast ? sumRow('Total top-ups', '-'+money(L.topupTotal), false, '#2E7D4F') : ''}
         ${isLast ? sumRow('Remaining Balance', money(L.remaining), true, L.remaining<0?'#C24B3D':'#2E7D4F') : ''}
       </tbody>
     </table>`;
@@ -2413,7 +2413,7 @@ function reconcileCustomerBalances(d){
   (d.deliveries||[]).forEach(x=>{ dels[x.customerId] = (dels[x.customerId]||0) + x.total; });
   (d.customers||[]).forEach(c=>{
     if(typeof c.opening !== 'number') return;
-    const want = round2(c.opening + (tops[c.id]||0) - (dels[c.id]||0));
+    const want = round2(c.opening - (tops[c.id]||0) - (dels[c.id]||0));
     if(Math.abs((c.balance||0) - want) > 0.004) c.balance = want;
   });
 }
@@ -2421,7 +2421,7 @@ function balanceStats(cid){
   let t = 0, d = 0;
   db.subscriptions.forEach(s=>{ if(s.customerId===cid && s.type!=='charge') t += s.amount; });
   db.deliveries.forEach(x=>{ if(x.customerId===cid) d += x.total; });
-  return { topups: round2(t), deliveries: round2(d), net: round2(t - d) };
+  return { topups: round2(t), deliveries: round2(d), net: round2(t + d) };
 }
 function firstEntryOpening(cid){
   let first = null;
@@ -2436,7 +2436,7 @@ function balanceCheckData(){
     if(typeof c.opening === 'number') return { c, st, stored, state:'auto' };
     const sug = firstEntryOpening(c.id);
     const cand = (sug===null) ? 0 : sug;
-    const want = round2(cand + st.net);
+    const want = round2(cand - st.net);
     const diff = round2(stored - want);
     return { c, st, stored, cand, want, diff, state: Math.abs(diff) < 0.005 ? 'match' : 'differs' };
   });
@@ -2461,7 +2461,7 @@ function runBalanceCheck(){
     const st = balanceStats(c.id);
     const stored = round2(c.balance||0);
     if(typeof c.opening === 'number'){
-      const want = round2(c.opening + st.net);
+      const want = round2(c.opening - st.net);
       return { c, st, stored, want, ok: Math.abs(stored-want) < 0.004 };
     }
     return { c, st, stored, want: null, ok: null };   // legacy, no opening set
@@ -2482,15 +2482,15 @@ function runBalanceCheck(){
       <div class="bc-row">
         <div class="bc-name">${escapeHtml(r.c.name)}</div>
         <div class="bc-line">Stored balance: <b>${money(r.stored)}</b></div>
-        <div class="bc-line">Top-ups ${money(r.st.topups)} \u2212 deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
-        <div class="bc-line">Opening ${money(r.c.opening)} + ${money(r.st.net)} = <b>${money(r.want)}</b></div>
+        <div class="bc-line">Top-ups ${money(r.st.topups)} + deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
+        <div class="bc-line">Opening ${money(r.c.opening)} - ${money(r.st.net)} = <b>${money(r.want)}</b></div>
         <div class="bc-hint">Diff ${money(r.stored - r.want)}</div>
         <div class="bc-btns">
           <button class="btn btn-primary btn-sm" onclick="bcFixOne('${r.c.id}')">Fix</button>
         </div>
       </div>`).join('');
   } else if(!legacy.length){
-    html += `<div class="desc" style="font-size:12px; color:var(--good); margin-top:10px">All balances match opening + top-ups \u2212 deliveries.</div>`;
+    html += `<div class="desc" style="font-size:12px; color:var(--good); margin-top:10px">All balances match opening - top-ups - deliveries.</div>`;
   }
 
   if(legacy.length){
@@ -2509,7 +2509,7 @@ function bcFixOne(id){
   const r = balanceCheckData().find(x=>x.c.id===id);
   if(!r) return;
   const opening = (typeof r.c.opening === 'number') ? r.c.opening : (r.cand||0);
-  const want = round2(opening + r.st.net);
+  const want = round2(opening - r.st.net);
   if(!confirm(`${r.c.name}\n\nCurrent balance: ${money(r.c.balance||0)}\nCorrect balance: ${money(want)}\n\nFix the balance? (Deliveries and top-ups are NOT touched.)`)) return;
   r.c.balance = want;
   if(typeof r.c.opening !== 'number') r.c.opening = opening;
@@ -2522,14 +2522,14 @@ function bcFixOne(id){
 function bcFixAllMismatched(){
   const rows = balanceCheckData().filter(r=>{
     if(typeof r.c.opening !== 'number') return false;
-    const want = round2(r.c.opening + r.st.net);
+    const want = round2(r.c.opening - r.st.net);
     return Math.abs((r.c.balance||0) - want) > 0.004;
   });
   if(!rows.length){ toast('No mismatches found'); return; }
   if(!confirm(`Fix ${rows.length} customer(s)? Only the balance field is rewritten \u2014 deliveries, top-ups, and charges are untouched.`)) return;
   let n = 0;
   rows.forEach(r=>{
-    r.c.balance = round2(r.c.opening + r.st.net);
+    r.c.balance = round2(r.c.opening - r.st.net);
     r.c.updatedAt = Date.now();
     n++;
   });
@@ -2547,7 +2547,7 @@ function bcOpeningFor(r){
 function bcOpenChanged(id){
   const inp = document.getElementById('bcOpen_' + id), out = document.getElementById('bcWant_' + id);
   if(!inp || !out) return;
-  out.textContent = money(round2((parseFloat(inp.value)||0) + balanceStats(id).net));
+  out.textContent = money(round2((parseFloat(inp.value)||0) - balanceStats(id).net));
 }
 function renderBalanceCheck(){
   const box = document.getElementById('balanceCheckBody');
@@ -2568,7 +2568,7 @@ function renderBalanceCheck(){
       return `<div class="bc-row">
         <div class="bc-name">${escapeHtml(r.c.name)}</div>
         <div class="bc-line">App shows <b>${money(r.stored)}</b></div>
-        <div class="bc-line">Top-ups ${money(r.st.topups)} - deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
+        <div class="bc-line">Top-ups ${money(r.st.topups)} + deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
         <div class="bc-line">Opening balance <input type="number" class="bc-input" id="bcOpen_${r.c.id}" value="${r.cand}" oninput="bcOpenChanged('${r.c.id}')"> &rarr; should be <b id="bcWant_${r.c.id}">${money(r.want)}</b></div>
         <div class="bc-hint">Difference ${money(r.diff)}${hint?(' - '+hint):''}</div>
         <div class="bc-btns">
@@ -2577,7 +2577,7 @@ function renderBalanceCheck(){
         </div>
       </div>`;
     }).join('');
-    html += `<div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-top:10px">Opening balance is what the customer started with (usually 0, taken from their first entry - change it if wrong). Fix = opening + top-ups - deliveries. Keep = the balance shown is right, so the difference becomes the opening balance.</div>`;
+    html += `<div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-top:10px">Opening balance is what the customer started with (usually 0, taken from their first entry - change it if wrong). Fix = opening - top-ups - deliveries. Keep = the balance shown is right, so the difference becomes the opening balance.</div>`;
   } else if(!match){
     html += `<div class="desc" style="font-size:12px; color:var(--good); margin-top:10px">All balances are calculated from the entries.</div>`;
   }
@@ -2591,14 +2591,14 @@ function bcAfterChange(){
 }
 function bcFix(id){
   const r = balanceCheckData().find(x=>x.c.id===id); if(!r || r.state==='auto') return;
-  const opening = bcOpeningFor(r), want = round2(opening + r.st.net);
-  if(!confirm(r.c.name + ': change the balance from ' + money(r.c.balance||0) + ' to ' + money(want) + '  (opening ' + money(opening) + ' + top-ups - deliveries)?')) return;
+  const opening = bcOpeningFor(r), want = round2(opening - r.st.net);
+  if(!confirm(r.c.name + ': change the balance from ' + money(r.c.balance||0) + ' to ' + money(want) + '  (opening ' + money(opening) + ' - top-ups - deliveries)?')) return;
   r.c.opening = opening; r.c.balance = want; r.c.updatedAt = Date.now();
   bcAfterChange(); toast(r.c.name + ' fixed');
 }
 function bcKeep(id){
   const r = balanceCheckData().find(x=>x.c.id===id); if(!r || r.state==='auto') return;
-  const opening = round2(r.stored - r.st.net);
+  const opening = round2(r.stored + r.st.net);
   if(!confirm(r.c.name + ': keep ' + money(r.stored) + ' and treat ' + money(opening) + ' as the opening balance?')) return;
   r.c.opening = opening; r.c.updatedAt = Date.now();
   bcAfterChange(); toast(r.c.name + ' kept');
@@ -2615,7 +2615,7 @@ function bcFixAll(){
   if(!confirm('Fix ' + rows.length + ' accounts using the opening balances shown for each? Check the list first.')) return;
   rows.forEach(r=>{
     const opening = bcOpeningFor(r);
-    r.c.opening = opening; r.c.balance = round2(opening + r.st.net); r.c.updatedAt = Date.now();
+    r.c.opening = opening; r.c.balance = round2(opening - r.st.net); r.c.updatedAt = Date.now();
   });
   bcAfterChange(); toast(rows.length + ' accounts fixed');
 }
