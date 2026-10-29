@@ -400,32 +400,45 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
   <section class="tab-panel" id="tab-subscription">
     <div class="section-title">Subscription</div>
     <div class="card">
-      <div class="edit-banner" id="subFormMode" style="display:none">&#9998; Editing entry &#8212; save to update, or cancel below</div>
       <div class="field">
-        <label>Entry type</label>
-        <select id="subType" onchange="onSubTypeChange()">
-          <option value="topup">Top-up (adds to balance)</option>
-          <option value="charge">Monthly delivery charge (record only, does not change balance)</option>
+        <label>Mode</label>
+        <select id="subMode" onchange="onSubModeChange()">
+          <option value="add">Add Top-up</option>
+          <option value="edit">Edit Top-up</option>
+          <option value="delete">Delete Top-up</option>
+          <option value="view">View Customer Ledger</option>
         </select>
       </div>
       <div class="field">
         <label>Customer</label>
         <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
       </div>
+      
+      <div id="subEntryWrap" style="display:none">
+        <div class="field">
+          <label id="subEntryLabel">Select Top-up</label>
+          <select id="subEntry" onchange="onSubEntryChange()"><option value="">-- Select the customer first --</option></select>
+        </div>
+      </div>
+
       <div class="bal-banner" id="subBalBanner" style="display:none">
         <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">&#8377;0</div></div>
         <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">&#8377;0</div></div>
       </div>
-      <div class="row2">
-        <div class="field"><label>Date</label><input type="date" id="subDate"></div>
-        <div class="field"><label id="subAmountLbl">Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+
+      <div id="subFormWrap">
+        <div class="row2">
+          <div class="field"><label>Date</label><input type="date" id="subDate"></div>
+          <div class="field"><label id="subAmountLbl">Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+        </div>
+        <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
+        <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
       </div>
-      <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
-      <div style="display:flex; gap:8px">
-        <button class="btn btn-outline btn-block" onclick="saveSubscription(false)" id="subSaveOnlyBtn">&#128190; Save Only</button>
-        <button class="btn btn-wa btn-block" onclick="saveSubscription(true)" id="subSaveWABtn">&#128242; Save &amp; WhatsApp</button>
-      </div>
-      <button class="btn btn-outline btn-block" style="margin-top:8px; display:none" id="subCancelEditBtn" onclick="cancelSubscriptionEdit()">Cancel edit</button>
+    </div>
+
+    <div class="section-title" id="viewLedgerTitle" style="display:none">Customer Ledger (View Mode)</div>
+    <div class="card" id="viewLedgerCard" style="display:none">
+      <div id="viewLedgerBody"></div>
     </div>
 
     <div class="section-title">Statement / Reminder</div>
@@ -468,9 +481,6 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 
     <div class="section-title">Sent Statements <span class="count" id="reminderCount">0</span></div>
     <div class="card"><div id="reminderHistoryList"></div></div>
-
-    <div class="section-title">Recent Entries</div>
-    <div class="card"><div id="subscriptionList"></div></div>
   </section>
 
   <!-- REPORTS / SETTINGS TAB -->
@@ -1227,12 +1237,11 @@ function deleteSelectedDelivery(){
 }
 
 /* ---------------------------------------------------------------
-   SUBSCRIPTION
+   SUBSCRIPTION (ADD / EDIT / DELETE / VIEW)
 --------------------------------------------------------------- */
 function renderSubscriptionTab(){
   document.getElementById('subDate').value = document.getElementById('subDate').value || todayStr();
-  onSubTypeChange();
-  renderSubscriptionList();
+  onSubModeChange();
   if(!document.getElementById('stmtFrom').value){
     document.getElementById('stmtFrom').value = todayStr().slice(0,8) + '01';
   }
@@ -1241,132 +1250,267 @@ function renderSubscriptionTab(){
   }
   renderReminderHistory();
 }
-function onSubCustomerChange(){ updateSubPreview(); }
-function onSubTypeChange(){
-  const type = document.getElementById('subType').value;
-  if(type==='charge'){
-    document.getElementById('subAmountLbl').textContent = 'Monthly charge (\u20B9)';
-    document.getElementById('subBalAfterLbl').textContent = 'Balance (unchanged)';
-  } else {
-    document.getElementById('subAmountLbl').textContent = 'Amount (\u20B9)';
-    document.getElementById('subBalAfterLbl').textContent = 'After top-up';
+
+function onSubModeChange(){
+  const mode = document.getElementById('subMode').value;
+  const entryWrap = document.getElementById('subEntryWrap');
+  const formWrap = document.getElementById('subFormWrap');
+  const ledgerTitle = document.getElementById('viewLedgerTitle');
+  const ledgerCard = document.getElementById('viewLedgerCard');
+  const btn = document.getElementById('subActionBtn');
+  
+  cancelSubscriptionEdit();
+  document.getElementById('subEntry').value = '';
+  
+  if(mode==='add'){
+    entryWrap.style.display = 'none';
+    formWrap.style.display = 'block';
+    ledgerTitle.style.display = 'none';
+    ledgerCard.style.display = 'none';
+    btn.textContent = '\uD83D\uDCBE Save Top-up';
+    btn.className = 'btn btn-primary btn-block';
+    document.getElementById('subDate').value = todayStr();
+    document.getElementById('subAmount').value = '';
+    document.getElementById('subDetails').value = '';
+  } 
+  else if(mode==='edit'){
+    entryWrap.style.display = 'block';
+    formWrap.style.display = 'block';
+    ledgerTitle.style.display = 'none';
+    ledgerCard.style.display = 'none';
+    btn.textContent = '\uD83D\uDCBE Update Top-up';
+    btn.className = 'btn btn-primary btn-block';
+    document.getElementById('subEntryLabel').textContent = 'Top-up to edit';
+    refreshSubEntryOptions();
+  } 
+  else if(mode==='delete'){
+    entryWrap.style.display = 'block';
+    formWrap.style.display = 'none';
+    ledgerTitle.style.display = 'none';
+    ledgerCard.style.display = 'none';
+    btn.textContent = '\uD83D\uDDD1 Delete Top-up';
+    btn.className = 'btn btn-danger btn-block';
+    document.getElementById('subEntryLabel').textContent = 'Top-up to delete';
+    refreshSubEntryOptions();
+  } 
+  else if(mode==='view'){
+    entryWrap.style.display = 'none';
+    formWrap.style.display = 'none';
+    ledgerTitle.style.display = 'block';
+    ledgerCard.style.display = 'block';
+    document.getElementById('viewLedgerBody').innerHTML = '<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">Select a customer to view their ledger.</div></div>';
   }
   updateSubPreview();
 }
+
+function onSubCustomerChange(){
+  const mode = document.getElementById('subMode').value;
+  if(mode==='edit' || mode==='delete'){
+    refreshSubEntryOptions();
+  } else if(mode==='view'){
+    viewCustomerLedger();
+  }
+  updateSubPreview();
+}
+
+function refreshSubEntryOptions(){
+  const mode = document.getElementById('subMode').value;
+  const sel = document.getElementById('subEntry');
+  const custId = document.getElementById('subCustomer').value;
+  const prev = sel.value;
+  
+  if(!custId){
+    sel.innerHTML = '<option value="">-- Select the customer first --</option>';
+    return;
+  }
+  
+  const list = db.subscriptions.filter(s=>s.customerId===custId).slice().sort((a,b)=>{
+    const ka = a.date, kb = b.date;
+    return kb.localeCompare(ka) || (b.ts||0) - (a.ts||0);
+  });
+  
+  if(!list.length){
+    sel.innerHTML = '<option value="">-- No top-ups found --</option>';
+    return;
+  }
+  
+  sel.innerHTML = '<option value="">-- Select (' + list.length + ') --</option>' + list.map(s=>{
+    const isCharge = s.type==='charge';
+    return `<option value="${s.id}">${s.date} \u00B7 ${isCharge?'Charge':'Top-up'} \u00B7 ${money(s.amount)}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</option>`;
+  }).join('');
+  
+  if(prev && list.some(s=>s.id===prev)) sel.value = prev;
+}
+
+function onSubEntryChange(){
+  const id = document.getElementById('subEntry').value;
+  if(!id){
+    document.getElementById('subAmount').value = '';
+    document.getElementById('subDetails').value = '';
+    document.getElementById('subDate').value = todayStr();
+    updateSubPreview();
+    return;
+  }
+  const s = db.subscriptions.find(x=>x.id===id);
+  if(!s) return;
+  
+  document.getElementById('subCustomer').value = s.customerId;
+  document.getElementById('subDate').value = s.date;
+  document.getElementById('subAmount').value = s.amount;
+  document.getElementById('subDetails').value = s.details || '';
+  updateSubPreview();
+}
+
 function updateSubPreview(){
   const custId = document.getElementById('subCustomer').value;
   const amount = parseFloat(document.getElementById('subAmount').value)||0;
-  const type = document.getElementById('subType').value;
   const banner = document.getElementById('subBalBanner');
-  if(custId){
+  const mode = document.getElementById('subMode').value;
+  
+  if(custId && mode !== 'view' && mode !== 'delete'){
     const c = db.customers.find(x=>x.id===custId);
     const cur = c? (c.balance||0):0;
     banner.style.display='flex';
     document.getElementById('subBalCurrent').textContent = money(cur);
-    document.getElementById('subBalAfter').textContent = type==='charge' ? money(cur) : money(cur - amount);
+    document.getElementById('subBalAfter').textContent = money(cur - amount);
   } else {
     banner.style.display='none';
   }
 }
-function saveSubscription(shareWA){
+
+function submitSubscription(){
+  const mode = document.getElementById('subMode').value;
+  if(mode==='delete'){ deleteSelectedSubscription(); return; }
+  
   const custId = document.getElementById('subCustomer').value;
   if(!custId){ toast('Select a customer'); return; }
   const amount = parseFloat(document.getElementById('subAmount').value)||0;
   if(!amount){ toast('Enter an amount'); return; }
-  const type = document.getElementById('subType').value;
   const details = document.getElementById('subDetails').value.trim();
   const date = document.getElementById('subDate').value || todayStr();
 
-  if(editingSubscriptionId){
+  if(mode==='edit' && editingSubscriptionId){
     const old = db.subscriptions.find(x=>x.id===editingSubscriptionId);
     if(old){
+      // Revert old balance
       if(old.type!=='charge'){
         const oldCust = db.customers.find(x=>x.id===old.customerId);
         if(oldCust){ oldCust.balance = round2((oldCust.balance||0) + old.amount); oldCust.updatedAt = Date.now(); }
       }
+      // Apply new balance
       const c = db.customers.find(x=>x.id===custId);
       const before = c.balance||0;
-      const after = type==='charge' ? before : round2(before - amount);
-      Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() });
-      if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
+      const after = round2(before - amount);
+      Object.assign(old, { date, customerId: custId, customerName: c.name, amount, details, balBefore: before, balAfter: after, ts: Date.now() });
+      c.balance = after;
+      c.updatedAt = Date.now();
       cancelSubscriptionEdit();
       saveDB();
       renderSubscriptionTab();
       renderCustomers();
-      toast('Entry updated');
-      if(shareWA) openWhatsApp(buildSubscriptionMessage(old, true), c.phone);
+      toast('Top-up updated');
       return;
     }
   }
 
+  // ADD
   const c = db.customers.find(x=>x.id===custId);
   const before = c.balance||0;
-  const after = type==='charge' ? before : round2(before - amount);
-  if(type!=='charge'){ c.balance = after; c.updatedAt = Date.now(); }
-  const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type, balBefore: before, balAfter: after, ts: Date.now() };
+  const after = round2(before - amount);
+  c.balance = after;
+  c.updatedAt = Date.now();
+  const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type:'topup', balBefore: before, balAfter: after, ts: Date.now() };
   db.subscriptions.unshift(entry);
   saveDB();
   document.getElementById('subAmount').value='';
   document.getElementById('subDetails').value='';
-  renderSubscriptionTab();
+  updateSubPreview();
   renderCustomers();
-  toast(type==='charge' ? 'Monthly charge saved' : 'Top-up saved');
-  if(shareWA) openWhatsApp(buildSubscriptionMessage(entry), c.phone);
+  toast('Top-up saved');
 }
-function openSubscriptionEdit(id){
-  const entry = db.subscriptions.find(x=>x.id===id);
-  if(!entry) return;
+
+function editSubscriptionFromEntry(id){
+  const s = db.subscriptions.find(x=>x.id===id);
+  if(!s) return;
   editingSubscriptionId = id;
-  document.getElementById('subType').value = entry.type||'topup';
-  document.getElementById('subCustomer').value = entry.customerId;
-  document.getElementById('subDate').value = entry.date;
-  document.getElementById('subAmount').value = entry.amount;
-  document.getElementById('subDetails').value = entry.details||'';
-  onSubTypeChange();
-  document.getElementById('subFormMode').style.display = 'block';
-  document.getElementById('subCancelEditBtn').style.display = 'block';
-}
-function cancelSubscriptionEdit(){
-  editingSubscriptionId = null;
-  document.getElementById('subAmount').value='';
-  document.getElementById('subDetails').value='';
-  document.getElementById('subFormMode').style.display = 'none';
-  document.getElementById('subCancelEditBtn').style.display = 'none';
+  document.getElementById('subMode').value = 'edit';
+  onSubModeChange();
+  document.getElementById('subCustomer').value = s.customerId;
+  refreshSubEntryOptions();
+  document.getElementById('subEntry').value = id;
+  document.getElementById('subDate').value = s.date;
+  document.getElementById('subAmount').value = s.amount;
+  document.getElementById('subDetails').value = s.details || '';
   updateSubPreview();
 }
-function deleteSubscription(id){
-  const entry = db.subscriptions.find(x=>x.id===id);
-  if(!entry) return;
-  if(!confirm('Delete this entry?'+(entry.type!=='charge'?' The amount will be removed from the balance.':''))) return;
+
+function deleteSelectedSubscription(){
+  if(!editingSubscriptionId){ toast('Select the top-up to delete'); return; }
+  const entry = db.subscriptions.find(x=>x.id===editingSubscriptionId);
+  if(!entry){ toast('That top-up no longer exists'); return; }
+  if(!confirm('Delete this top-up of ' + money(entry.amount) + ' on ' + entry.date + '? The amount will be removed from the balance.')) return;
+  
   if(entry.type!=='charge'){
     const c = db.customers.find(x=>x.id===entry.customerId);
     if(c){ c.balance = round2((c.balance||0) + entry.amount); c.updatedAt = Date.now(); }
   }
-  db.subscriptions = db.subscriptions.filter(x=>x.id!==id);
-  markDeleted(id);
+  db.subscriptions = db.subscriptions.filter(x=>x.id!==entry.id);
+  markDeleted(entry.id);
   saveDB();
+  editingSubscriptionId = null;
+  document.getElementById('subEntry').value = '';
   renderSubscriptionTab();
   renderCustomers();
-  toast('Entry deleted');
+  toast('Top-up deleted');
 }
-function renderSubscriptionList(){
-  const el = document.getElementById('subscriptionList');
-  const list = db.subscriptions.slice(0,20);
-  if(!list.length){ el.innerHTML = `<div class="empty-state"><div class="ic">\uD83D\uDCB3</div><div class="msg">No entries yet.</div></div>`; return; }
-  el.innerHTML = list.map(s=>{
-    const isCharge = s.type==='charge';
-    return `<div class="list-row">
-      <div class="avatar">${(s.customerName||'?').charAt(0).toUpperCase()}</div>
-      <div class="list-main"><div class="name">${escapeHtml(s.customerName)}</div><div class="meta">${s.date}${isCharge?' \u00B7 Monthly charge':''}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</div></div>
-      <div style="text-align:right">
-        <div class="balance-tag ${isCharge?'balance-zero':'balance-good'}">${isCharge?'':'-'}${money(s.amount)}</div>
-        <div style="display:flex; gap:5px; margin-top:6px">
-          <button class="btn btn-outline btn-sm" onclick="openSubscriptionEdit('${s.id}')">\u270E</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSubscription('${s.id}')">\uD83D\uDDD1</button>
+
+function cancelSubscriptionEdit(){
+  editingSubscriptionId = null;
+  document.getElementById('subAmount').value='';
+  document.getElementById('subDetails').value='';
+  document.getElementById('subDate').value = todayStr();
+  document.getElementById('subFormMode').style.display = 'none';
+  document.getElementById('subCancelEditBtn').style.display = 'none';
+  updateSubPreview();
+}
+
+function viewCustomerLedger(){
+  const custId = document.getElementById('subCustomer').value;
+  const body = document.getElementById('viewLedgerBody');
+  if(!custId){
+    body.innerHTML = '<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">Select a customer to view their ledger.</div></div>';
+    return;
+  }
+  const c = db.customers.find(x=>x.id===custId);
+  const filter = { from: '2000-01-01', to: todayStr(), label: 'Full History' };
+  const L = computeCustomerLedger(custId, filter, '');
+  if(!L){ body.innerHTML = '<div class="empty-state"><div class="msg">Customer not found.</div></div>'; return; }
+  
+  const rowsHtml = L.rows.map(r=>{
+    if(r.type==='topup'){
+      return `<div class="ledger-doc-row" style="background:#F1FAF4;">
+        <div>
+          <div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div>
+          <div class="ld-sub">${r.date}</div>
         </div>
-      </div>
-    </div>`;
+        <div class="ld-amt good">-${money(r.amount)}</div>
+      </div>`;
+    }
+    return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date} \u00B7 ${r.qty} \u00D7 ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
   }).join('');
+  
+  body.innerHTML = `
+    <div class="ledger-doc" style="margin-bottom:12px">
+      <div class="ledger-doc-head">
+        <div class="ld-name">${escapeHtml(c.name)}</div>
+        <div class="ld-period">${money(c.balance||0)} balance</div>
+      </div>
+      <div class="day-summary-row"><span class="k">Total Top-ups</span><span class="v" style="color:var(--good)">-${money(L.topupTotal)}</span></div>
+      <div class="day-summary-row"><span class="k">Total Deliveries</span><span class="v">${money(L.productTotal)}</span></div>
+    </div>
+    <div class="section-title">All Entries (Most Recent First)</div>
+    ${rowsHtml || '<div class="empty-state"><div class="msg">No entries yet.</div></div>'}
+  `;
 }
 
 /* ---------------------------------------------------------------
@@ -1384,21 +1528,6 @@ function buildDeliveryMessage(d, modified){
     `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD/Total: ${money(d.total)}\n` +
     `*\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Remaining Balance: ${money(d.balAfter)}*` +
     (t.footer ? '\n\n' + t.footer : '');
-}
-function buildSubscriptionMessage(s, modified){
-  const isCharge = s.type==='charge';
-  const title = isCharge
-    ? (modified? '\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1')
-    : (modified? '\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1');
-  return `\uD83D\uDCB0 *${title} - Aavin Fresh Milk Stall*\n\n`+
-    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${s.date}\n`+
-    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${s.customerName}\n`+
-    (isCharge
-      ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Monthly charge: ${money(s.amount)}\n`
-      : `\u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F \u0BA4\u0BCA\u0B95\u0BC8/Amount added: ${money(s.amount)}\n`)+
-    (s.details? `\u0BB5\u0BBF\u0BB5\u0BB0\u0BAE\u0BCD/Details: ${s.details}\n`:'')+
-    (isCharge ? '' : `\n\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/New balance: ${money(s.balAfter)}\n`)+
-    `\n\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
 }
 function openWhatsApp(message, phone){
   let url = 'https://wa.me/';
@@ -1753,12 +1882,6 @@ function computeOpeningBalanceAsOf(customerId, fromDate){
   db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal += s.amount; });
   return round2(bal);
 }
-/* --- REPLACED: computeCustomerLedger ---------------------------------
-   - Top-ups ALWAYS included when their date is within the period
-   - Old entries with missing 'type' are treated as top-ups (backward compatible)
-   - Only entries explicitly marked type === 'charge' are excluded
-   - amount NaN-guarded
---------------------------------------------------------------------- */
 function computeCustomerLedger(customerId, filter, productId){
   const c = db.customers.find(x=>x.id===customerId);
   if(!c) return null;
@@ -1766,7 +1889,6 @@ function computeCustomerLedger(customerId, filter, productId){
   const rows = [];
   let otherProductsTotal = 0;
 
-  // Deliveries (unchanged behaviour)
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=filter.from && d.date<=filter.to).forEach(d=>{
     d.items.forEach(it=>{
       const amount = it.qty * it.price;
@@ -1778,8 +1900,6 @@ function computeCustomerLedger(customerId, filter, productId){
     });
   });
 
-  // Top-ups: include every entry whose date falls in the period, UNLESS it is
-  // explicitly a 'charge' entry. Legacy entries without 'type' count as top-ups.
   db.subscriptions.filter(s=>{
     if(s.customerId !== customerId) return false;
     if(s.type === 'charge') return false;
@@ -1811,43 +1931,6 @@ function computeCustomerLedger(customerId, filter, productId){
     topupTotal: round2(topupTotal),
     remaining
   };
-}
-/* --- REPLACED: renderLedgerPreview -----------------------------------
-   - Top-up rows are green-tinted and marked "(collected)"
-   - Adds a small count line so you can immediately verify inclusion
---------------------------------------------------------------------- */
-function renderLedgerPreview(L){
-  const body = document.getElementById('reportBody');
-  const topupCount = L.rows.filter(r=>r.type==='topup').length;
-  const prodCount  = L.rows.filter(r=>r.type==='product').length;
-  const lines = L.rows.length ? L.rows.map(r=>{
-    if(r.type==='topup'){
-      return `<div class="ledger-doc-row" style="background:#F1FAF4;">
-        <div>
-          <div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up (collected)${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div>
-          <div class="ld-sub">${r.date}</div>
-        </div>
-        <div class="ld-amt good">-${money(r.amount)}</div>
-      </div>`;
-    }
-    return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' \u00B7 '+r.time):''} \u00B7 ${r.qty} \u00D7 ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
-  }).join('') : `<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">No deliveries or top-ups in this period.</div></div>`;
-  body.innerHTML = `
-    <div class="ledger-doc">
-      <div class="ledger-doc-head">
-        <div class="ld-name">${escapeHtml(L.customer.name)}</div>
-        <div class="ld-period">${escapeHtml(L.filter.label)}${L.productName?(' \u00B7 '+escapeHtml(L.productName)):''}</div>
-        <div class="ld-period" style="color:#2E7D4F;">${topupCount} top-up(s) \u00B7 ${prodCount} delivery line(s)</div>
-      </div>
-      <div class="day-summary-row"><span class="k">Opening Balance</span><span class="v">${money(L.ob)}</span></div>
-      ${lines}
-      <div class="ledger-doc-foot">
-        <div class="day-summary-row"><span class="k">Total products delivered</span><span class="v">${money(L.productTotal)}</span></div>
-        ${L.otherProductsTotal>0?`<div class="day-summary-row"><span class="k">Other products (hidden by filter)</span><span class="v">${money(L.otherProductsTotal)}</span></div>`:''}
-        <div class="day-summary-row"><span class="k">Total top-ups</span><span class="v">-${money(L.topupTotal)}</span></div>
-        <div class="day-summary-row ld-final"><span class="k">Remaining Balance</span><span class="v ${L.remaining<0?'neg':'pos'}">${money(L.remaining)}</span></div>
-      </div>
-    </div>`;
 }
 function generateReport(){
   const customerId = document.getElementById('repParty').value;
@@ -2451,10 +2534,6 @@ function balanceHint(cid, diff){
   }
   return '';
 }
-/* --- REPLACED: runBalanceCheck --------------------------------------
-   Read-only diagnosis: never writes until the user taps Fix.
-   Uses 'opening + topups - deliveries' as the single source of truth.
---------------------------------------------------------------------- */
 function runBalanceCheck(){
   const box = document.getElementById('balanceCheckBody');
   const rows = db.customers.map(c=>{
@@ -2501,10 +2580,6 @@ function runBalanceCheck(){
 
   box.innerHTML = html;
 }
-/* --- ADDED: bcFixOne / bcFixAllMismatched ---------------------------
-   Only customer.balance is written. Deliveries, top-ups and charges
-   in db.deliveries / db.subscriptions are never modified.
---------------------------------------------------------------------- */
 function bcFixOne(id){
   const r = balanceCheckData().find(x=>x.c.id===id);
   if(!r) return;
