@@ -1753,12 +1753,20 @@ function computeOpeningBalanceAsOf(customerId, fromDate){
   db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=fromDate).forEach(s=>{ bal -= s.amount; });
   return round2(bal);
 }
+/* --- REPLACED: computeCustomerLedger ---------------------------------
+   - Top-ups ALWAYS included when their date is within the period
+   - Old entries with missing 'type' are treated as top-ups (backward compatible)
+   - Only entries explicitly marked type === 'charge' are excluded
+   - amount NaN-guarded
+--------------------------------------------------------------------- */
 function computeCustomerLedger(customerId, filter, productId){
   const c = db.customers.find(x=>x.id===customerId);
   if(!c) return null;
   const ob = computeOpeningBalanceAsOf(customerId, filter.from);
   const rows = [];
   let otherProductsTotal = 0;
+
+  // Deliveries (unchanged behaviour)
   db.deliveries.filter(d=>d.customerId===customerId && d.date>=filter.from && d.date<=filter.to).forEach(d=>{
     d.items.forEach(it=>{
       const amount = it.qty * it.price;
@@ -1769,21 +1777,58 @@ function computeCustomerLedger(customerId, filter, productId){
       }
     });
   });
-  db.subscriptions.filter(s=>s.customerId===customerId && s.type!=='charge' && s.date>=filter.from && s.date<=filter.to).forEach(s=>{
-    rows.push({ type:'topup', date:s.date, time:'', ts:s.ts||0, amount:s.amount, details:s.details||'' });
+
+  // Top-ups: include every entry whose date falls in the period, UNLESS it is
+  // explicitly a 'charge' entry. Legacy entries without 'type' count as top-ups.
+  db.subscriptions.filter(s=>{
+    if(s.customerId !== customerId) return false;
+    if(s.type === 'charge') return false;
+    if(!s.date) return false;
+    return s.date >= filter.from && s.date <= filter.to;
+  }).forEach(s=>{
+    rows.push({
+      type:'topup',
+      date:s.date,
+      time:'',
+      ts:s.ts||0,
+      amount: Number(s.amount)||0,
+      details:s.details||''
+    });
   });
+
   rows.sort((a,b)=> a.date===b.date ? (a.ts-b.ts) : (a.date<b.date?-1:1));
   const productTotal = rows.filter(r=>r.type==='product').reduce((s,r)=>s+r.amount,0);
-  const topupTotal = rows.filter(r=>r.type==='topup').reduce((s,r)=>s+r.amount,0);
-  const remaining = round2(ob - productTotal - otherProductsTotal + topupTotal);
+  const topupTotal   = rows.filter(r=>r.type==='topup').reduce((s,r)=>s+r.amount,0);
+  const remaining    = round2(ob - productTotal - otherProductsTotal + topupTotal);
   const prod = productId ? db.products.find(p=>p.id===productId) : null;
-  return { customer:c, filter, productId, productName: prod?prod.name:'', ob, rows, productTotal: round2(productTotal), otherProductsTotal: round2(otherProductsTotal), topupTotal: round2(topupTotal), remaining };
+
+  return {
+    customer:c, filter, productId,
+    productName: prod?prod.name:'',
+    ob, rows,
+    productTotal: round2(productTotal),
+    otherProductsTotal: round2(otherProductsTotal),
+    topupTotal: round2(topupTotal),
+    remaining
+  };
 }
+/* --- REPLACED: renderLedgerPreview -----------------------------------
+   - Top-up rows are green-tinted and marked "(collected)"
+   - Adds a small count line so you can immediately verify inclusion
+--------------------------------------------------------------------- */
 function renderLedgerPreview(L){
   const body = document.getElementById('reportBody');
+  const topupCount = L.rows.filter(r=>r.type==='topup').length;
+  const prodCount  = L.rows.filter(r=>r.type==='product').length;
   const lines = L.rows.length ? L.rows.map(r=>{
     if(r.type==='topup'){
-      return `<div class="ledger-doc-row"><div><div class="ld-main">\uD83D\uDCB0 Top-up${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div><div class="ld-sub">${r.date}</div></div><div class="ld-amt good">+${money(r.amount)}</div></div>`;
+      return `<div class="ledger-doc-row" style="background:#F1FAF4;">
+        <div>
+          <div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up (collected)${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div>
+          <div class="ld-sub">${r.date}</div>
+        </div>
+        <div class="ld-amt good">+${money(r.amount)}</div>
+      </div>`;
     }
     return `<div class="ledger-doc-row"><div><div class="ld-main">${escapeHtml(r.name)}</div><div class="ld-sub">${r.date}${r.time?(' \u00B7 '+r.time):''} \u00B7 ${r.qty} \u00D7 ${money(r.rate)}</div></div><div class="ld-amt">${money(r.amount)}</div></div>`;
   }).join('') : `<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">No deliveries or top-ups in this period.</div></div>`;
@@ -1792,6 +1837,7 @@ function renderLedgerPreview(L){
       <div class="ledger-doc-head">
         <div class="ld-name">${escapeHtml(L.customer.name)}</div>
         <div class="ld-period">${escapeHtml(L.filter.label)}${L.productName?(' \u00B7 '+escapeHtml(L.productName)):''}</div>
+        <div class="ld-period" style="color:#2E7D4F;">${topupCount} top-up(s) \u00B7 ${prodCount} delivery line(s)</div>
       </div>
       <div class="day-summary-row"><span class="k">Opening Balance</span><span class="v">${money(L.ob)}</span></div>
       ${lines}
@@ -2405,7 +2451,94 @@ function balanceHint(cid, diff){
   }
   return '';
 }
-function runBalanceCheck(){ renderBalanceCheck(); }
+/* --- REPLACED: runBalanceCheck --------------------------------------
+   Read-only diagnosis: never writes until the user taps Fix.
+   Uses 'opening + topups - deliveries' as the single source of truth.
+--------------------------------------------------------------------- */
+function runBalanceCheck(){
+  const box = document.getElementById('balanceCheckBody');
+  const rows = db.customers.map(c=>{
+    const st = balanceStats(c.id);
+    const stored = round2(c.balance||0);
+    if(typeof c.opening === 'number'){
+      const want = round2(c.opening + st.net);
+      return { c, st, stored, want, ok: Math.abs(stored-want) < 0.004 };
+    }
+    return { c, st, stored, want: null, ok: null };   // legacy, no opening set
+  });
+
+  const ok      = rows.filter(r=>r.ok===true);
+  const bad     = rows.filter(r=>r.ok===false).sort((a,b)=>Math.abs(b.stored-b.want)-Math.abs(a.stored-a.want));
+  const legacy  = rows.filter(r=>r.ok===null);
+
+  let html = `<div class="day-summary-row"><span class="k">Customers checked</span><span class="v">${rows.length}</span></div>
+    <div class="day-summary-row"><span class="k">\u2705 Correct</span><span class="v" style="color:var(--good)">${ok.length}</span></div>
+    <div class="day-summary-row"><span class="k">\u274C Mismatch</span><span class="v" style="color:var(--bad)">${bad.length}</span></div>
+    ${legacy.length?`<div class="day-summary-row"><span class="k">\u26AA No opening set (legacy)</span><span class="v">${legacy.length}</span></div>`:''}`;
+
+  if(bad.length){
+    html += `<button class="btn btn-primary btn-block" style="margin-top:10px" onclick="bcFixAllMismatched()">Fix all ${bad.length} mismatch(es)</button>`;
+    html += bad.map(r=>`
+      <div class="bc-row">
+        <div class="bc-name">${escapeHtml(r.c.name)}</div>
+        <div class="bc-line">Stored balance: <b>${money(r.stored)}</b></div>
+        <div class="bc-line">Top-ups ${money(r.st.topups)} \u2212 deliveries ${money(r.st.deliveries)} = ${money(r.st.net)}</div>
+        <div class="bc-line">Opening ${money(r.c.opening)} + ${money(r.st.net)} = <b>${money(r.want)}</b></div>
+        <div class="bc-hint">Diff ${money(r.stored - r.want)}</div>
+        <div class="bc-btns">
+          <button class="btn btn-primary btn-sm" onclick="bcFixOne('${r.c.id}')">Fix</button>
+        </div>
+      </div>`).join('');
+  } else if(!legacy.length){
+    html += `<div class="desc" style="font-size:12px; color:var(--good); margin-top:10px">All balances match opening + top-ups \u2212 deliveries.</div>`;
+  }
+
+  if(legacy.length){
+    html += `<div class="desc" style="font-size:11.5px; color:#7C8B8E; margin-top:10px">
+      ${legacy.length} customer(s) don't have an <code>opening</code> value yet. Open the Balance Check dialog from their card (or add an opening balance to seed them) to include them in future checks. Entries are never changed by this tool.
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+/* --- ADDED: bcFixOne / bcFixAllMismatched ---------------------------
+   Only customer.balance is written. Deliveries, top-ups and charges
+   in db.deliveries / db.subscriptions are never modified.
+--------------------------------------------------------------------- */
+function bcFixOne(id){
+  const r = balanceCheckData().find(x=>x.c.id===id);
+  if(!r) return;
+  const opening = (typeof r.c.opening === 'number') ? r.c.opening : (r.cand||0);
+  const want = round2(opening + r.st.net);
+  if(!confirm(`${r.c.name}\n\nCurrent balance: ${money(r.c.balance||0)}\nCorrect balance: ${money(want)}\n\nFix the balance? (Deliveries and top-ups are NOT touched.)`)) return;
+  r.c.balance = want;
+  if(typeof r.c.opening !== 'number') r.c.opening = opening;
+  r.c.updatedAt = Date.now();
+  saveDB();
+  renderBalanceCheck();
+  renderCustomers();
+  toast(`${r.c.name} fixed \u2192 ${money(want)}`);
+}
+function bcFixAllMismatched(){
+  const rows = balanceCheckData().filter(r=>{
+    if(typeof r.c.opening !== 'number') return false;
+    const want = round2(r.c.opening + r.st.net);
+    return Math.abs((r.c.balance||0) - want) > 0.004;
+  });
+  if(!rows.length){ toast('No mismatches found'); return; }
+  if(!confirm(`Fix ${rows.length} customer(s)? Only the balance field is rewritten \u2014 deliveries, top-ups, and charges are untouched.`)) return;
+  let n = 0;
+  rows.forEach(r=>{
+    r.c.balance = round2(r.c.opening + r.st.net);
+    r.c.updatedAt = Date.now();
+    n++;
+  });
+  saveDB();
+  renderBalanceCheck();
+  renderCustomers();
+  toast(`${n} customer(s) fixed`);
+}
+
 function bcOpeningFor(r){
   const inp = document.getElementById('bcOpen_' + r.c.id);
   const v = inp ? parseFloat(inp.value) : NaN;
