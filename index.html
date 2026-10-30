@@ -420,7 +420,12 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
           <select id="subEntry" onchange="onSubEntryChange()"><option value="">-- Select the customer first --</option></select>
         </div>
       </div>
-
+<div id="subEntryWrap" style="display:none">
+  <div class="field">
+    <label id="subEntryLabel">Select Top-up</label>
+    <select id="subEntry" onchange="onSubEntryChange()"><option value="">-- Select the customer first --</option></select>
+  </div>
+</div>
       <div class="bal-banner" id="subBalBanner" style="display:none">
         <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">&#8377;0</div></div>
         <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">&#8377;0</div></div>
@@ -440,7 +445,10 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
     <div class="card" id="viewLedgerCard" style="display:none">
       <div id="viewLedgerBody"></div>
     </div>
-
+<div class="section-title" id="viewLedgerTitle" style="display:none">Customer Ledger (View Mode)</div>
+<div class="card" id="viewLedgerCard" style="display:none">
+  <div id="viewLedgerBody"></div>
+</div>
     <div class="section-title">Statement / Reminder</div>
     <div class="card">
       <div class="field">
@@ -1304,7 +1312,7 @@ function onSubModeChange(){
 }
 
 function onSubCustomerChange(){
-  const mode = document.getElementById('subMode').value;
+  const mode = document.getElementById('subMode') ? document.getElementById('subMode').value : 'add';
   if(mode==='edit' || mode==='delete'){
     refreshSubEntryOptions();
   } else if(mode==='view'){
@@ -1334,8 +1342,7 @@ function refreshSubEntryOptions(){
   }
   
   sel.innerHTML = '<option value="">-- Select (' + list.length + ') --</option>' + list.map(s=>{
-    const isCharge = s.type==='charge';
-    return `<option value="${s.id}">${s.date} \u00B7 ${isCharge?'Charge':'Top-up'} \u00B7 ${money(s.amount)}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</option>`;
+    return `<option value="${s.id}">${s.date} \u00B7 ${money(s.amount)}${s.details?(' \u00B7 '+escapeHtml(s.details)):''}</option>`;
   }).join('');
   
   if(prev && list.some(s=>s.id===prev)) sel.value = prev;
