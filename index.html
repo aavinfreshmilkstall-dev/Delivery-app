@@ -1458,6 +1458,7 @@ function cancelSubscriptionEdit(){
 function viewCustomerLedger(){
   const custId = document.getElementById('subCustomer').value;
   const body = document.getElementById('viewLedgerBody');
+  if(!body) return;
   if(!custId){
     body.innerHTML = '<div class="empty-state"><div class="ic">\uD83D\uDCCB</div><div class="msg">Select a customer to view their ledger.</div></div>';
     return;
@@ -1470,10 +1471,7 @@ function viewCustomerLedger(){
   const rowsHtml = L.rows.map(r=>{
     if(r.type==='topup'){
       return `<div class="ledger-doc-row" style="background:#F1FAF4;">
-        <div>
-          <div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div>
-          <div class="ld-sub">${r.date}</div>
-        </div>
+        <div><div class="ld-main" style="color:#2E7D4F;">\uD83D\uDCB5 Top-up${r.details?(' \u00B7 '+escapeHtml(r.details)):''}</div><div class="ld-sub">${r.date}</div></div>
         <div class="ld-amt good">-${money(r.amount)}</div>
       </div>`;
     }
@@ -1482,14 +1480,11 @@ function viewCustomerLedger(){
   
   body.innerHTML = `
     <div class="ledger-doc" style="margin-bottom:12px">
-      <div class="ledger-doc-head">
-        <div class="ld-name">${escapeHtml(c.name)}</div>
-        <div class="ld-period">${money(c.balance||0)} balance</div>
-      </div>
+      <div class="ledger-doc-head"><div class="ld-name">${escapeHtml(c.name)}</div><div class="ld-period">${money(c.balance||0)} balance</div></div>
       <div class="day-summary-row"><span class="k">Total Top-ups</span><span class="v" style="color:var(--good)">-${money(L.topupTotal)}</span></div>
       <div class="day-summary-row"><span class="k">Total Deliveries</span><span class="v">${money(L.productTotal)}</span></div>
     </div>
-    <div class="section-title">All Entries (Most Recent First)</div>
+    <div class="section-title">All Entries</div>
     ${rowsHtml || '<div class="empty-state"><div class="msg">No entries yet.</div></div>'}
   `;
 }
@@ -1596,8 +1591,6 @@ function renderStmtProdGrid(){
   const days = stmtDaysCount();
   document.getElementById('stmtDaysNote').textContent = days ? `\uD83D\uDCC5 ${days} day${days===1?'':'s'} in this period` : '';
 
-  // Build a combined product list: current catalog + any cart entries whose
-  // product was deleted (so historical statement lines still show correctly)
   const rows = [];
   db.products.forEach(p=>{
     if(q && !p.name.toLowerCase().includes(q) && !(stmtCart[p.id])) return;
@@ -1614,7 +1607,7 @@ function renderStmtProdGrid(){
     });
   });
   Object.entries(stmtCart).forEach(([pid, cart])=>{
-    if(db.products.some(p=>p.id===pid)) return; // already added above
+    if(db.products.some(p=>p.id===pid)) return;
     rows.push({
       id: pid,
       name: cart.name || '(deleted product)',
@@ -1664,12 +1657,10 @@ function setStmtPerDay(id, perDay){
   const existing = stmtCart[id];
   if(perDay <= 0){ delete stmtCart[id]; }
   else {
-    // Preserve exact total when possible: if perDay came from a whole number of packs,
-    // store it as exact. Otherwise store the exact fraction.
     const p = db.products.find(x=>x.id===id);
     stmtCart[id] = {
       perDay: perDay,
-      totalQty: perDay * days,         // exact fraction preserved
+      totalQty: perDay * days,
       name: existing ? existing.name : (p ? p.name : ''),
       price: existing ? existing.price : (p ? p.price : 0)
     };
@@ -2346,7 +2337,6 @@ function exportWhatsAppBackup(){
 --------------------------------------------------------------- */
 function closeOverlay(id){
   document.getElementById(id).classList.remove('open');
-  // Revoke any object URL from the bill preview to prevent memory leak
   if(id === 'billPreviewOverlay'){
     const img = document.getElementById('billPreviewImg');
     if(img && img.dataset.url){ URL.revokeObjectURL(img.dataset.url); delete img.dataset.url; img.src=''; }
@@ -2380,7 +2370,6 @@ function initGoogle(){
         const secs = Number(resp.expires_in) || 3600;
         tokenExpiresAt = Date.now() + secs*1000;
         syncPaused = false;
-        // Remember that this device has connected before - gates future silent reconnects
         if(!db.meta.driveEverConnected){ db.meta.driveEverConnected = true; saveDB(); }
         scheduleTokenRefresh(secs);
         setSyncStatus(true);
@@ -2390,7 +2379,6 @@ function initGoogle(){
     },
     error_callback: ()=>{ /* user can still tap Connect */ }
   });
-  // Silent reconnect ONLY if this device has connected before
   if(db.meta.driveEverConnected){
     setTimeout(()=>{
       try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){}
@@ -2483,9 +2471,6 @@ async function driveLoadAndMerge(silent){
     }
   }catch(e){ console.error(e); if(!silent && !syncPaused) toast('Sync failed - check connection'); }
 }
-/* ---------------------------------------------------------------
-   BALANCES: calculated from entries
---------------------------------------------------------------- */
 function reconcileCustomerBalances(d){
   const tops = {}, dels = {};
   (d.subscriptions||[]).forEach(s=>{ if(s.type!=='charge') tops[s.customerId] = (tops[s.customerId]||0) + s.amount; });
@@ -2539,7 +2524,7 @@ function runBalanceCheck(){
       const want = round2(c.opening - st.net);
       return { c, st, stored, want, ok: Math.abs(stored-want) < 0.004 };
     }
-    return { c, st, stored, want: null, ok: null };   // legacy, no opening set
+    return { c, st, stored, want: null, ok: null };
   });
 
   const ok      = rows.filter(r=>r.ok===true);
@@ -2695,7 +2680,6 @@ function mergeDB(local, remote){
   if(!remote) return local;
   const merged = { products:[], customers:[], subscriptions:[], deliveries:[], reminders:[], settings: {}, deleted: {}, meta: local.meta||{} };
 
-  // Merge deleted tombstones bidirectionally. Any id deleted on either side stays deleted everywhere.
   merged.deleted = Object.assign({}, remote.deleted||{}, local.deleted||{});
   {
     const ls = local.settings, rs = remote.settings;
@@ -2735,7 +2719,6 @@ function mergeDB(local, remote){
   ['products','customers','subscriptions','deliveries','reminders'].forEach(key=>{
     merged[key] = merged[key].filter(x=>!merged.deleted[x.id]);
   });
-  // Remember the local meta.driveEverConnected flag
   merged.meta = Object.assign({}, local.meta||{}, remote.meta||{});
   if(local.meta && local.meta.driveEverConnected) merged.meta.driveEverConnected = true;
   if(remote.meta && remote.meta.driveEverConnected) merged.meta.driveEverConnected = true;
