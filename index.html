@@ -330,6 +330,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 </header>
 
 <main>
+
   <!-- DELIVERY TAB -->
   <section class="tab-panel active" id="tab-delivery">
     <div class="section-title">&#2951;&#2985;&#3021;&#2993;&#3016;&#2991; &#2975;&#3014;&#2994;&#3007;&#2997;&#2992;&#3007; <span class="count" id="todayCount">0</span></div>
@@ -381,104 +382,102 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       <button class="btn btn-primary btn-block" id="delActionBtn" onclick="submitDelivery()">&#128190; Save Delivery</button>
     </div>
   </section>
+<!-- PRODUCTS TAB -->
+<section class="tab-panel" id="tab-products">
+  <div class="section-title">Products <span class="count" id="prodCount">0</span></div>
+  <div class="prod-grid" id="productGrid"></div>
+</section>
 
-  <!-- PRODUCTS TAB -->
-  <section class="tab-panel" id="tab-products">
-    <div class="section-title">Products <span class="count" id="prodCount">0</span></div>
-    <div class="prod-grid" id="productGrid"></div>
-  </section>
+<!-- CUSTOMERS TAB -->
+<section class="tab-panel" id="tab-customers">
+  <div class="section-title">Customers <span class="count" id="custCount">0</span></div>
+  <div class="search-bar"><span>&#128269;</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
+  <div class="card"><div id="customerList"></div></div>
+</section>
 
-  <!-- CUSTOMERS TAB -->
-  <section class="tab-panel" id="tab-customers">
-    <div class="section-title">Customers <span class="count" id="custCount">0</span></div>
-    <div class="search-bar"><span>&#128269;</span><input placeholder="Search name or phone..." oninput="renderCustomers(this.value)"></div>
-    <div class="card"><div id="customerList"></div></div>
-  </section>
-
-  <!-- SUBSCRIPTION TAB -->
-  <section class="tab-panel" id="tab-subscription">
-    <div class="section-title">Subscription</div>
-    <div class="card">
+<!-- SUBSCRIPTION TAB -->
+<section class="tab-panel" id="tab-subscription">
+  <div class="section-title">Subscription</div>
+  <div class="card">
+    <div class="field">
+      <label>Mode</label>
+      <select id="subMode" onchange="onSubModeChange()">
+        <option value="add">Add Top-up</option>
+        <option value="edit">Edit Top-up</option>
+        <option value="delete">Delete Top-up</option>
+        <option value="view">View Customer Ledger</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Customer</label>
+      <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
+    </div>
+    <div id="subEntryWrap" style="display:none">
       <div class="field">
-        <label>Mode</label>
-        <select id="subMode" onchange="onSubModeChange()">
-          <option value="add">Add Top-up</option>
-          <option value="edit">Edit Top-up</option>
-          <option value="delete">Delete Top-up</option>
-          <option value="view">View Customer Ledger</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Customer</label>
-        <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
-      </div>
-      <div id="subEntryWrap" style="display:none">
-        <div class="field">
-          <label id="subEntryLabel">Select Top-up</label>
-          <select id="subEntry" onchange="onSubEntryChange()"><option value="">-- Select the customer first --</option></select>
-        </div>
-      </div>
-      <div class="bal-banner" id="subBalBanner" style="display:none">
-        <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">&#8377;0</div></div>
-        <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">&#8377;0</div></div>
-      </div>
-      <div id="subFormWrap">
-        <div class="row2">
-          <div class="field"><label>Date</label><input type="date" id="subDate"></div>
-          <div class="field"><label>Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
-        </div>
-        <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
-        <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
+        <label id="subEntryLabel">Select Top-up</label>
+        <select id="subEntry" onchange="onSubEntryChange()"><option value="">-- Select the customer first --</option></select>
       </div>
     </div>
-
-    <div class="section-title" id="viewLedgerTitle" style="display:none">Customer Ledger (View Mode)</div>
-    <div class="card" id="viewLedgerCard" style="display:none">
-      <div id="viewLedgerBody"></div>
+    <div class="bal-banner" id="subBalBanner" style="display:none">
+      <div><div class="lbl" id="subBalCurrentLbl">Current balance</div><div class="val" id="subBalCurrent">&#8377;0</div></div>
+      <div><div class="lbl" id="subBalAfterLbl">After top-up</div><div class="val" id="subBalAfter">&#8377;0</div></div>
     </div>
-
-    <div class="section-title">Statement / Reminder</div>
-    <div class="card">
-      <div class="field">
-        <label>Customer</label>
-        <select id="stmtCustomer" onchange="onStmtCustomerChange()"><option value="">-- Select --</option></select>
-      </div>
+    <div id="subFormWrap">
       <div class="row2">
-        <div class="field"><label>From date</label><input type="date" id="stmtFrom" onchange="onStmtRangeChange()"></div>
-        <div class="field"><label>To date</label><input type="date" id="stmtTo" onchange="onStmtRangeChange()"></div>
+        <div class="field"><label>Date</label><input type="date" id="subDate"></div>
+        <div class="field"><label>Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
       </div>
-      <div id="stmtDaysNote" style="font-size:12px; color:#7C8B8E; margin:-6px 0 12px 2px;"></div>
-      <div class="field">
-        <label>Opening Balance (&#8377;) &#8212; auto-filled, editable</label>
-        <input type="number" id="stmtOB" oninput="updateStmtTotals()">
-      </div>
-      <div class="field">
-        <label>Products &#8212; pcs PER DAY (auto-averaged from deliveries, editable) &#215; days = total</label>
-        <div class="search-bar"><span>&#128269;</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
-        <div class="prod-grid" id="stmtProdGrid"></div>
-      </div>
-      <div class="field">
-        <label>Delivery / Service Charge (&#8377;) &#8212; manual</label>
-        <input type="number" id="stmtDeliveryCharge" placeholder="0" oninput="updateStmtTotals()">
-      </div>
-      <div class="total-strip">
-        <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">&#8377;0</div></div>
-        <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">&#8377;0</div></div>
-      </div>
-      <div class="field">
-        <label>Message (auto-built, editable before sending)</label>
-        <textarea id="stmtMessage" rows="6" placeholder="Select a customer and date range to auto-fill a statement message"></textarea>
-      </div>
-      <div style="display:flex; gap:8px">
-        <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">&#128242; Send WhatsApp</button>
-        <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">&#128172; Send SMS</button>
-      </div>
+      <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
+      <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
     </div>
+  </div>
 
-    <div class="section-title">Sent Statements <span class="count" id="reminderCount">0</span></div>
-    <div class="card"><div id="reminderHistoryList"></div></div>
-  </section>
+  <div class="section-title" id="viewLedgerTitle" style="display:none">Customer Ledger (View Mode)</div>
+  <div class="card" id="viewLedgerCard" style="display:none">
+    <div id="viewLedgerBody"></div>
+  </div>
 
+  <div class="section-title">Statement / Reminder</div>
+  <div class="card">
+    <div class="field">
+      <label>Customer</label>
+      <select id="stmtCustomer" onchange="onStmtCustomerChange()"><option value="">-- Select --</option></select>
+    </div>
+    <div class="row2">
+      <div class="field"><label>From date</label><input type="date" id="stmtFrom" onchange="onStmtRangeChange()"></div>
+      <div class="field"><label>To date</label><input type="date" id="stmtTo" onchange="onStmtRangeChange()"></div>
+    </div>
+    <div id="stmtDaysNote" style="font-size:12px; color:#7C8B8E; margin:-6px 0 12px 2px;"></div>
+    <div class="field">
+      <label>Opening Balance (&#8377;) &#8212; auto-filled, editable</label>
+      <input type="number" id="stmtOB" oninput="updateStmtTotals()">
+    </div>
+    <div class="field">
+      <label>Products &#8212; pcs PER DAY (auto-averaged from deliveries, editable) &#215; days = total</label>
+      <div class="search-bar"><span>&#128269;</span><input id="stmtProdSearch" placeholder="Search product..." oninput="renderStmtProdGrid()"></div>
+      <div class="prod-grid" id="stmtProdGrid"></div>
+    </div>
+    <div class="field">
+      <label>Delivery / Service Charge (&#8377;) &#8212; manual</label>
+      <input type="number" id="stmtDeliveryCharge" placeholder="0" oninput="updateStmtTotals()">
+    </div>
+    <div class="total-strip">
+      <div><div class="t-label">Products Total</div><div class="t-val" id="stmtProdTotal">&#8377;0</div></div>
+      <div style="text-align:right"><div class="t-label">Total Balance</div><div class="t-val" id="stmtTotal">&#8377;0</div></div>
+    </div>
+    <div class="field">
+      <label>Message (auto-built, editable before sending)</label>
+      <textarea id="stmtMessage" rows="6" placeholder="Select a customer and date range to auto-fill a statement message"></textarea>
+    </div>
+    <div style="display:flex; gap:8px">
+      <button class="btn btn-wa btn-block" onclick="sendStatement('whatsapp')">&#128242; Send WhatsApp</button>
+      <button class="btn btn-clay btn-block" onclick="sendStatement('sms')">&#128172; Send SMS</button>
+    </div>
+  </div>
+
+  <div class="section-title">Sent Statements <span class="count" id="reminderCount">0</span></div>
+  <div class="card"><div id="reminderHistoryList"></div></div>
+</section>
   <!-- REPORTS / SETTINGS TAB -->
   <section class="tab-panel" id="tab-settings">
     <div class="section-title">Today's Summary</div>
@@ -600,6 +599,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 </nav>
 
 <button class="fab" id="fabBtn" onclick="openCustomerForm()">&#65291;</button>
+
 <!-- Customer Add/Edit Sheet -->
 <div class="overlay" id="customerOverlay">
   <div class="sheet">
@@ -690,13 +690,9 @@ function loadDB(){
     if(raw){
       const parsed = JSON.parse(raw);
       if(isValidDBShape(parsed)) return parsed;
-      // Corrupt or partial write - preserve it before starting fresh
       try{ localStorage.setItem(DB_KEY + '_corrupt_backup_' + Date.now(), raw); }catch(e){}
-      console.error('Local DB corrupt - backed up and starting fresh');
     }
-  }catch(e){
-    console.error('loadDB parse failed', e);
-  }
+  }catch(e){}
   return emptyDB();
 }
 function saveDB(){
@@ -705,7 +701,6 @@ function saveDB(){
     scheduleAutoSync();
     return true;
   }catch(e){
-    console.error('Local save failed', e);
     showToast('SAVE FAILED: storage full — download a backup NOW', true);
     return false;
   }
@@ -714,7 +709,6 @@ function markDeleted(id){ db.deleted = db.deleted || {}; db.deleted[id] = Date.n
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function money(n){ n = Number(n)||0; return '\u20B9' + n.toLocaleString('en-IN', {maximumFractionDigits:2}); }
 function round2(n){ return Math.round((Number(n)||0) * 100) / 100; }
-// Business date is India Standard Time regardless of device timezone
 function istParts(){
   const p = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date());
   const o={}; p.forEach(x=>{if(x.type!=='literal') o[x.type]=x.value;}); return o;
@@ -875,6 +869,7 @@ function renderProducts(){
   grid.innerHTML = html;
 }
 function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 /* ---------------------------------------------------------------
    CUSTOMERS
 --------------------------------------------------------------- */
@@ -1229,7 +1224,6 @@ function deleteSelectedDelivery(){
   renderCustomers();
   toast('Delivery deleted');
 }
-
 /* ---------------------------------------------------------------
    SUBSCRIPTION (ADD / EDIT / DELETE / VIEW)
 --------------------------------------------------------------- */
@@ -1296,6 +1290,7 @@ function onSubModeChange(){
   }
   updateSubPreview();
 }
+
 function onSubCustomerChange(){
   const mode = document.getElementById('subMode').value;
   if(mode==='edit' || mode==='delete'){
@@ -1354,7 +1349,6 @@ function onSubEntryChange(){
   document.getElementById('subDetails').value = s.details || '';
   updateSubPreview();
 }
-
 function updateSubPreview(){
   const custId = document.getElementById('subCustomer').value;
   const amount = parseFloat(document.getElementById('subAmount').value)||0;
@@ -1447,7 +1441,6 @@ function cancelSubscriptionEdit(){
   document.getElementById('subDate').value = todayStr();
   updateSubPreview();
 }
-
 function viewCustomerLedger(){
   const custId = document.getElementById('subCustomer').value;
   const body = document.getElementById('viewLedgerBody');
@@ -1481,6 +1474,7 @@ function viewCustomerLedger(){
     ${rowsHtml || '<div class="empty-state"><div class="msg">No entries yet.</div></div>'}
   `;
 }
+
 /* ---------------------------------------------------------------
    WHATSAPP MESSAGING & STATEMENTS
 --------------------------------------------------------------- */
@@ -1572,10 +1566,7 @@ function renderStmtProdGrid(){
     if(q && !p.name.toLowerCase().includes(q) && !(stmtCart[p.id])) return;
     const cart = stmtCart[p.id];
     rows.push({
-      id: p.id,
-      name: p.name,
-      icon: p.icon,
-      photo: p.photo,
+      id: p.id, name: p.name, icon: p.icon, photo: p.photo,
       price: cart ? cart.price : p.price,
       perDay: cart ? cart.perDay : 0,
       totalQty: cart ? cart.totalQty : 0,
@@ -1585,14 +1576,8 @@ function renderStmtProdGrid(){
   Object.entries(stmtCart).forEach(([pid, cart])=>{
     if(db.products.some(p=>p.id===pid)) return; 
     rows.push({
-      id: pid,
-      name: cart.name || '(deleted product)',
-      icon: '\uD83E\uDD5B',
-      photo: '',
-      price: cart.price,
-      perDay: cart.perDay,
-      totalQty: cart.totalQty,
-      deleted: true
+      id: pid, name: cart.name || '(deleted product)', icon: '\uD83E\uDD5B', photo: '',
+      price: cart.price, perDay: cart.perDay, totalQty: cart.totalQty, deleted: true
     });
   });
 
@@ -1694,7 +1679,7 @@ function buildStatementMessage(c, from, to, ob, items, deliveryCharge, total){
     periodLine+
     `\u0BAE\u0BC1\u0BA8\u0BCD\u0BA4\u0BC8\u0BAF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Opening Balance: ${money(ob)}\n`+
     itemLines+
-    (deliveryCharge ? `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
+    (deliveryCharge ? `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BBD/Delivery Charge: ${money(deliveryCharge)}\n` : '')+
     `\n${dueOrCredit}\n\n`+
     `\u0BA4\u0BAF\u0BB5\u0BC1\u0B9A\u0BC6\u0BAF\u0BCD\u0BA4\u0BC1 \u0BB5\u0BBF\u0BB0\u0BC8\u0BB5\u0BBF\u0BB2\u0BCD \u0BA8\u0BBF\u0BB2\u0BC1\u0BB5\u0BC8\u0BA4\u0BCD \u0BA4\u0BCA\u0B95\u0BC8\u0BAF\u0BC8 \u0B9A\u0BC6\u0BB2\u0BC1\u0BA4\u0BCD\u0BA4\u0BB5\u0BC1\u0BAE\u0BCD.\nKindly settle at your convenience.\n\n`+
     `\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF!\nAavin Fresh Milk Stall - 1958`;
@@ -2217,7 +2202,6 @@ async function previewBillTemplate(){
     toast('Could not create the preview');
   }
 }
-
 /* ---------------------------------------------------------------
    SEND ONE IMAGE TO ALL CUSTOMERS
 --------------------------------------------------------------- */
@@ -2296,7 +2280,6 @@ async function bulkShareCurrent(){
 }
 function bulkNext(){ bulk.index++; renderBulkSendPanel(); }
 function stopBulkSend(){ bulk.index = -1; bulk.list = []; renderBulkSendPanel(); }
-
 function exportExcel(){
   if(typeof XLSX === 'undefined'){
     toast('Excel export needs internet the first time - try again once online');
@@ -2352,7 +2335,6 @@ function closeOverlay(id){
 document.querySelectorAll('.overlay').forEach(o=>{
   o.addEventListener('click', e=>{ if(e.target===o) closeOverlay(o.id); });
 });
-
 /* ---------------------------------------------------------------
    GOOGLE DRIVE SYNC
 --------------------------------------------------------------- */
@@ -2477,6 +2459,66 @@ async function driveLoadAndMerge(silent){
     }
   }catch(e){ console.error(e); if(!silent && !syncPaused) toast('Sync failed - check connection'); }
 }
+async function driveSave(){
+  if(!accessToken) return;
+  try{
+    const id = driveFileId || await driveFindFile();
+    const metadata = { name: DRIVE_FILE_NAME, parents: id?undefined:['appDataFolder'] };
+    const boundary = '-------aavin' + Date.now();
+    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(db)}\r\n--${boundary}--`;
+    const url = id
+      ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
+      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
+    const res = await driveFetch(url, {
+      method: id? 'PATCH':'POST',
+      headers:{ 'Content-Type':`multipart/related; boundary=${boundary}` },
+      body
+    });
+    if(!res.ok) throw new Error('Drive save failed: ' + res.status);
+    const data = await res.json();
+    if(data.id){
+      driveFileId = data.id;
+      lastSyncAt = Date.now();
+      if(accessToken) setSyncStatus(true);
+    }
+  }catch(e){ console.error(e); }
+}
+function scheduleAutoSync(){
+  if(!accessToken) return;
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(()=>driveSave(), 2500);
+}
+function manualSync(){
+  if(!accessToken){ toast('Connect Google Drive first'); return; }
+  driveLoadAndMerge();
+}
+let periodicPullTimer = null;
+function startPeriodicPull(){
+  clearInterval(periodicPullTimer);
+  periodicPullTimer = setInterval(()=>{
+    if(accessToken && !document.hidden){
+      if(Date.now() > tokenExpiresAt) markSyncPaused(); else driveLoadAndMerge(true);
+    }
+  }, 40000);
+}
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) return;
+  if(accessToken && Date.now() > tokenExpiresAt - 30000){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} return; }
+  if(accessToken) driveLoadAndMerge(true);
+  else if(syncPaused && tokenClient){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} }
+});
+function refreshAllViews(){
+  refreshCustomerDropdowns();
+  renderProducts();
+  renderCustomers();
+  renderDeliveryTab();
+  renderSubscriptionTab();
+  renderSettingsTab();
+}
+
+/* ---------------------------------------------------------------
+   BALANCES: calculated from entries
+--------------------------------------------------------------- */
 function reconcileCustomerBalances(d){
   const tops = {}, dels = {};
   (d.subscriptions||[]).forEach(s=>{ if(s.type!=='charge') tops[s.customerId] = (tops[s.customerId]||0) + s.amount; });
@@ -2725,62 +2767,6 @@ function mergeDB(local, remote){
   if(remote.meta && remote.meta.driveEverConnected) merged.meta.driveEverConnected = true;
   reconcileCustomerBalances(merged);
   return merged;
-}
-async function driveSave(){
-  if(!accessToken) return;
-  try{
-    const id = driveFileId || await driveFindFile();
-    const metadata = { name: DRIVE_FILE_NAME, parents: id?undefined:['appDataFolder'] };
-    const boundary = '-------aavin' + Date.now();
-    const body = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(db)}\r\n--${boundary}--`;
-    const url = id
-      ? `https://www.googleapis.com/upload/drive/v3/files/${id}?uploadType=multipart`
-      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-    const res = await driveFetch(url, {
-      method: id? 'PATCH':'POST',
-      headers:{ 'Content-Type':`multipart/related; boundary=${boundary}` },
-      body
-    });
-    if(!res.ok) throw new Error('Drive save failed: ' + res.status);
-    const data = await res.json();
-    if(data.id){
-      driveFileId = data.id;
-      lastSyncAt = Date.now();
-      if(accessToken) setSyncStatus(true);
-    }
-  }catch(e){ console.error(e); }
-}
-function scheduleAutoSync(){
-  if(!accessToken) return;
-  clearTimeout(autoSyncTimer);
-  autoSyncTimer = setTimeout(()=>driveSave(), 2500);
-}
-function manualSync(){
-  if(!accessToken){ toast('Connect Google Drive first'); return; }
-  driveLoadAndMerge();
-}
-let periodicPullTimer = null;
-function startPeriodicPull(){
-  clearInterval(periodicPullTimer);
-  periodicPullTimer = setInterval(()=>{
-    if(accessToken && !document.hidden){
-      if(Date.now() > tokenExpiresAt) markSyncPaused(); else driveLoadAndMerge(true);
-    }
-  }, 40000);
-}
-document.addEventListener('visibilitychange', ()=>{
-  if(document.hidden) return;
-  if(accessToken && Date.now() > tokenExpiresAt - 30000){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} return; }
-  if(accessToken) driveLoadAndMerge(true);
-  else if(syncPaused && tokenClient){ try{ tokenClient.requestAccessToken({ prompt: '' }); }catch(e){} }
-});
-function refreshAllViews(){
-  refreshCustomerDropdowns();
-  renderProducts();
-  renderCustomers();
-  renderDeliveryTab();
-  renderSubscriptionTab();
-  renderSettingsTab();
 }
 
 /* ---------------------------------------------------------------
