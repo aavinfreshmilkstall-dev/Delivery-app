@@ -429,7 +429,7 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
       <div id="subFormWrap">
         <div class="row2">
           <div class="field"><label>Date</label><input type="date" id="subDate"></div>
-          <div class="field"><label id="subAmountLbl">Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
+          <div class="field"><label>Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
         </div>
         <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
         <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
@@ -1314,7 +1314,6 @@ function onSubCustomerChange(){
 }
 
 function refreshSubEntryOptions(){
-  const mode = document.getElementById('subMode').value;
   const sel = document.getElementById('subEntry');
   const custId = document.getElementById('subCustomer').value;
   const prev = sel.value;
@@ -1348,12 +1347,14 @@ function onSubEntryChange(){
     document.getElementById('subAmount').value = '';
     document.getElementById('subDetails').value = '';
     document.getElementById('subDate').value = todayStr();
+    editingSubscriptionId = null;
     updateSubPreview();
     return;
   }
   const s = db.subscriptions.find(x=>x.id===id);
   if(!s) return;
   
+  editingSubscriptionId = id;
   document.getElementById('subCustomer').value = s.customerId;
   document.getElementById('subDate').value = s.date;
   document.getElementById('subAmount').value = s.amount;
@@ -1392,12 +1393,10 @@ function submitSubscription(){
   if(mode==='edit' && editingSubscriptionId){
     const old = db.subscriptions.find(x=>x.id===editingSubscriptionId);
     if(old){
-      // Revert old balance
       if(old.type!=='charge'){
         const oldCust = db.customers.find(x=>x.id===old.customerId);
         if(oldCust){ oldCust.balance = round2((oldCust.balance||0) + old.amount); oldCust.updatedAt = Date.now(); }
       }
-      // Apply new balance
       const c = db.customers.find(x=>x.id===custId);
       const before = c.balance||0;
       const after = round2(before - amount);
@@ -1413,7 +1412,6 @@ function submitSubscription(){
     }
   }
 
-  // ADD
   const c = db.customers.find(x=>x.id===custId);
   const before = c.balance||0;
   const after = round2(before - amount);
@@ -1427,21 +1425,6 @@ function submitSubscription(){
   updateSubPreview();
   renderCustomers();
   toast('Top-up saved');
-}
-
-function editSubscriptionFromEntry(id){
-  const s = db.subscriptions.find(x=>x.id===id);
-  if(!s) return;
-  editingSubscriptionId = id;
-  document.getElementById('subMode').value = 'edit';
-  onSubModeChange();
-  document.getElementById('subCustomer').value = s.customerId;
-  refreshSubEntryOptions();
-  document.getElementById('subEntry').value = id;
-  document.getElementById('subDate').value = s.date;
-  document.getElementById('subAmount').value = s.amount;
-  document.getElementById('subDetails').value = s.details || '';
-  updateSubPreview();
 }
 
 function deleteSelectedSubscription(){
@@ -1469,8 +1452,6 @@ function cancelSubscriptionEdit(){
   document.getElementById('subAmount').value='';
   document.getElementById('subDetails').value='';
   document.getElementById('subDate').value = todayStr();
-  document.getElementById('subFormMode').style.display = 'none';
-  document.getElementById('subCancelEditBtn').style.display = 'none';
   updateSubPreview();
 }
 
@@ -1528,6 +1509,21 @@ function buildDeliveryMessage(d, modified){
     `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4\u0BAE\u0BCD/Total: ${money(d.total)}\n` +
     `*\u0BAE\u0BC0\u0BA4\u0BBF \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/Remaining Balance: ${money(d.balAfter)}*` +
     (t.footer ? '\n\n' + t.footer : '');
+}
+function buildSubscriptionMessage(s, modified){
+  const isCharge = s.type==='charge';
+  const title = isCharge
+    ? (modified? '\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3 \u0B95\u0BC1\u0BB1\u0BBF\u0BAA\u0BCD\u0BAA\u0BC1')
+    : (modified? '\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 - \u0BA4\u0BBF\u0BB0\u0BC1\u0BA4\u0BCD\u0BA4\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1 (Updated)':'\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0BA4\u0BCA\u0B95\u0BC8 \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F\u0BA4\u0BC1');
+  return `\uD83D\uDCB0 *${title} - Aavin Fresh Milk Stall*\n\n`+
+    `\u0BA4\u0BC7\u0BA4\u0BBF/Date: ${s.date}\n`+
+    `\u0BB5\u0BBE\u0B9F\u0BBF\u0B95\u0BCD\u0B95\u0BC8\u0BAF\u0BBE\u0BB3\u0BB0\u0BCD/Customer: ${s.customerName}\n`+
+    (isCharge
+      ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Monthly charge: ${money(s.amount)}\n`
+      : `\u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BAA\u0BCD\u0BAA\u0B9F\u0BCD\u0B9F \u0BA4\u0BCA\u0B95\u0BC8/Amount added: ${money(s.amount)}\n`)+
+    (s.details? `\u0BB5\u0BBF\u0BB5\u0BB0\u0BAE\u0BCD/Details: ${s.details}\n`:'')+
+    (isCharge ? '' : `\n\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0B87\u0BB0\u0BC1\u0BAA\u0BCD\u0BAA\u0BC1/New balance: ${money(s.balAfter)}\n`)+
+    `\n\u0BA8\u0BA9\u0BCD\u0BB1\u0BBF! \uD83D\uDE4F`;
 }
 function openWhatsApp(message, phone){
   let url = 'https://wa.me/';
@@ -1806,7 +1802,7 @@ function shareDaySummary(){
     `\u0B9F\u0BC6\u0BB2\u0BBF\u0BB5\u0BB0\u0BBF \u0B8E\u0BA3\u0BCD\u0BA3\u0BBF\u0B95\u0BCD\u0B95\u0BC8/Deliveries: ${dToday.length}\n`+
     `\u0BAE\u0BCA\u0BA4\u0BCD\u0BA4 \u0BB5\u0BBF\u0BB1\u0BCD\u0BAA\u0BA9\u0BC8/Total sales: ${money(totalSales)}\n`+
     `\u0B9A\u0BA8\u0BCD\u0BA4\u0BBE \u0B9A\u0BC7\u0BB0\u0BCD\u0B95\u0BCD\u0B95\u0BC8/Top-ups: ${money(totalTopup)} (${sToday.filter(x=>x.type!=='charge').length})\n`+
-    (chargeCount ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BCD/Monthly charges: ${chargeCount}\n` : '')+
+    (chargeCount ? `\u0BAE\u0BBE\u0BA4 \u0B95\u0B9F\u0BCD\u0B9F\u0BA3\u0BAE\u0BBCD/Monthly charges: ${chargeCount}\n` : '')+
     `\nAavin Fresh Milk Stall \uD83E\uDD5B`;
   const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
   window.open(url, '_blank');
