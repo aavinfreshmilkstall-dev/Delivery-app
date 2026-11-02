@@ -1,7 +1,6 @@
 // Bump this number whenever you change index.html, manifest.json, or any cached file.
 // Users will get the new version on their next app open.
-const CACHE_NAME = 'aavin-delivery-shell-v11
-  2';
+const CACHE_NAME = 'aavin-delivery-shell-v12';
 
 // Files that live in your repo — cached on install.
 const SHELL_FILES = [
