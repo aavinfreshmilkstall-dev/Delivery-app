@@ -399,15 +399,16 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
 <section class="tab-panel" id="tab-subscription">
   <div class="section-title">Subscription</div>
   <div class="card">
-    <div class="field">
-      <label>Mode</label>
-      <select id="subMode" onchange="onSubModeChange()">
-        <option value="add">Add Top-up</option>
-        <option value="edit">Edit Top-up</option>
-        <option value="delete">Delete Top-up</option>
-        <option value="view">View Customer Ledger</option>
-      </select>
-    </div>
+  <div class="field">
+  <label>Mode</label>
+  <select id="subMode" onchange="onSubModeChange()">
+    <option value="add">Add Top-up</option>
+    <option value="charge">Monthly Subscription Charge</option> <!-- ADD THIS LINE -->
+    <option value="edit">Edit Top-up</option>
+    <option value="delete">Delete Top-up</option>
+    <option value="view">View Customer Ledger</option>
+  </select>
+</div>
     <div class="field">
       <label>Customer</label>
       <select id="subCustomer" onchange="onSubCustomerChange()"><option value="">-- Select --</option></select>
@@ -1250,17 +1251,17 @@ function onSubModeChange(){
   cancelSubscriptionEdit();
   document.getElementById('subEntry').value = '';
   
-  if(mode==='add'){
-    entryWrap.style.display = 'none';
-    formWrap.style.display = 'block';
-    ledgerTitle.style.display = 'none';
-    ledgerCard.style.display = 'none';
-    btn.textContent = '\uD83D\uDCBE Save Top-up';
-    btn.className = 'btn btn-primary btn-block';
-    document.getElementById('subDate').value = todayStr();
-    document.getElementById('subAmount').value = '';
-    document.getElementById('subDetails').value = '';
-  } 
+ if(mode==='add' || mode==='charge'){
+  entryWrap.style.display = 'none';
+  formWrap.style.display = 'block';
+  ledgerTitle.style.display = 'none';
+  ledgerCard.style.display = 'none';
+  btn.textContent = (mode==='charge') ? '\uD83D\uDCBE Save Charge' : '\uD83D\uDCBE Save Top-up';
+  btn.className = 'btn btn-primary btn-block';
+  document.getElementById('subDate').value = todayStr();
+  document.getElementById('subAmount').value = '';
+  document.getElementById('subDetails').value = '';
+} 
   else if(mode==='edit'){
     entryWrap.style.display = 'block';
     formWrap.style.display = 'block';
@@ -1362,9 +1363,10 @@ function updateSubPreview(){
   if(custId && mode !== 'view' && mode !== 'delete'){
     const c = db.customers.find(x=>x.id===custId);
     const cur = c? (c.balance||0):0;
-    banner.style.display='flex';
-    document.getElementById('subBalCurrent').textContent = money(cur);
-    document.getElementById('subBalAfter').textContent = money(cur - amount);
+ banner.style.display='flex';
+document.getElementById('subBalCurrent').textContent = money(cur);
+const isCharge = (mode === 'charge');
+document.getElementById('subBalAfter').textContent = isCharge ? money(cur + amount) : money(cur - amount);
   } else {
     banner.style.display='none';
   }
@@ -1405,11 +1407,12 @@ if(mode==='edit' && !editingSubscriptionId){ toast('Select the top-up to edit');
   }
 
   const c = db.customers.find(x=>x.id===custId);
-  const before = c.balance||0;
-  const after = round2(before - amount);
-  c.balance = after;
-  c.updatedAt = Date.now();
-  const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type:'topup', balBefore: before, balAfter: after, ts: Date.now() };
+const before = c.balance||0;
+const isCharge = (mode === 'charge');
+const after = isCharge ? round2(before + amount) : round2(before - amount);
+c.balance = after;
+c.updatedAt = Date.now();
+const entry = { id: uid(), date, customerId: custId, customerName: c.name, amount, details, type: isCharge ? 'charge' : 'topup', balBefore: before, balAfter: after, ts: Date.now() };
   db.subscriptions.unshift(entry);
   saveDB();
   document.getElementById('subAmount').value='';
