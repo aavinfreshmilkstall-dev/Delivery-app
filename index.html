@@ -1294,6 +1294,10 @@ function onSubModeChange(){
 function onSubCustomerChange(){
   const mode = document.getElementById('subMode').value;
   if(mode==='edit' || mode==='delete'){
+    editingSubscriptionId = null;
+    document.getElementById('subEntry').value = '';
+    document.getElementById('subAmount').value = '';
+    document.getElementById('subDetails').value = '';
     refreshSubEntryOptions();
   } else if(mode==='view'){
     viewCustomerLedger();
@@ -1376,6 +1380,7 @@ function submitSubscription(){
   if(!amount){ toast('Enter an amount'); return; }
   const details = document.getElementById('subDetails').value.trim();
   const date = document.getElementById('subDate').value || todayStr();
+if(mode==='edit' && !editingSubscriptionId){ toast('Select the top-up to edit'); return; }
 
   if(mode==='edit' && editingSubscriptionId){
     const old = db.subscriptions.find(x=>x.id===editingSubscriptionId);
