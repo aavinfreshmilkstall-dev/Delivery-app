@@ -2803,5 +2803,14 @@ function init(){
 }
 window.addEventListener('load', init);
 </script>
+  // Auto-reload when a new service worker takes over
+if ('serviceWorker' in navigator) {
+  let refreshing;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
 </body>
 </html>
