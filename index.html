@@ -429,8 +429,8 @@ nav.bottombar button.active .ic{transform:translateY(-1px);}
         <div class="field"><label>Amount (&#8377;)</label><input type="number" id="subAmount" placeholder="0" oninput="updateSubPreview()"></div>
       </div>
       <div class="field"><label>Details</label><input id="subDetails" placeholder="e.g. Monthly plan, cash paid"></div>
-      <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
     </div>
+    <button class="btn btn-primary btn-block" id="subActionBtn" onclick="submitSubscription()">&#128190; Save Top-up</button>
   </div>
 
   <div class="section-title" id="viewLedgerTitle" style="display:none">Customer Ledger (View Mode)</div>
@@ -1248,6 +1248,8 @@ function onSubModeChange(){
   const ledgerTitle = document.getElementById('viewLedgerTitle');
   const ledgerCard = document.getElementById('viewLedgerCard');
   const btn = document.getElementById('subActionBtn');
+  // Keep the action button available in Delete mode; hide it only in View mode.
+  btn.style.display = mode === 'view' ? 'none' : 'block';
   
   cancelSubscriptionEdit();
   document.getElementById('subEntry').value = '';
@@ -1278,9 +1280,9 @@ function onSubModeChange(){
     formWrap.style.display = 'none';
     ledgerTitle.style.display = 'none';
     ledgerCard.style.display = 'none';
-    btn.textContent = '\uD83D\uDDD1 Delete Top-up';
+    btn.textContent = '\uD83D\uDDD1 Delete Selected Entry';
     btn.className = 'btn btn-danger btn-block';
-    document.getElementById('subEntryLabel').textContent = 'Top-up to delete';
+    document.getElementById('subEntryLabel').textContent = 'Subscription entry to delete';
     refreshSubEntryOptions();
   } 
   else if(mode==='view'){
